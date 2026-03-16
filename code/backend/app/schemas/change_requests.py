@@ -1,0 +1,45 @@
+import uuid
+from datetime import datetime
+
+from pydantic import BaseModel
+
+from app.models.change_request import CRStatus
+from app.schemas.common import PaginatedResponse
+
+
+class CRCreate(BaseModel):
+    title: str
+    body: str
+    assignee_id: uuid.UUID | None = None
+    target_files: list[str] | None = None
+
+
+class CRUpdate(BaseModel):
+    title: str | None = None
+    body: str | None = None
+    assignee_id: uuid.UUID | None = None
+    target_files: list[str] | None = None
+
+
+class CRTransition(BaseModel):
+    status: CRStatus
+
+
+class CRResponse(BaseModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    title: str
+    body: str
+    status: CRStatus
+    author_id: uuid.UUID
+    assignee_id: uuid.UUID | None = None
+    target_files: list[str] | None = None
+    closed_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class CRListResponse(PaginatedResponse[CRResponse]):
+    pass
