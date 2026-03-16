@@ -154,7 +154,7 @@ export interface AuditLogEntry {
 }
 
 export interface SearchResult {
-  type: 'project' | 'change_request' | 'bug' | 'document';
+  type: 'project' | 'change_request' | 'bug' | 'document' | 'audit_log';
   id: string;
   title: string;
   snippet?: string;
