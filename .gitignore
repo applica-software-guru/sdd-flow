@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+*.egg
+
+# Node
+node_modules/
+dist/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.pytest_cache/
+test-results/
+playwright-report/
+blob-report/
+
+# Playwright MCP logs
+.playwright-mcp/
+
+# Build
+*.pyc
+
+# Screenshots (temporary)
+*.png
+
+# Claude memory (project-specific)
+.claude/
+
+# Alembic cache
+alembic/__pycache__/
