@@ -14,7 +14,7 @@ GitHub Actions runs frontend and backend tests on every push to `main` and on al
 
 ## Workflow File
 
-`.github/workflows/ci.yml` (inside `code/`)
+`.github/workflows/ci.yml` (project root)
 
 ### Triggers
 
