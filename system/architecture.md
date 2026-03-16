@@ -118,7 +118,7 @@ sdd-flow/
 - **GitHub Actions** runs pytest (backend) and Vitest (frontend) on every push to `main` and on all pull requests
 - Backend tests use a **PostgreSQL service container** for integration testing against a real database
 - Frontend and backend jobs run **in parallel** for faster feedback
-- Workflow defined in `.github/workflows/ci.yml`
+- Workflow defined in `.github/workflows/ci.yml` at the project root
 
 ### Deployment
 
