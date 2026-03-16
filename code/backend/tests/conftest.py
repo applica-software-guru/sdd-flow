@@ -8,7 +8,6 @@ Strategy:
   tests can call authenticated endpoints without real JWT tokens.
 """
 
-import asyncio
 import uuid
 from collections.abc import AsyncGenerator
 
@@ -29,26 +28,14 @@ from app.models.project import Project
 
 
 # ---------------------------------------------------------------------------
-# Session-scoped event loop so all tests share the same loop and engine
+# Engine / session factory
 # ---------------------------------------------------------------------------
 
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create a session-scoped event loop."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
-# ---------------------------------------------------------------------------
-# Engine / session factory (session-scoped, tied to the event loop above)
-# ---------------------------------------------------------------------------
-
-@pytest.fixture(scope="session")
-def _engine():
+@pytest_asyncio.fixture(scope="session")
+async def _engine():
     eng = create_async_engine(settings.DATABASE_URL, echo=False, future=True)
     yield eng
-    # Can't do async cleanup in sync fixture — engine will be GC'd
+    await eng.dispose()
 
 
 @pytest_asyncio.fixture
@@ -169,6 +156,10 @@ async def client(
     ):
         return test_member
 
+    async def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
     app.dependency_overrides[get_current_tenant_member] = override_get_current_tenant_member
 
