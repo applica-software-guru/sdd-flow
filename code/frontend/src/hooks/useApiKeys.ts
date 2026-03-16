@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
+import { useToast } from '../context/ToastContext';
 import type { ApiKey } from '../types';
 
 export function useApiKeys(
@@ -20,6 +21,7 @@ export function useApiKeys(
 
 export function useCreateApiKey(tenantId: string, projectId: string) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: { name: string }) => {
       const { data } = await api.post(
@@ -32,6 +34,10 @@ export function useCreateApiKey(tenantId: string, projectId: string) {
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'api-keys'],
       });
+      addToast('API key created', 'success');
+    },
+    onError: () => {
+      addToast('Failed to create API key', 'error');
     },
   });
 }
@@ -42,6 +48,7 @@ export function useRevokeApiKey(
   keyId: string
 ) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async () => {
       await api.delete(
@@ -52,6 +59,10 @@ export function useRevokeApiKey(
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'api-keys'],
       });
+      addToast('API key revoked', 'success');
+    },
+    onError: () => {
+      addToast('Failed to revoke API key', 'error');
     },
   });
 }

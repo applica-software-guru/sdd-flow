@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
+import { useToast } from '../context/ToastContext';
 import type { ChangeRequest, PaginatedResponse } from '../types';
 
 interface CRFilters {
@@ -53,6 +54,7 @@ export function useChangeRequest(
 
 export function useCreateCR(tenantId: string, projectId: string) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: {
       title: string;
@@ -69,6 +71,10 @@ export function useCreateCR(tenantId: string, projectId: string) {
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'crs'],
       });
+      addToast('Change request created', 'success');
+    },
+    onError: () => {
+      addToast('Failed to create change request', 'error');
     },
   });
 }
@@ -79,6 +85,7 @@ export function useUpdateCR(
   crId: string
 ) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: {
       title?: string;
@@ -95,6 +102,10 @@ export function useUpdateCR(
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'crs'],
       });
+      addToast('Change request updated', 'success');
+    },
+    onError: () => {
+      addToast('Failed to update change request', 'error');
     },
   });
 }
@@ -105,6 +116,7 @@ export function useTransitionCR(
   crId: string
 ) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: { status: string }) => {
       const { data } = await api.post(
@@ -117,6 +129,10 @@ export function useTransitionCR(
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'crs'],
       });
+      addToast('Status updated', 'success');
+    },
+    onError: () => {
+      addToast('Failed to update status', 'error');
     },
   });
 }

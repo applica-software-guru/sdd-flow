@@ -1,6 +1,6 @@
 ---
 title: "Toast Notifications"
-status: new
+status: synced
 author: "roberto"
 last-modified: "2026-03-16T23:15:00.000Z"
 version: "1.0"
