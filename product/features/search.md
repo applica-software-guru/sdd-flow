@@ -2,8 +2,8 @@
 title: "Search & Filtering"
 status: synced
 author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.0"
+last-modified: "2026-03-17T00:00:00.000Z"
+version: "1.1"
 ---
 
 # Search & Filtering
@@ -17,8 +17,10 @@ Global search and per-entity filtering allow users to quickly find CRs, bugs, an
 ### Global Search
 
 - Search bar in the header, accessible from any page
-- Searches across: CR titles/bodies, bug titles/bodies, documentation content
-- Results grouped by type (CRs, Bugs, Docs) with project name shown
+- Searches across: projects, CR titles/bodies, bug titles/bodies, documentation content, and audit log entries (event type and details)
+- Results grouped by type (Projects, Docs, CRs, Bugs, Audit Log) with project name shown
+- Horizontal filter tabs in the search modal: **All**, **Projects**, **Docs**, **CRs**, **Bugs**, **Audit Log**
+- Each result row shows an icon matching its entity type
 - Keyboard shortcut: `Cmd+K` / `Ctrl+K`
 
 ### Entity Filters
