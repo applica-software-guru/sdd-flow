@@ -113,6 +113,13 @@ sdd-flow/
 - The drawer closes on backdrop tap, close button, or navigation (route change)
 - The drawer supports dark mode via `dark:` variant classes
 
+### CI Pipeline: GitHub Actions
+
+- **GitHub Actions** runs pytest (backend) and Vitest (frontend) on every push to `main` and on all pull requests
+- Backend tests use a **PostgreSQL service container** for integration testing against a real database
+- Frontend and backend jobs run **in parallel** for faster feedback
+- Workflow defined in `.github/workflows/ci.yml`
+
 ### Deployment
 
 - **Docker Compose** for local development and self-hosted deployment

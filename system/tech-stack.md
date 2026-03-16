@@ -44,6 +44,7 @@ version: "1.0"
 | Docker | Containerization |
 | Docker Compose | Multi-service orchestration |
 | nginx | Static file serving (frontend in production) |
+| GitHub Actions | CI pipeline — runs tests on push/PR |
 
 ## Development
 
