@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
+import { useToast } from '../context/ToastContext';
 import type { Comment } from '../types';
 
 export function useComments(
@@ -27,6 +28,7 @@ export function useAddComment(
   entityId: string
 ) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: { body: string }) => {
       const { data } = await api.post(
@@ -47,6 +49,10 @@ export function useAddComment(
           'comments',
         ],
       });
+      addToast('Comment added', 'success');
+    },
+    onError: () => {
+      addToast('Failed to add comment', 'error');
     },
   });
 }
@@ -57,6 +63,7 @@ export function useUpdateComment(
   commentId: string
 ) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: { body: string }) => {
       const { data } = await api.patch(
@@ -69,6 +76,10 @@ export function useUpdateComment(
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId],
       });
+      addToast('Comment updated', 'success');
+    },
+    onError: () => {
+      addToast('Failed to update comment', 'error');
     },
   });
 }

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
+import { useToast } from '../context/ToastContext';
 import type { Bug, PaginatedResponse } from '../types';
 
 interface BugFilters {
@@ -55,6 +56,7 @@ export function useBug(
 
 export function useCreateBug(tenantId: string, projectId: string) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: {
       title: string;
@@ -72,6 +74,10 @@ export function useCreateBug(tenantId: string, projectId: string) {
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'bugs'],
       });
+      addToast('Bug reported successfully', 'success');
+    },
+    onError: () => {
+      addToast('Failed to report bug', 'error');
     },
   });
 }
@@ -82,6 +88,7 @@ export function useUpdateBug(
   bugId: string
 ) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: {
       title?: string;
@@ -99,6 +106,10 @@ export function useUpdateBug(
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'bugs'],
       });
+      addToast('Bug updated', 'success');
+    },
+    onError: () => {
+      addToast('Failed to update bug', 'error');
     },
   });
 }
@@ -109,6 +120,7 @@ export function useTransitionBug(
   bugId: string
 ) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: { status: string }) => {
       const { data } = await api.post(
@@ -121,6 +133,10 @@ export function useTransitionBug(
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'bugs'],
       });
+      addToast('Status updated', 'success');
+    },
+    onError: () => {
+      addToast('Failed to update status', 'error');
     },
   });
 }

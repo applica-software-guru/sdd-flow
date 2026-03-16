@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
+import { useToast } from '../context/ToastContext';
 import type { DocumentFile } from '../types';
 
 export function useDocs(
@@ -37,6 +38,7 @@ export function useDoc(
 
 export function useCreateDoc(tenantId: string, projectId: string) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: {
       title: string;
@@ -55,6 +57,10 @@ export function useCreateDoc(tenantId: string, projectId: string) {
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'docs'],
       });
+      addToast('Document created', 'success');
+    },
+    onError: () => {
+      addToast('Failed to create document', 'error');
     },
   });
 }
@@ -65,6 +71,7 @@ export function useUpdateDoc(
   docId: string
 ) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: {
       title?: string;
@@ -81,6 +88,10 @@ export function useUpdateDoc(
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'docs'],
       });
+      addToast('Document saved', 'success');
+    },
+    onError: () => {
+      addToast('Failed to save document', 'error');
     },
   });
 }
@@ -91,6 +102,7 @@ export function useDeleteDoc(
   docId: string
 ) {
   const queryClient = useQueryClient();
+  const { addToast } = useToast();
   return useMutation({
     mutationFn: async () => {
       await api.delete(
@@ -101,6 +113,10 @@ export function useDeleteDoc(
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'projects', projectId, 'docs'],
       });
+      addToast('Document deleted', 'success');
+    },
+    onError: () => {
+      addToast('Failed to delete document', 'error');
     },
   });
 }
