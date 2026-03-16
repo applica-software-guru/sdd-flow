@@ -4,6 +4,7 @@ import { useCurrentUser, useLogout } from '../hooks/useAuth';
 import TenantSwitcher from './TenantSwitcher';
 import NotificationBell from './NotificationBell';
 import SearchModal from './SearchModal';
+import ThemeToggle from './ThemeToggle';
 
 export default function Layout() {
   const { tenantId, projectId } = useParams();
@@ -31,8 +32,8 @@ export default function Layout() {
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
       isActive
-        ? 'bg-blue-50 text-blue-700'
-        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+        ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
     }`;
 
   return (
@@ -40,13 +41,13 @@ export default function Layout() {
       <SearchModal />
 
       {/* Top navbar */}
-      <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4">
+      <header className="flex h-14 flex-shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 dark:border-slate-700 dark:bg-slate-800">
         <div className="flex items-center gap-4">
           <NavLink to="/tenants" className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
               S
             </div>
-            <span className="text-lg font-bold text-slate-900">SDD Flow</span>
+            <span className="text-lg font-bold text-slate-900 dark:text-white">SDD Flow</span>
           </NavLink>
           <div className="hidden sm:block">
             <TenantSwitcher />
@@ -60,7 +61,7 @@ export default function Layout() {
                 new KeyboardEvent('keydown', { key: 'k', metaKey: true })
               );
             }}
-            className="hidden items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-50 sm:flex"
+            className="hidden items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600 sm:flex"
           >
             <svg
               className="h-4 w-4"
@@ -76,18 +77,19 @@ export default function Layout() {
               />
             </svg>
             Search...
-            <kbd className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">
+            <kbd className="rounded bg-slate-100 px-1.5 py-0.5 text-xs dark:bg-slate-600">
               Cmd+K
             </kbd>
           </button>
 
+          <ThemeToggle />
           <NotificationBell />
 
           {/* User menu */}
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center gap-2 rounded-md p-1.5 hover:bg-slate-100"
+              className="flex items-center gap-2 rounded-md p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700"
             >
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
                 {user?.display_name
@@ -98,16 +100,16 @@ export default function Layout() {
               </div>
             </button>
             {userMenuOpen && (
-              <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
-                <div className="border-b border-slate-100 px-4 py-2">
-                  <p className="text-sm font-medium text-slate-900">
+              <div className="absolute right-0 top-full z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                <div className="border-b border-slate-100 px-4 py-2 dark:border-slate-700">
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {user?.display_name}
                   </p>
-                  <p className="text-xs text-slate-500">{user?.email}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-slate-50"
+                  className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-slate-50 dark:text-red-400 dark:hover:bg-slate-700"
                 >
                   <svg
                     className="h-4 w-4"
@@ -132,7 +134,7 @@ export default function Layout() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="hidden w-56 flex-shrink-0 border-r border-slate-200 bg-white lg:block">
+        <aside className="hidden w-56 flex-shrink-0 border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 lg:block">
           <nav className="flex flex-col gap-1 p-3">
             {tenantId && (
               <>
@@ -204,7 +206,7 @@ export default function Layout() {
 
                 {projectId && (
                   <>
-                    <div className="my-2 border-t border-slate-200" />
+                    <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
                     <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
                       Project
                     </p>
@@ -322,7 +324,7 @@ export default function Layout() {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto bg-slate-50 p-6">
+        <main className="flex-1 overflow-y-auto bg-slate-50 p-6 dark:bg-slate-900">
           <Outlet />
         </main>
       </div>

@@ -32,7 +32,7 @@ export default function CRDetailPage() {
 
   if (!cr) {
     return (
-      <div className="py-16 text-center text-sm text-slate-500">
+      <div className="py-16 text-center text-sm text-slate-500 dark:text-slate-400">
         Change request not found
       </div>
     );
@@ -56,7 +56,7 @@ export default function CRDetailPage() {
       <div>
         <Link
           to={`/tenants/${tenantId}/projects/${projectId}/crs`}
-          className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+          className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -65,13 +65,13 @@ export default function CRDetailPage() {
         </Link>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-5">
+      <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="border-b border-slate-200 px-6 py-5 dark:border-slate-700">
           <div className="flex items-start justify-between gap-4">
-            <h1 className="text-xl font-bold text-slate-900">{cr.title}</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{cr.title}</h1>
             <StatusBadge status={cr.status} />
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-500">
+          <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
             <span>Created {new Date(cr.created_at).toLocaleDateString()}</span>
           </div>
         </div>
@@ -82,8 +82,8 @@ export default function CRDetailPage() {
 
         {/* Status transitions */}
         {availableTransitions.length > 0 && (
-          <div className="border-t border-slate-200 px-6 py-4">
-            <p className="mb-2 text-sm font-medium text-slate-700">
+          <div className="border-t border-slate-200 px-6 py-4 dark:border-slate-700">
+            <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
               Transition to:
             </p>
             <div className="flex flex-wrap gap-2">
@@ -92,7 +92,7 @@ export default function CRDetailPage() {
                   key={status}
                   onClick={() => handleTransition(status)}
                   disabled={transitionCR.isPending}
-                  className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                  className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
                   {status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
                 </button>
@@ -103,15 +103,15 @@ export default function CRDetailPage() {
       </div>
 
       {/* Comments */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="font-semibold text-slate-900">
+      <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">
             Comments ({comments?.length || 0})
           </h2>
         </div>
 
         {comments && comments.length > 0 ? (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-700">
             {comments.map((comment) => (
               <div key={comment.id} className="px-6 py-4">
                 <div className="flex items-center gap-2 text-sm">
@@ -129,7 +129,7 @@ export default function CRDetailPage() {
             ))}
           </div>
         ) : (
-          <div className="px-6 py-8 text-center text-sm text-slate-500">
+          <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
             No comments yet
           </div>
         )}
@@ -137,14 +137,14 @@ export default function CRDetailPage() {
         {/* Add comment */}
         <form
           onSubmit={handleComment}
-          className="border-t border-slate-200 px-6 py-4"
+          className="border-t border-slate-200 px-6 py-4 dark:border-slate-700"
         >
           <textarea
             value={commentBody}
             onChange={(e) => setCommentBody(e.target.value)}
             placeholder="Write a comment..."
             rows={3}
-            className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
           />
           <div className="mt-3 flex justify-end">
             <button

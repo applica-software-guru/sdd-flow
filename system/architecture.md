@@ -1,6 +1,6 @@
 ---
 title: "Architecture Decisions"
-status: changed
+status: synced
 author: ""
 last-modified: "2026-03-16T22:30:00.000Z"
 version: "1.2"

@@ -29,10 +29,10 @@ export default function CRListPage() {
     <div className="mx-auto max-w-5xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             Change Requests
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Track and manage change requests for this project
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function CRListPage() {
             setStatus(e.target.value);
             setPage(1);
           }}
-          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -74,14 +74,14 @@ export default function CRListPage() {
           ))}
         </select>
         {data && (
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-slate-500 dark:text-slate-400">
             {data.total} result{data.total !== 1 ? 's' : ''}
           </span>
         )}
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+      <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
@@ -97,33 +97,33 @@ export default function CRListPage() {
           />
         ) : (
           <>
-            <table className="min-w-full divide-y divide-slate-200">
+            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
               <thead>
-                <tr className="bg-slate-50">
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                <tr className="bg-slate-50 dark:bg-slate-700/50">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Title
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Status
                   </th>
-                  <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 sm:table-cell">
+                  <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 sm:table-cell dark:text-slate-400">
                     Author
                   </th>
-                  <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 md:table-cell">
+                  <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 md:table-cell dark:text-slate-400">
                     Assignee
                   </th>
-                  <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 lg:table-cell">
+                  <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 lg:table-cell dark:text-slate-400">
                     Created
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
                 {data.items.map((cr) => (
-                  <tr key={cr.id} className="hover:bg-slate-50">
+                  <tr key={cr.id} className="hover:bg-slate-50 dark:hover:bg-slate-700">
                     <td className="px-6 py-4">
                       <Link
                         to={`/tenants/${tenantId}/projects/${projectId}/crs/${cr.id}`}
-                        className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                        className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         {cr.title}
                       </Link>
@@ -131,13 +131,13 @@ export default function CRListPage() {
                     <td className="px-6 py-4">
                       <StatusBadge status={cr.status} />
                     </td>
-                    <td className="hidden px-6 py-4 text-sm text-slate-500 sm:table-cell">
+                    <td className="hidden px-6 py-4 text-sm text-slate-500 sm:table-cell dark:text-slate-400">
                       {'--'}
                     </td>
-                    <td className="hidden px-6 py-4 text-sm text-slate-500 md:table-cell">
+                    <td className="hidden px-6 py-4 text-sm text-slate-500 md:table-cell dark:text-slate-400">
                       {'--'}
                     </td>
-                    <td className="hidden px-6 py-4 text-sm text-slate-500 lg:table-cell">
+                    <td className="hidden px-6 py-4 text-sm text-slate-500 lg:table-cell dark:text-slate-400">
                       {new Date(cr.created_at).toLocaleDateString()}
                     </td>
                   </tr>

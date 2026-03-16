@@ -24,7 +24,7 @@ export default function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="relative rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+        className="relative rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
       >
         <svg
           className="h-5 w-5"
@@ -46,15 +46,15 @@ export default function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-80 rounded-md border border-slate-200 bg-white shadow-lg">
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-            <h3 className="text-sm font-semibold text-slate-900">
+        <div className="absolute right-0 top-full z-50 mt-1 w-80 rounded-md border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800">
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-700">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               Notifications
             </h3>
             {unreadCount > 0 && (
               <button
                 onClick={() => markAllRead.mutate()}
-                className="text-xs text-blue-600 hover:text-blue-700"
+                className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Mark all read
               </button>
@@ -62,7 +62,7 @@ export default function NotificationBell() {
           </div>
           <div className="max-h-80 overflow-y-auto">
             {!notifications || notifications.length === 0 ? (
-              <div className="px-4 py-8 text-center text-sm text-slate-500">
+              <div className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
                 No notifications
               </div>
             ) : (
@@ -71,7 +71,6 @@ export default function NotificationBell() {
                   key={notif.id}
                   notification={notif}
                   onClick={() => {
-                    // TODO: Add navigation based on entity_type/entity_id
                     setOpen(false);
                   }}
                 />
@@ -99,12 +98,12 @@ function NotificationItem({
         if (!notification.read_at) markRead.mutate();
         onClick();
       }}
-      className={`flex w-full flex-col gap-1 px-4 py-3 text-left hover:bg-slate-50 ${
-        !notification.read_at ? 'bg-blue-50/50' : ''
+      className={`flex w-full flex-col gap-1 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700 ${
+        !notification.read_at ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''
       }`}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-medium text-slate-900">
+        <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
           {notification.title}
         </span>
         {!notification.read_at && (

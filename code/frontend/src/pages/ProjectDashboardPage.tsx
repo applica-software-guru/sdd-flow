@@ -32,9 +32,9 @@ export default function ProjectDashboardPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">{project?.name}</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{project?.name}</h1>
         {project?.description && (
-          <p className="mt-1 text-sm text-slate-500">{project.description}</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{project.description}</p>
         )}
       </div>
 
@@ -42,12 +42,12 @@ export default function ProjectDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <Link
           to={`/tenants/${tenantId}/projects/${projectId}/crs`}
-          className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm hover:border-blue-300 transition-colors"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm hover:border-blue-300 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-900/30">
               <svg
-                className="h-5 w-5 text-indigo-600"
+                className="h-5 w-5 text-indigo-600 dark:text-indigo-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
@@ -61,20 +61,20 @@ export default function ProjectDashboardPage() {
               </svg>
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{totalCRs}</p>
-              <p className="text-sm text-slate-500">Change Requests</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalCRs}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Change Requests</p>
             </div>
           </div>
         </Link>
 
         <Link
           to={`/tenants/${tenantId}/projects/${projectId}/bugs`}
-          className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm hover:border-blue-300 transition-colors"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm hover:border-blue-300 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/30">
               <svg
-                className="h-5 w-5 text-red-600"
+                className="h-5 w-5 text-red-600 dark:text-red-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
@@ -88,20 +88,20 @@ export default function ProjectDashboardPage() {
               </svg>
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{totalBugs}</p>
-              <p className="text-sm text-slate-500">Bugs</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalBugs}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Bugs</p>
             </div>
           </div>
         </Link>
 
         <Link
           to={`/tenants/${tenantId}/projects/${projectId}/docs`}
-          className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm hover:border-blue-300 transition-colors"
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm hover:border-blue-300 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
               <svg
-                className="h-5 w-5 text-green-600"
+                className="h-5 w-5 text-green-600 dark:text-green-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={1.5}
@@ -115,43 +115,43 @@ export default function ProjectDashboardPage() {
               </svg>
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">{totalDocs}</p>
-              <p className="text-sm text-slate-500">Documents</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalDocs}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Documents</p>
             </div>
           </div>
         </Link>
       </div>
 
       {/* Recent CRs */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <h2 className="font-semibold text-slate-900">
+      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">
             Recent Change Requests
           </h2>
           <Link
             to={`/tenants/${tenantId}/projects/${projectId}/crs`}
-            className="text-sm text-blue-600 hover:text-blue-700"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
           >
             View all
           </Link>
         </div>
         {crs.length === 0 ? (
-          <div className="px-6 py-8 text-center text-sm text-slate-500">
+          <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
             No change requests yet
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-700">
             {crs.map((cr) => (
               <Link
                 key={cr.id}
                 to={`/tenants/${tenantId}/projects/${projectId}/crs/${cr.id}`}
-                className="flex items-center justify-between px-6 py-3 hover:bg-slate-50"
+                className="flex items-center justify-between px-6 py-3 hover:bg-slate-50 dark:hover:bg-slate-700"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-900">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                     {cr.title}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     by on{' '}
                     {new Date(cr.created_at).toLocaleDateString()}
                   </p>
@@ -164,33 +164,33 @@ export default function ProjectDashboardPage() {
       </div>
 
       {/* Recent Bugs */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-          <h2 className="font-semibold text-slate-900">Recent Bugs</h2>
+      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">Recent Bugs</h2>
           <Link
             to={`/tenants/${tenantId}/projects/${projectId}/bugs`}
-            className="text-sm text-blue-600 hover:text-blue-700"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
           >
             View all
           </Link>
         </div>
         {bugs.length === 0 ? (
-          <div className="px-6 py-8 text-center text-sm text-slate-500">
+          <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
             No bugs reported yet
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-700">
             {bugs.map((bug) => (
               <Link
                 key={bug.id}
                 to={`/tenants/${tenantId}/projects/${projectId}/bugs/${bug.id}`}
-                className="flex items-center justify-between px-6 py-3 hover:bg-slate-50"
+                className="flex items-center justify-between px-6 py-3 hover:bg-slate-50 dark:hover:bg-slate-700"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-slate-900">
+                  <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                     {bug.title}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     by on{' '}
                     {new Date(bug.created_at).toLocaleDateString()}
                   </p>

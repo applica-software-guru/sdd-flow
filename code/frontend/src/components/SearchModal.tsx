@@ -41,8 +41,8 @@ export default function SearchModal() {
         className="fixed inset-0 bg-black/50"
         onClick={() => setOpen(false)}
       />
-      <div className="relative z-50 w-full max-w-lg rounded-xl bg-white shadow-2xl">
-        <div className="flex items-center border-b border-slate-200 px-4">
+      <div className="relative z-50 w-full max-w-lg rounded-xl bg-white shadow-2xl dark:bg-slate-800">
+        <div className="flex items-center border-b border-slate-200 px-4 dark:border-slate-700">
           <svg
             className="h-5 w-5 text-slate-400"
             fill="none"
@@ -61,10 +61,10 @@ export default function SearchModal() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search projects, CRs, bugs, docs..."
-            className="flex-1 border-0 px-4 py-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0"
+            className="flex-1 border-0 bg-transparent px-4 py-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 dark:text-slate-100 dark:placeholder-slate-500"
             autoFocus
           />
-          <kbd className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+          <kbd className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500 dark:bg-slate-700 dark:text-slate-400">
             Esc
           </kbd>
         </div>
@@ -75,12 +75,12 @@ export default function SearchModal() {
             </div>
           )}
           {!isLoading && results && results.length === 0 && query.length >= 2 && (
-            <div className="py-8 text-center text-sm text-slate-500">
-              No results found for "{query}"
+            <div className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+              No results found for &ldquo;{query}&rdquo;
             </div>
           )}
           {query.length < 2 && (
-            <div className="py-8 text-center text-sm text-slate-500">
+            <div className="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
               Type at least 2 characters to search
             </div>
           )}
@@ -91,17 +91,17 @@ export default function SearchModal() {
                 navigate(result.url);
                 setOpen(false);
               }}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-slate-50"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-slate-50 dark:hover:bg-slate-700"
             >
-              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 capitalize">
+              <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 capitalize dark:bg-slate-700 dark:text-slate-400">
                 {result.type.replace('_', ' ')}
               </span>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-slate-900">
+                <div className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                   {result.title}
                 </div>
                 {result.snippet && (
-                  <div className="truncate text-xs text-slate-500">
+                  <div className="truncate text-xs text-slate-500 dark:text-slate-400">
                     {result.snippet}
                   </div>
                 )}
