@@ -2,8 +2,8 @@
 title: "Architecture Decisions"
 status: synced
 author: ""
-last-modified: "2026-03-16T22:30:00.000Z"
-version: "1.2"
+last-modified: "2026-03-16T23:00:00.000Z"
+version: "1.3"
 ---
 
 # Architecture Decisions
@@ -104,6 +104,14 @@ sdd-flow/
 - **ThemeProvider context** manages the current theme state, OS preference detection, and localStorage persistence
 - **ThemeToggle component** in the header provides Light / Dark / System options
 - The markdown editor (`@uiw/react-md-editor`) uses the `data-color-mode` prop bound to the resolved theme
+
+### Responsive Navigation
+
+- The desktop sidebar is hidden below the `lg` breakpoint
+- A **hamburger menu button** appears in the header on small screens (`lg:hidden`)
+- Tapping it opens a **slide-over drawer** from the left with the full sidebar navigation, tenant switcher, and a close button
+- The drawer closes on backdrop tap, close button, or navigation (route change)
+- The drawer supports dark mode via `dark:` variant classes
 
 ### Deployment
 
