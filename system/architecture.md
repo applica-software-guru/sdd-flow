@@ -1,9 +1,9 @@
 ---
 title: "Architecture Decisions"
-status: synced
+status: changed
 author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.1"
+last-modified: "2026-03-16T22:30:00.000Z"
+version: "1.2"
 ---
 
 # Architecture Decisions
@@ -97,6 +97,13 @@ sdd-flow/
 - Credentials are printed to stdout so the operator can log in
 - If users already exist, the seed is skipped silently
 - Implemented in `app/services/seed.py`, triggered via the FastAPI lifespan hook in `app/main.py`
+
+### Theming: Tailwind Dark Mode
+
+- **Dark mode strategy**: `darkMode: 'class'` in Tailwind config — a `dark` class on `<html>` activates all `dark:` variants
+- **ThemeProvider context** manages the current theme state, OS preference detection, and localStorage persistence
+- **ThemeToggle component** in the header provides Light / Dark / System options
+- The markdown editor (`@uiw/react-md-editor`) uses the `data-color-mode` prop bound to the resolved theme
 
 ### Deployment
 
