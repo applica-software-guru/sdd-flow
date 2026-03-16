@@ -54,48 +54,48 @@ export default function ProjectSettingsPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Project Settings</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Project Settings</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Configure your project details and API keys
         </p>
       </div>
 
       {/* General */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">General</h2>
+      <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">General</h2>
         </div>
         <form onSubmit={handleUpdateProject} className="space-y-4 p-6">
           {updateProject.isSuccess && (
-            <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
+            <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
               Project updated successfully
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-slate-700">Name</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Slug</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Slug</label>
             <input
               type="text"
               value={projectSlug}
               onChange={(e) => setProjectSlug(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700">Description</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
             />
           </div>
           <div className="flex justify-end">
@@ -111,15 +111,15 @@ export default function ProjectSettingsPage() {
       </div>
 
       {/* API Keys */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-slate-900">API Keys</h2>
+      <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+        <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">API Keys</h2>
         </div>
 
-        <form onSubmit={handleCreateKey} className="border-b border-slate-200 px-6 py-4">
+        <form onSubmit={handleCreateKey} className="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Key name
               </label>
               <input
@@ -127,7 +127,7 @@ export default function ProjectSettingsPage() {
                 value={newKeyName}
                 onChange={(e) => setNewKeyName(e.target.value)}
                 placeholder="e.g., CI/CD Pipeline"
-                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
                 required
               />
             </div>
@@ -140,32 +140,32 @@ export default function ProjectSettingsPage() {
             </button>
           </div>
           {createdKey && (
-            <div className="mt-3 rounded-md bg-green-50 p-3">
-              <p className="text-sm font-medium text-green-800">
+            <div className="mt-3 rounded-md bg-green-50 p-3 dark:bg-green-900/30">
+              <p className="text-sm font-medium text-green-800 dark:text-green-400">
                 API key created! Copy it now -- it will not be shown again.
               </p>
-              <code className="mt-1 block break-all rounded bg-green-100 p-2 text-xs font-mono text-green-900">
+              <code className="mt-1 block break-all rounded bg-green-100 p-2 text-xs font-mono text-green-900 dark:bg-green-900/50 dark:text-green-300">
                 {createdKey}
               </code>
             </div>
           )}
         </form>
 
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-slate-100 dark:divide-slate-700">
           {keysLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
             </div>
           ) : !apiKeys || apiKeys.length === 0 ? (
-            <div className="px-6 py-8 text-center text-sm text-slate-500">
+            <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
               No API keys yet
             </div>
           ) : (
             apiKeys.map((key) => (
               <div key={key.id} className="flex items-center justify-between px-6 py-3">
                 <div>
-                  <p className="text-sm font-medium text-slate-900">{key.name}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{key.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {key.key_prefix}... | Created{' '}
                     {new Date(key.created_at).toLocaleDateString()}
                     {key.last_used_at &&
@@ -174,12 +174,12 @@ export default function ProjectSettingsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {key.revoked_at && (
-                    <span className="text-xs text-slate-500">Revoked</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">Revoked</span>
                   )}
                   {!key.revoked_at && (
                     <button
                       onClick={() => setRevokingKeyId(key.id)}
-                      className="text-sm text-red-600 hover:text-red-700"
+                      className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                     >
                       Revoke
                     </button>
@@ -192,18 +192,18 @@ export default function ProjectSettingsPage() {
       </div>
 
       {/* Danger zone */}
-      <div className="rounded-lg border border-red-200 bg-white shadow-sm">
-        <div className="border-b border-red-200 px-6 py-4">
-          <h2 className="text-lg font-semibold text-red-900">Danger Zone</h2>
+      <div className="rounded-lg border border-red-200 bg-white shadow-sm dark:border-red-800 dark:bg-slate-800">
+        <div className="border-b border-red-200 px-6 py-4 dark:border-red-800">
+          <h2 className="text-lg font-semibold text-red-900 dark:text-red-400">Danger Zone</h2>
         </div>
         <div className="p-6">
           {project?.is_archived ? (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-900">
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                   Restore project
                 </p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   This project is currently archived
                 </p>
               </div>
@@ -217,10 +217,10 @@ export default function ProjectSettingsPage() {
           ) : (
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-slate-900">
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                   Archive project
                 </p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   Archived projects are read-only and hidden from the dashboard
                 </p>
               </div>

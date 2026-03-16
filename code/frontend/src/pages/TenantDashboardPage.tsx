@@ -61,7 +61,7 @@ export default function TenantDashboardPage() {
     return (
       <div className="mx-auto max-w-2xl">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             Select a Tenant
           </h1>
           <Link
@@ -90,14 +90,14 @@ export default function TenantDashboardPage() {
             <Link
               key={t.id}
               to={`/tenants/${t.id}`}
-              className="flex items-center gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+              className="flex items-center gap-4 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-sm font-bold text-blue-700">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30 text-sm font-bold text-blue-700 dark:text-blue-400">
                 {t.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h3 className="font-semibold text-slate-900">{t.name}</h3>
-                <p className="text-sm text-slate-500">{t.slug}</p>
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100">{t.name}</h3>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{t.slug}</p>
               </div>
             </Link>
           ))}
@@ -121,10 +121,10 @@ export default function TenantDashboardPage() {
     <div className="mx-auto max-w-5xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             {tenant?.name || 'Dashboard'}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Manage your projects and track progress
           </p>
         </div>
@@ -168,10 +168,10 @@ export default function TenantDashboardPage() {
             <Link
               key={project.id}
               to={`/tenants/${tenantId}/projects/${project.id}`}
-              className="group rounded-lg border border-slate-200 bg-white p-5 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
+              className="group rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm hover:border-blue-300 hover:shadow-md transition-all"
             >
               <div className="flex items-start justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 group-hover:bg-blue-100">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/50">
                   <svg
                     className="h-5 w-5"
                     fill="none"
@@ -187,18 +187,18 @@ export default function TenantDashboardPage() {
                   </svg>
                 </div>
                 {project.is_archived && (
-                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                  <span className="rounded-full bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                     Archived
                   </span>
                 )}
               </div>
-              <h3 className="mt-3 font-semibold text-slate-900">
+              <h3 className="mt-3 font-semibold text-slate-900 dark:text-slate-100">
                 {project.name}
               </h3>
-              <p className="mt-1 text-sm text-slate-500 line-clamp-2">
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 line-clamp-2">
                 {project.description || 'No description'}
               </p>
-              <div className="mt-4 flex items-center gap-3 text-xs text-slate-400">
+              <div className="mt-4 flex items-center gap-3 text-xs text-slate-400 dark:text-slate-500">
                 <span>{project.slug}</span>
                 <span>
                   Updated{' '}

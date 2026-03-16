@@ -32,7 +32,7 @@ export default function CreateProjectPage() {
       <div className="mb-6">
         <Link
           to={`/tenants/${tenantId}`}
-          className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+          className="inline-flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
         >
           <svg
             className="h-4 w-4"
@@ -49,18 +49,18 @@ export default function CreateProjectPage() {
           </svg>
           Back to dashboard
         </Link>
-        <h1 className="mt-4 text-2xl font-bold text-slate-900">
+        <h1 className="mt-4 text-2xl font-bold text-slate-900 dark:text-slate-100">
           Create a new project
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Projects help you organize change requests, bugs, and documentation
         </p>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-4">
           {createProject.isError && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+            <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-3 text-sm text-red-700 dark:text-red-400">
               Failed to create project. The slug may already be taken.
             </div>
           )}
@@ -68,7 +68,7 @@ export default function CreateProjectPage() {
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               Project name
             </label>
@@ -78,7 +78,7 @@ export default function CreateProjectPage() {
               required
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm dark:text-slate-100 shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="My Project"
             />
           </div>
@@ -86,7 +86,7 @@ export default function CreateProjectPage() {
           <div>
             <label
               htmlFor="slug"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               Slug
             </label>
@@ -96,10 +96,10 @@ export default function CreateProjectPage() {
               required
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm dark:text-slate-100 shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="my-project"
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               URL-friendly identifier. Only lowercase letters, numbers, and
               hyphens.
             </p>
@@ -108,7 +108,7 @@ export default function CreateProjectPage() {
           <div>
             <label
               htmlFor="description"
-              className="block text-sm font-medium text-slate-700"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               Description (optional)
             </label>
@@ -117,7 +117,7 @@ export default function CreateProjectPage() {
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm dark:text-slate-100 shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
               placeholder="A brief description of the project"
             />
           </div>
@@ -125,7 +125,7 @@ export default function CreateProjectPage() {
           <div className="flex justify-end gap-3 pt-2">
             <Link
               to={`/tenants/${tenantId}`}
-              className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600"
             >
               Cancel
             </Link>

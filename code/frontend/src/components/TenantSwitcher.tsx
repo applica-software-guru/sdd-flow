@@ -25,10 +25,10 @@ export default function TenantSwitcher() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+        className="flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
       >
         <svg
-          className="h-4 w-4 text-slate-500"
+          className="h-4 w-4 text-slate-500 dark:text-slate-400"
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={1.5}
@@ -56,7 +56,7 @@ export default function TenantSwitcher() {
         </svg>
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-md border border-slate-200 bg-white py-1 shadow-lg">
+        <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-md border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
           {tenants?.map((tenant) => (
             <button
               key={tenant.id}
@@ -64,22 +64,22 @@ export default function TenantSwitcher() {
                 navigate(`/tenants/${tenant.id}`);
                 setOpen(false);
               }}
-              className={`flex w-full items-center px-4 py-2 text-sm hover:bg-slate-50 ${
+              className={`flex w-full items-center px-4 py-2 text-sm hover:bg-slate-50 dark:hover:bg-slate-700 ${
                 tenant.id === tenantId
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-slate-700'
+                  ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                  : 'text-slate-700 dark:text-slate-300'
               }`}
             >
               {tenant.name}
             </button>
           ))}
-          <div className="border-t border-slate-100 mt-1 pt-1">
+          <div className="border-t border-slate-100 mt-1 pt-1 dark:border-slate-700">
             <button
               onClick={() => {
                 navigate('/tenants/new');
                 setOpen(false);
               }}
-              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-slate-50"
+              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-slate-50 dark:text-blue-400 dark:hover:bg-slate-700"
             >
               <svg
                 className="h-4 w-4"

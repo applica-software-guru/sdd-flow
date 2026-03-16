@@ -1,6 +1,6 @@
 ---
 title: "Theme — Light / Dark Mode"
-status: new
+status: synced
 author: "roberto"
 last-modified: "2026-03-16T22:30:00.000Z"
 version: "1.0"
