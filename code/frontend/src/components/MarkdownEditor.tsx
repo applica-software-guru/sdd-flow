@@ -15,12 +15,12 @@ export default function MarkdownEditor({
   const { resolvedTheme } = useTheme();
 
   return (
-    <div data-color-mode={resolvedTheme} className="mt-1">
+    <div data-color-mode={resolvedTheme} className="mt-1 md-editor-custom">
       <MDEditor
         value={value}
         onChange={(val) => onChange(val ?? '')}
         height={height}
-        preview="live"
+        preview="edit"
       />
     </div>
   );
