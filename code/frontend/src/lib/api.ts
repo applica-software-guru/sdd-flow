@@ -46,7 +46,8 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError);
-        if (window.location.pathname !== '/login') {
+        const publicPaths = ['/', '/login', '/register'];
+        if (!publicPaths.includes(window.location.pathname)) {
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);
