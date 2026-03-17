@@ -11,9 +11,9 @@ from app.models.bug import Bug, BugStatus
 from app.models.change_request import CRStatus, ChangeRequest
 from app.models.document_file import DocStatus, DocumentFile
 from app.models.project import Project
-from app.schemas.bugs import BugResponse
-from app.schemas.change_requests import CRResponse
-from app.schemas.docs import DocBulkRequest, DocBulkResponse, DocResponse
+from app.schemas.bugs import BugEnrichRequest, BugResponse
+from app.schemas.change_requests import CREnrichRequest, CRResponse
+from app.schemas.docs import DocBulkRequest, DocBulkResponse, DocEnrichRequest, DocResponse
 
 router = APIRouter(prefix="/cli", tags=["cli"])
 
@@ -26,7 +26,7 @@ async def pending_crs(
     result = await db.execute(
         select(ChangeRequest).where(
             ChangeRequest.project_id == project.id,
-            ChangeRequest.status.in_([CRStatus.draft, CRStatus.approved]),
+            ChangeRequest.status.in_([CRStatus.draft, CRStatus.pending, CRStatus.approved]),
         ).order_by(ChangeRequest.created_at.desc())
     )
     return result.scalars().all()
@@ -40,7 +40,7 @@ async def open_bugs(
     result = await db.execute(
         select(Bug).where(
             Bug.project_id == project.id,
-            Bug.status.in_([BugStatus.open, BugStatus.in_progress]),
+            Bug.status.in_([BugStatus.draft, BugStatus.open, BugStatus.in_progress]),
         ).order_by(Bug.created_at.desc())
     )
     return result.scalars().all()
@@ -148,3 +148,73 @@ async def pull_docs(
         ).order_by(DocumentFile.path)
     )
     return result.scalars().all()
+
+
+@router.post("/docs/{doc_id}/enriched", response_model=DocResponse)
+async def mark_doc_enriched(
+    doc_id: uuid.UUID,
+    body: DocEnrichRequest,
+    project: Project = Depends(get_api_key_project),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(DocumentFile).where(
+            DocumentFile.id == doc_id,
+            DocumentFile.project_id == project.id,
+        )
+    )
+    doc = result.scalar_one_or_none()
+    if doc is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+
+    doc.content = body.content
+    doc.status = DocStatus.new
+    doc.version += 1
+    await db.flush()
+    await db.refresh(doc)
+    return doc
+
+
+@router.post("/crs/{cr_id}/enriched", response_model=CRResponse)
+async def mark_cr_enriched(
+    cr_id: uuid.UUID,
+    body: CREnrichRequest,
+    project: Project = Depends(get_api_key_project),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(ChangeRequest).where(
+            ChangeRequest.id == cr_id,
+            ChangeRequest.project_id == project.id,
+        )
+    )
+    cr = result.scalar_one_or_none()
+    if cr is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Change request not found")
+
+    cr.body = body.body
+    cr.status = CRStatus.pending
+    await db.flush()
+    await db.refresh(cr)
+    return cr
+
+
+@router.post("/bugs/{bug_id}/enriched", response_model=BugResponse)
+async def mark_bug_enriched(
+    bug_id: uuid.UUID,
+    body: BugEnrichRequest,
+    project: Project = Depends(get_api_key_project),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Bug).where(Bug.id == bug_id, Bug.project_id == project.id)
+    )
+    bug = result.scalar_one_or_none()
+    if bug is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
+
+    bug.body = body.body
+    bug.status = BugStatus.open
+    await db.flush()
+    await db.refresh(bug)
+    return bug
