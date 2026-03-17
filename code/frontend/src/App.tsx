@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -19,6 +19,7 @@ import BugDetailPage from './pages/BugDetailPage';
 import DocsTreePage from './pages/DocsTreePage';
 import DocViewPage from './pages/DocViewPage';
 import AuditLogPage from './pages/AuditLogPage';
+import LandingPage from './pages/LandingPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -37,6 +38,7 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           {/* Public routes */}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
 
@@ -48,7 +50,6 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/" element={<Navigate to="/tenants" replace />} />
             <Route path="/tenants" element={<TenantDashboardPage />} />
             <Route path="/tenants/new" element={<CreateTenantPage />} />
             <Route
