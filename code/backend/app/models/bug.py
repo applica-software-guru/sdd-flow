@@ -10,6 +10,7 @@ from app.db.base import Base, UUIDMixin, TimestampMixin
 
 
 class BugStatus(str, enum.Enum):
+    draft = "draft"
     open = "open"
     in_progress = "in_progress"
     resolved = "resolved"

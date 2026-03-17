@@ -11,6 +11,7 @@ from app.db.base import Base, UUIDMixin, TimestampMixin
 
 class CRStatus(str, enum.Enum):
     draft = "draft"
+    pending = "pending"
     approved = "approved"
     rejected = "rejected"
     applied = "applied"

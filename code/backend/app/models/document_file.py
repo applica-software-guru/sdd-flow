@@ -10,6 +10,7 @@ from app.db.base import Base, UUIDMixin, TimestampMixin
 
 
 class DocStatus(str, enum.Enum):
+    draft = "draft"
     new = "new"
     changed = "changed"
     synced = "synced"
