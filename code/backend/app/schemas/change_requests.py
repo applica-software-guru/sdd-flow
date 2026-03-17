@@ -43,3 +43,7 @@ class CRResponse(BaseModel):
 
 class CRListResponse(PaginatedResponse[CRResponse]):
     pass
+
+
+class CREnrichRequest(BaseModel):
+    body: str

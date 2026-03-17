@@ -43,3 +43,7 @@ class BugResponse(BaseModel):
 
 class BugListResponse(PaginatedResponse[BugResponse]):
     pass
+
+
+class BugEnrichRequest(BaseModel):
+    body: str

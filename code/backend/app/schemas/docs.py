@@ -47,3 +47,7 @@ class DocBulkResponse(BaseModel):
     created: int
     updated: int
     documents: list[DocResponse]
+
+
+class DocEnrichRequest(BaseModel):
+    content: str
