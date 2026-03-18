@@ -3,7 +3,7 @@ title: "API Interfaces"
 status: synced
 author: ""
 last-modified: "2026-03-17T00:00:00.000Z"
-version: "1.1"
+version: "1.2"
 ---
 
 # API Interfaces
@@ -14,6 +14,59 @@ All endpoints return JSON. Errors use the format:
 ```json
 { "detail": "Error message" }
 ```
+
+---
+
+## Environment Configuration Interface
+
+This project uses immutable container images with runtime configuration injected by environment variables.
+
+### Backend runtime variables
+
+Required:
+
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `FRONTEND_URL`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI`
+
+Optional:
+
+- `AUTH_COOKIE_SECURE` (`true` for HTTPS deployments)
+- `AUTH_COOKIE_SAMESITE` (`lax` default; configurable for cross-site flows)
+
+### Frontend container runtime variables
+
+Required:
+
+- `NGINX_SERVER_NAME` (default `_`)
+- `BACKEND_UPSTREAM` (default `backend:8000`)
+
+Optional:
+
+- `PUBLIC_APP_DOMAIN`
+
+### Canonical/alias compatibility rules
+
+- Canonical names are the variables listed above.
+- If `APP_DOMAIN` is provided for compatibility:
+	- `FRONTEND_URL` takes precedence when both exist.
+	- If only `APP_DOMAIN` is set, derive `FRONTEND_URL=https://<APP_DOMAIN>`.
+- Legacy aliases remain supported for at least one release cycle with deprecation warnings.
+
+### Validation behavior
+
+- Backend startup must fail fast when required variables are missing.
+- Frontend container startup must fail fast when required runtime proxy/domain parameters are missing.
+- Validation errors must list missing variable names explicitly.
+
+### Public config vs secret classification
+
+- Public/runtime-safe: `FRONTEND_URL`, `NGINX_SERVER_NAME`, `BACKEND_UPSTREAM`, `PUBLIC_APP_DOMAIN`.
+- Secret: `JWT_SECRET`, `GOOGLE_CLIENT_SECRET`, API tokens and other credentials.
+- OAuth access tokens are dynamic flow outputs and are not static environment variables.
 
 ---
 

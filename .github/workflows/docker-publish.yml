@@ -1,0 +1,122 @@
+name: docker-publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Manual tag override
+        required: false
+        default: ""
+      push_images:
+        description: Push images to registry
+        type: boolean
+        required: false
+        default: true
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+  pull_request:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GAR_LOCATION: ${{ vars.GAR_LOCATION || 'europe-west1' }}
+  REGISTRY: ${{ format('{0}-docker.pkg.dev', vars.GAR_LOCATION || 'europe-west1') }}
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY || 'sdd-flow' }}
+  IMAGE_NAME_BACKEND: ${{ vars.IMAGE_NAME_BACKEND || 'sdd-flow-backend' }}
+  IMAGE_NAME_FRONTEND: ${{ vars.IMAGE_NAME_FRONTEND || 'sdd-flow-frontend' }}
+
+jobs:
+  validate-config-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate runtime config templates exist
+        run: |
+          test -f code/backend/.env.example
+          test -f code/frontend/.env.example
+          test -f code/deploy/env.template
+
+      - name: Validate required backend runtime keys
+        run: |
+          for key in DATABASE_URL JWT_SECRET FRONTEND_URL; do
+            grep -q "^${key}=" code/backend/.env.example
+          done
+
+      - name: Validate required frontend runtime keys
+        run: |
+          for key in NGINX_SERVER_NAME BACKEND_UPSTREAM; do
+            grep -q "^${key}=" code/frontend/.env.example
+          done
+
+  build-and-publish:
+    runs-on: ubuntu-latest
+    needs: validate-config-docs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Authenticate to Google Cloud
+        if: github.event_name != 'pull_request' && (github.event.inputs.push_images != 'false')
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        if: github.event_name != 'pull_request' && (github.event.inputs.push_images != 'false')
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for GAR
+        if: github.event_name != 'pull_request' && (github.event.inputs.push_images != 'false')
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Backend metadata
+        id: backend_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.IMAGE_NAME_BACKEND }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short,prefix=rev-
+
+      - name: Frontend metadata
+        id: frontend_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.IMAGE_NAME_FRONTEND }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short,prefix=rev-
+
+      - name: Build and optionally push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: code/backend
+          file: code/backend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' && (github.event.inputs.push_images != 'false') }}
+          tags: ${{ steps.backend_meta.outputs.tags }}
+          labels: ${{ steps.backend_meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and optionally push frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: code/frontend
+          file: code/frontend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' && (github.event.inputs.push_images != 'false') }}
+          tags: ${{ steps.frontend_meta.outputs.tags }}
+          labels: ${{ steps.frontend_meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -2,8 +2,8 @@
 title: "Tech Stack"
 status: synced
 author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.0"
+last-modified: "2026-03-17T00:00:00.000Z"
+version: "1.1"
 ---
 
 # Tech Stack
@@ -45,6 +45,9 @@ version: "1.0"
 | Docker Compose | Multi-service orchestration |
 | nginx | Static file serving (frontend in production) |
 | GitHub Actions | CI pipeline — runs tests on push/PR |
+| docker/build-push-action | Build and publish multi-service container images |
+| docker/metadata-action | Deterministic tags and OCI labels for images |
+| GHCR / Docker Hub | Container registry for deployment artifacts |
 
 ## Development
 

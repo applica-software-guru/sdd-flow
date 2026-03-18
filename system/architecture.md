@@ -2,8 +2,8 @@
 title: "Architecture Decisions"
 status: synced
 author: ""
-last-modified: "2026-03-16T23:00:00.000Z"
-version: "1.3"
+last-modified: "2026-03-17T00:00:00.000Z"
+version: "1.4"
 ---
 
 # Architecture Decisions
@@ -119,6 +119,29 @@ sdd-flow/
 - Backend tests use a **PostgreSQL service container** for integration testing against a real database
 - Frontend and backend jobs run **in parallel** for faster feedback
 - Workflow defined in `.github/workflows/ci.yml` at the project root
+
+### Container Artifact Flow: Build Once, Configure at Runtime
+
+- CI builds backend/frontend images and publishes them to registry (`ghcr.io`/Docker Hub/private registry)
+- Deployments consume immutable image tags and inject environment-specific runtime parameters
+- Same image tag is promoted across environments (`dev` -> `staging` -> `prod`) by changing runtime configuration, not rebuilding
+- Runtime config boundary:
+	- Image content is environment-agnostic
+	- Domain, OAuth, JWT, DB URL, and proxy upstream values come from deployment environment
+
+### Runtime Config Compatibility Rules
+
+- Canonical backend runtime variables: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+- If `APP_DOMAIN` is introduced, compatibility mapping must be explicit:
+	- If both `APP_DOMAIN` and `FRONTEND_URL` exist, `FRONTEND_URL` takes precedence
+	- If only `APP_DOMAIN` exists, derive `FRONTEND_URL=https://<APP_DOMAIN>`
+- Legacy variable names remain supported for at least one release cycle with deprecation warnings
+
+### Frontend Runtime Injection
+
+- Frontend production image is static (nginx) and must not require rebuild per environment
+- Runtime values are injected at container startup (entrypoint template + generated runtime config)
+- NGINX upstream and server_name are runtime-configurable via env vars
 
 ### Deployment
 

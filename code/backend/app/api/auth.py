@@ -21,6 +21,15 @@ from app.services.auth import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
+def _cookie_options(max_age_seconds: int) -> dict[str, bool | str | int]:
+    return {
+        "httponly": True,
+        "samesite": settings.AUTH_COOKIE_SAMESITE,
+        "secure": settings.AUTH_COOKIE_SECURE,
+        "max_age": max_age_seconds,
+    }
+
+
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register(body: RegisterRequest, response: Response, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(User).where(User.email == body.email))
@@ -33,18 +42,12 @@ async def register(body: RegisterRequest, response: Response, db: AsyncSession =
     response.set_cookie(
         key="access_token",
         value=access_token,
-        httponly=True,
-        samesite="lax",
-        secure=False,
-        max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        **_cookie_options(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
-        httponly=True,
-        samesite="lax",
-        secure=False,
-        max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+        **_cookie_options(settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400),
     )
     return user
 
@@ -60,18 +63,12 @@ async def login(body: LoginRequest, response: Response, db: AsyncSession = Depen
     response.set_cookie(
         key="access_token",
         value=access_token,
-        httponly=True,
-        samesite="lax",
-        secure=False,
-        max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        **_cookie_options(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh_token,
-        httponly=True,
-        samesite="lax",
-        secure=False,
-        max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+        **_cookie_options(settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400),
     )
     return user
 
@@ -92,10 +89,7 @@ async def refresh(
     response.set_cookie(
         key="access_token",
         value=new_access,
-        httponly=True,
-        samesite="lax",
-        secure=False,
-        max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        **_cookie_options(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
     )
     return {"detail": "Token refreshed"}
 
@@ -119,6 +113,8 @@ async def logout(
 
 @router.get("/google")
 async def google_login():
+    if not settings.ENABLE_GOOGLE_OAUTH:
+        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth disabled")
     if not settings.GOOGLE_CLIENT_ID:
         raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth not configured")
     params = {
@@ -138,6 +134,8 @@ async def google_callback(
     response: Response,
     db: AsyncSession = Depends(get_db),
 ):
+    if not settings.ENABLE_GOOGLE_OAUTH:
+        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth disabled")
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
         raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth not configured")
 
@@ -172,18 +170,12 @@ async def google_callback(
     response.set_cookie(
         key="access_token",
         value=access_token,
-        httponly=True,
-        samesite="lax",
-        secure=False,
-        max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        **_cookie_options(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
     )
     response.set_cookie(
         key="refresh_token",
         value=refresh_tok,
-        httponly=True,
-        samesite="lax",
-        secure=False,
-        max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+        **_cookie_options(settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400),
     )
     return UserResponse.model_validate(user)
 
