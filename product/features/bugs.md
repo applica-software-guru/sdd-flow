@@ -46,10 +46,12 @@ open → in-progress → resolved → closed
 ### Bug Detail View
 
 - Full markdown body rendered
+- Shared markdown viewer with GFM support (tables, task lists, syntax-highlighted code blocks, heading anchors)
 - Status badge and transition buttons
 - Severity indicator
 - Assignment
 - Activity log
+- Comments are rendered with the same shared markdown viewer for consistent formatting
 
 ### Bug Assignment
 

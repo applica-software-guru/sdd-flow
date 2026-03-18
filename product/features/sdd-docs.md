@@ -24,6 +24,8 @@ SDD Flow stores the full SDD documentation tree (`product/` and `system/` files)
 
 - Render markdown files with full formatting
 - Edit files inline with a markdown editor
+- Viewer supports GitHub-flavored markdown (tables, task lists, and fenced code blocks with syntax highlighting)
+- Markdown editing uses a monospaced font stack for better technical authoring readability
 - Frontmatter is parsed and shown as metadata (status, version, author)
 - On save, version is patch-bumped and last-modified is updated automatically
 

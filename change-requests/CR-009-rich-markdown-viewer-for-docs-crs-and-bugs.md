@@ -1,6 +1,6 @@
 ---
 title: "Upgrade markdown viewing experience for docs, change requests, and bugs"
-status: draft
+status: applied
 author: "roberto"
 created-at: "2026-03-18T00:00:00.000Z"
 ---
