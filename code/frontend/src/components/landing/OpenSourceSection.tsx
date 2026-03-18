@@ -17,7 +17,7 @@ export default function OpenSourceSection() {
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a
-            href="https://github.com/AplUSoftwareGuru/sdd-flow"
+            href="https://github.com/applica-software-guru/sdd-flow"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-900 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
@@ -28,7 +28,7 @@ export default function OpenSourceSection() {
             View on GitHub
           </a>
           <a
-            href="https://github.com/AplUSoftwareGuru/sdd-flow#docker"
+            href="https://github.com/applica-software-guru/sdd-flow#docker"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-3 text-base font-semibold text-slate-900 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"

@@ -23,7 +23,7 @@ async def seed_admin_user(db: AsyncSession) -> None:
     password = secrets.token_urlsafe(16)
 
     user = User(
-        email="admin@sddflow.dev",
+        email="roberto.conterosito@applica.guru",
         display_name="Admin",
         password_hash=hash_password(password),
         email_verified=True,
