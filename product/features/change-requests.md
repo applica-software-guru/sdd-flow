@@ -46,9 +46,11 @@ draft → approved → applied → closed
 ### CR Detail View
 
 - Full markdown body rendered
+- Shared markdown viewer with GFM support (tables, task lists, syntax-highlighted code blocks, heading anchors)
 - Status badge and transition buttons
 - Assignment (who should review/apply)
 - Activity log (status changes, comments)
+- Comments are rendered with the same shared markdown viewer for consistent formatting
 
 ### CR Review
 
