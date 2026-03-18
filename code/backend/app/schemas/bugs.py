@@ -47,3 +47,21 @@ class BugListResponse(PaginatedResponse[BugResponse]):
 
 class BugEnrichRequest(BaseModel):
     body: str
+
+
+class BugBulkItem(BaseModel):
+    path: str
+    title: str
+    body: str
+    severity: BugSeverity = BugSeverity.minor
+    id: uuid.UUID | None = None
+
+
+class BugBulkRequest(BaseModel):
+    bugs: list[BugBulkItem]
+
+
+class BugBulkResponse(BaseModel):
+    created: int
+    updated: int
+    bugs: list[BugResponse]

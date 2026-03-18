@@ -47,3 +47,20 @@ class CRListResponse(PaginatedResponse[CRResponse]):
 
 class CREnrichRequest(BaseModel):
     body: str
+
+
+class CRBulkItem(BaseModel):
+    path: str
+    title: str
+    body: str
+    id: uuid.UUID | None = None
+
+
+class CRBulkRequest(BaseModel):
+    change_requests: list[CRBulkItem]
+
+
+class CRBulkResponse(BaseModel):
+    created: int
+    updated: int
+    change_requests: list[CRResponse]
