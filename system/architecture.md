@@ -126,15 +126,15 @@ sdd-flow/
 - Deployments consume immutable image tags and inject environment-specific runtime parameters
 - Same image tag is promoted across environments (`dev` -> `staging` -> `prod`) by changing runtime configuration, not rebuilding
 - Runtime config boundary:
-	- Image content is environment-agnostic
-	- Domain, OAuth, JWT, DB URL, and proxy upstream values come from deployment environment
+  - Image content is environment-agnostic
+  - Domain, OAuth, JWT, DB URL, and proxy upstream values come from deployment environment
 
 ### Runtime Config Compatibility Rules
 
 - Canonical backend runtime variables: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
 - If `APP_DOMAIN` is introduced, compatibility mapping must be explicit:
-	- If both `APP_DOMAIN` and `FRONTEND_URL` exist, `FRONTEND_URL` takes precedence
-	- If only `APP_DOMAIN` exists, derive `FRONTEND_URL=https://<APP_DOMAIN>`
+  - If both `APP_DOMAIN` and `FRONTEND_URL` exist, `FRONTEND_URL` takes precedence
+  - If only `APP_DOMAIN` exists, derive `FRONTEND_URL=https://<APP_DOMAIN>`
 - Legacy variable names remain supported for at least one release cycle with deprecation warnings
 
 ### Frontend Runtime Injection
