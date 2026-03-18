@@ -39,7 +39,28 @@ jobs:
         working-directory: code/frontend
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          BACKEND_ORIGIN: ${{ vars.BACKEND_ORIGIN || 'https://sdd-flow-backend-i2oevdkzpq-ew.a.run.app' }}
         run: npm run build
+
+      - name: Generate Pages edge proxy worker
+        working-directory: code/frontend
+        env:
+          BACKEND_ORIGIN: ${{ vars.BACKEND_ORIGIN || 'https://sdd-flow-backend-i2oevdkzpq-ew.a.run.app' }}
+        run: |
+          cat > dist/_worker.js <<'EOF'
+          export default {
+            async fetch(request, env) {
+              const url = new URL(request.url);
+              if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/auth/')) {
+                const upstream = new URL(url.pathname + url.search, '__BACKEND_ORIGIN__');
+                return fetch(new Request(upstream.toString(), request));
+              }
+              return env.ASSETS.fetch(request);
+            },
+          };
+          EOF
+          sed -i.bak "s|__BACKEND_ORIGIN__|${BACKEND_ORIGIN}|g" dist/_worker.js
+          rm -f dist/_worker.js.bak
 
       - name: Publish to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
@@ -50,5 +71,3 @@ jobs:
             pages deploy code/frontend/dist
             --project-name=${{ env.CLOUDFLARE_PROJECT_NAME }}
             --branch=main
-            --functions=code/frontend/functions
-            --var BACKEND_ORIGIN:${{ env.BACKEND_ORIGIN }}
