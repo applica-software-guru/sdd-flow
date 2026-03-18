@@ -129,6 +129,8 @@ async def push_docs(
             created += 1
 
     await db.flush()
+    for doc in docs:
+        await db.refresh(doc)
     return DocBulkResponse(
         created=created,
         updated=updated,
