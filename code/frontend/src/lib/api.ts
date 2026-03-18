@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() || '/api/v1';
+const REFRESH_ENDPOINT = `${API_BASE_URL.replace(/\/$/, '')}/auth/refresh`;
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE_URL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -41,7 +44,7 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await axios.post('/api/v1/auth/refresh', {}, { withCredentials: true });
+        await axios.post(REFRESH_ENDPOINT, {}, { withCredentials: true });
         processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
