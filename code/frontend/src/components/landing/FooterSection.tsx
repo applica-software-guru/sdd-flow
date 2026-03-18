@@ -55,8 +55,8 @@ export default function FooterSection() {
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">Developers</h3>
               <ul className="mt-4 space-y-2">
-                <li><a href="https://github.com/AplUSoftwareGuru/sdd" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">SDD CLI</a></li>
-                <li><a href="https://github.com/AplUSoftwareGuru/sdd-flow" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">GitHub</a></li>
+                <li><a href="https://github.com/applica-software-guru/sdd" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">SDD CLI</a></li>
+                <li><a href="https://github.com/applica-software-guru/sdd-flow" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-white transition-colors">GitHub</a></li>
               </ul>
             </div>
 

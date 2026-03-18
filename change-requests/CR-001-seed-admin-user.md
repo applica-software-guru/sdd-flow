@@ -16,7 +16,7 @@ When the application starts for the first time, there is no user account availab
 Add a startup routine in the backend that runs on application boot. On first launch (when the `users` table is empty), it should:
 
 1. Create a default admin user with:
-   - Email: `admin@sddflow.dev`
+  - Email: `roberto.conterosito@applica.guru`
    - Password: randomly generated (16 chars)
    - Display name: `Admin`
    - `email_verified`: true
@@ -29,7 +29,7 @@ Add a startup routine in the backend that runs on application boot. On first lau
   SDD Flow — First Run Setup
 ============================================
   Admin account created:
-    Email:    admin@sddflow.dev
+    Email:    roberto.conterosito@applica.guru
     Password: <random-password>
 
   Default tenant: "Default"

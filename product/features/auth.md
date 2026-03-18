@@ -59,7 +59,7 @@ Roles are assigned **per tenant**. A user can have different roles in different 
 
 On first startup (when no users exist), the backend automatically creates:
 
-- **Admin user**: `admin@sddflow.dev` with a randomly generated password
+- **Admin user**: `roberto.conterosito@applica.guru` with a randomly generated password
 - **Default tenant**: "Default" (slug: `default`) with the admin as Owner
 - Credentials are printed to stdout on the backend console
 - The admin should change the password after first login
