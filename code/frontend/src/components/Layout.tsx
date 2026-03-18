@@ -209,7 +209,7 @@ export default function Layout() {
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                     {user?.display_name}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
+                  <p className="truncate text-xs text-slate-500 dark:text-slate-400" title={user?.email}>{user?.email}</p>
                 </div>
                 <button
                   onClick={handleLogout}
