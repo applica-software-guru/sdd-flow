@@ -132,7 +132,6 @@ async def google_login():
 @router.get("/google/callback")
 async def google_callback(
     code: str,
-    response: Response,
     db: AsyncSession = Depends(get_db),
 ):
     if not settings.ENABLE_GOOGLE_OAUTH:
@@ -168,17 +167,18 @@ async def google_callback(
     user = await get_or_create_google_user(db, google_user)
     access_token, refresh_tok = await create_tokens(db, user.id)
 
-    response.set_cookie(
+    redirect = RedirectResponse(url="/tenants", status_code=302)
+    redirect.set_cookie(
         key="access_token",
         value=access_token,
         **_cookie_options(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
     )
-    response.set_cookie(
+    redirect.set_cookie(
         key="refresh_token",
         value=refresh_tok,
         **_cookie_options(settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400),
     )
-    return UserResponse.model_validate(user)
+    return redirect
 
 
 @router.get("/me", response_model=UserResponse)
