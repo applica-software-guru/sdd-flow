@@ -101,7 +101,7 @@ export default function LoginPage() {
             </div>
 
             <a
-              href="/auth/google"
+              href="/api/v1/auth/google"
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-600"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24">
