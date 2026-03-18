@@ -105,6 +105,7 @@ Current publishing strategy:
 ### Bugs
 
 - BUG-001: [bugs/BUG-001-landing-page-redirect-to-login.md](bugs/BUG-001-landing-page-redirect-to-login.md)
+- BUG-002: [bugs/BUG-002-user-menu-long-email-overflows-container.md](bugs/BUG-002-user-menu-long-email-overflows-container.md)
 
 ### Code and Runtime Assets
 
