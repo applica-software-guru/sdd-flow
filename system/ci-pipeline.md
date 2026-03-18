@@ -34,15 +34,16 @@ For `.github/workflows/docker-publish.yml`:
 
 ### `backend-tests`
 
-| Setting | Value |
-|---------|-------|
-| Runner | `ubuntu-latest` |
-| Python | 3.12 |
-| Package manager | `uv` |
-| Test runner | `pytest` |
-| Database | PostgreSQL service container |
+| Setting         | Value                        |
+| --------------- | ---------------------------- |
+| Runner          | `ubuntu-latest`              |
+| Python          | 3.12                         |
+| Package manager | `uv`                         |
+| Test runner     | `pytest`                     |
+| Database        | PostgreSQL service container |
 
 Steps:
+
 1. Checkout code
 2. Set up Python 3.12
 3. Install `uv`
@@ -51,14 +52,15 @@ Steps:
 
 ### `frontend-tests`
 
-| Setting | Value |
-|---------|-------|
-| Runner | `ubuntu-latest` |
-| Node.js | LTS |
-| Package manager | `npm` |
-| Test runner | Vitest |
+| Setting         | Value           |
+| --------------- | --------------- |
+| Runner          | `ubuntu-latest` |
+| Node.js         | LTS             |
+| Package manager | `npm`           |
+| Test runner     | Vitest          |
 
 Steps:
+
 1. Checkout code
 2. Set up Node.js (LTS)
 3. Install frontend dependencies via `npm ci`

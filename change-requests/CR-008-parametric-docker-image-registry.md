@@ -68,8 +68,8 @@ To avoid breaking existing deployments, this CR must define canonical names and 
 - OAuth params required by current auth mode (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`)
 - OAuth access tokens are obtained dynamically during OAuth flows and must not be treated as static environment parameters.
 - Optional hardening flags to avoid auth side effects across environments:
-   - `AUTH_COOKIE_SECURE` (true in HTTPS environments)
-   - `AUTH_COOKIE_SAMESITE` (`lax` by default, configurable if cross-site auth is required)
+  - `AUTH_COOKIE_SECURE` (true in HTTPS environments)
+  - `AUTH_COOKIE_SAMESITE` (`lax` by default, configurable if cross-site auth is required)
 
 ### Frontend required runtime params
 
@@ -206,11 +206,11 @@ Add optional image name parameter support for parity with CI output:
 - Drift between local compose images and CI-published images.
   - Mitigation: shared naming variables and documented mapping.
 - Misconfigured runtime variables (domain/OAuth/token) can break authentication or routing.
-   - Mitigation: strict startup validation and `.env.example` templates.
+  - Mitigation: strict startup validation and `.env.example` templates.
 - Variable rename drift can silently break deployments.
-   - Mitigation: canonical mapping table, alias precedence tests, and deprecation warnings.
+  - Mitigation: canonical mapping table, alias precedence tests, and deprecation warnings.
 - Cookie security settings can cause login failures or insecure behavior between HTTP and HTTPS environments.
-   - Mitigation: explicit `AUTH_COOKIE_SECURE` and `AUTH_COOKIE_SAMESITE` runtime parameters with environment-specific defaults.
+  - Mitigation: explicit `AUTH_COOKIE_SECURE` and `AUTH_COOKIE_SAMESITE` runtime parameters with environment-specific defaults.
 
 ## Rollout Notes
 
