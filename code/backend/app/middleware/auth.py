@@ -86,6 +86,55 @@ def require_role(*roles: MemberRole) -> Callable:
     return dependency
 
 
+class ApiKeyContext:
+    """Project and author resolved from an API key."""
+    def __init__(self, project: Project, user_id: uuid.UUID):
+        self.project = project
+        self.user_id = user_id
+
+
+async def get_api_key_context(
+    db: AsyncSession = Depends(get_db),
+    authorization: str | None = Header(default=None),
+) -> ApiKeyContext:
+    """Like get_api_key_project but also returns the user who created the key."""
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing API key",
+        )
+    raw_key = authorization[7:]
+    key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
+
+    result = await db.execute(
+        select(ApiKey).where(
+            ApiKey.key_hash == key_hash,
+            ApiKey.revoked_at.is_(None),
+        )
+    )
+    api_key = result.scalar_one_or_none()
+    if api_key is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or revoked API key",
+        )
+
+    await db.execute(
+        update(ApiKey)
+        .where(ApiKey.id == api_key.id)
+        .values(last_used_at=datetime.now(timezone.utc))
+    )
+
+    result = await db.execute(select(Project).where(Project.id == api_key.project_id))
+    project = result.scalar_one_or_none()
+    if project is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Project not found",
+        )
+    return ApiKeyContext(project=project, user_id=api_key.created_by)
+
+
 async def get_api_key_project(
     db: AsyncSession = Depends(get_db),
     authorization: str | None = Header(default=None),

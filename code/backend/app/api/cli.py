@@ -6,13 +6,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
-from app.middleware.auth import get_api_key_project
-from app.models.bug import Bug, BugStatus
+from app.middleware.auth import ApiKeyContext, get_api_key_context, get_api_key_project
+from app.models.bug import Bug, BugSeverity, BugStatus
 from app.models.change_request import CRStatus, ChangeRequest
 from app.models.document_file import DocStatus, DocumentFile
 from app.models.project import Project
-from app.schemas.bugs import BugEnrichRequest, BugResponse
-from app.schemas.change_requests import CREnrichRequest, CRResponse
+from app.schemas.bugs import BugBulkRequest, BugBulkResponse, BugEnrichRequest, BugResponse
+from app.schemas.change_requests import CRBulkRequest, CRBulkResponse, CREnrichRequest, CRResponse
 from app.schemas.docs import DocBulkRequest, DocBulkResponse, DocEnrichRequest, DocResponse
 
 router = APIRouter(prefix="/cli", tags=["cli"])
@@ -218,3 +218,102 @@ async def mark_bug_enriched(
     await db.flush()
     await db.refresh(bug)
     return bug
+
+
+@router.post("/push-crs", response_model=CRBulkResponse)
+async def push_crs(
+    body: CRBulkRequest,
+    ctx: ApiKeyContext = Depends(get_api_key_context),
+    db: AsyncSession = Depends(get_db),
+):
+    created = 0
+    updated = 0
+    crs = []
+
+    for item in body.change_requests:
+        existing = None
+        if item.id is not None:
+            result = await db.execute(
+                select(ChangeRequest).where(
+                    ChangeRequest.id == item.id,
+                    ChangeRequest.project_id == ctx.project.id,
+                )
+            )
+            existing = result.scalar_one_or_none()
+
+        if existing is not None:
+            existing.title = item.title
+            existing.body = item.body
+            existing.status = CRStatus.pending
+            crs.append(existing)
+            updated += 1
+        else:
+            cr = ChangeRequest(
+                project_id=ctx.project.id,
+                title=item.title,
+                body=item.body,
+                status=CRStatus.pending,
+                author_id=ctx.user_id,
+            )
+            db.add(cr)
+            crs.append(cr)
+            created += 1
+
+    await db.flush()
+    for cr in crs:
+        await db.refresh(cr)
+    return CRBulkResponse(
+        created=created,
+        updated=updated,
+        change_requests=[CRResponse.model_validate(cr) for cr in crs],
+    )
+
+
+@router.post("/push-bugs", response_model=BugBulkResponse)
+async def push_bugs(
+    body: BugBulkRequest,
+    ctx: ApiKeyContext = Depends(get_api_key_context),
+    db: AsyncSession = Depends(get_db),
+):
+    created = 0
+    updated = 0
+    bugs = []
+
+    for item in body.bugs:
+        existing = None
+        if item.id is not None:
+            result = await db.execute(
+                select(Bug).where(
+                    Bug.id == item.id,
+                    Bug.project_id == ctx.project.id,
+                )
+            )
+            existing = result.scalar_one_or_none()
+
+        if existing is not None:
+            existing.title = item.title
+            existing.body = item.body
+            existing.severity = item.severity
+            bugs.append(existing)
+            updated += 1
+        else:
+            bug = Bug(
+                project_id=ctx.project.id,
+                title=item.title,
+                body=item.body,
+                status=BugStatus.open,
+                severity=item.severity,
+                author_id=ctx.user_id,
+            )
+            db.add(bug)
+            bugs.append(bug)
+            created += 1
+
+    await db.flush()
+    for bug in bugs:
+        await db.refresh(bug)
+    return BugBulkResponse(
+        created=created,
+        updated=updated,
+        bugs=[BugResponse.model_validate(bug) for bug in bugs],
+    )
