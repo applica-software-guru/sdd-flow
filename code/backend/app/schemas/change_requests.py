@@ -28,6 +28,7 @@ class CRTransition(BaseModel):
 class CRResponse(BaseModel):
     id: uuid.UUID
     project_id: uuid.UUID
+    path: str | None = None
     title: str
     body: str
     status: CRStatus
@@ -53,6 +54,7 @@ class CRBulkItem(BaseModel):
     path: str
     title: str
     body: str
+    status: CRStatus | None = None
     id: uuid.UUID | None = None
 
 
