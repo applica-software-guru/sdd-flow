@@ -104,6 +104,7 @@ jobs:
         with:
           context: code/backend
           file: code/backend/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' && (github.event.inputs.push_images != 'false') }}
           tags: ${{ steps.backend_meta.outputs.tags }}
           labels: ${{ steps.backend_meta.outputs.labels }}
@@ -115,6 +116,7 @@ jobs:
         with:
           context: code/frontend
           file: code/frontend/Dockerfile
+          platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' && (github.event.inputs.push_images != 'false') }}
           tags: ${{ steps.frontend_meta.outputs.tags }}
           labels: ${{ steps.frontend_meta.outputs.labels }}
