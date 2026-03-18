@@ -15,6 +15,7 @@ permissions:
 env:
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME || 'sdd-flow' }}
+  BACKEND_ORIGIN: ${{ vars.BACKEND_ORIGIN || 'https://sdd-flow-backend-i2oevdkzpq-ew.a.run.app' }}
 
 jobs:
   deploy:
@@ -49,3 +50,5 @@ jobs:
             pages deploy code/frontend/dist
             --project-name=${{ env.CLOUDFLARE_PROJECT_NAME }}
             --branch=main
+            --functions=code/frontend/functions
+            --var BACKEND_ORIGIN:${{ env.BACKEND_ORIGIN }}
