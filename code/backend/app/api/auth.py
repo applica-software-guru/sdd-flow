@@ -2,6 +2,7 @@ import hashlib
 
 import httpx
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -125,7 +126,7 @@ async def google_login():
         "access_type": "offline",
     }
     query = "&".join(f"{k}={v}" for k, v in params.items())
-    return {"url": f"https://accounts.google.com/o/oauth2/v2/auth?{query}"}
+    return RedirectResponse(url=f"https://accounts.google.com/o/oauth2/v2/auth?{query}")
 
 
 @router.get("/google/callback")
