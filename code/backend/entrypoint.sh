@@ -32,6 +32,12 @@ if [ -n "$missing" ]; then
   exit 1
 fi
 
+RUN_DB_MIGRATIONS_ON_START="${RUN_DB_MIGRATIONS_ON_START:-true}"
+if [ "$RUN_DB_MIGRATIONS_ON_START" = "true" ]; then
+  echo "[startup] Applying database migrations..."
+  alembic upgrade head
+fi
+
 PORT_VALUE="${PORT:-8000}"
 
 exec uvicorn app.main:app --host 0.0.0.0 --port "${PORT_VALUE}"
