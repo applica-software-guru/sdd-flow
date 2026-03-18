@@ -1,0 +1,89 @@
+name: cloudrun-deploy-backend
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Optional image tag override (example: rev-abc1234 or latest)"
+        required: false
+        default: ""
+  workflow_run:
+    workflows:
+      - docker-publish
+    types:
+      - completed
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GAR_LOCATION: ${{ vars.GAR_LOCATION || 'europe-west1' }}
+  GAR_REPOSITORY: ${{ vars.GAR_REPOSITORY || 'sdd-flow' }}
+  CLOUD_RUN_REGION: ${{ vars.CLOUD_RUN_REGION || 'europe-west1' }}
+  CLOUD_RUN_SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'sdd-flow-backend' }}
+  RUNTIME_SERVICE_ACCOUNT: ${{ vars.CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT }}
+  MAX_INSTANCES: ${{ vars.CLOUD_RUN_MAX_INSTANCES || '10' }}
+  CONCURRENCY: ${{ vars.CLOUD_RUN_CONCURRENCY || '80' }}
+  ENABLE_GOOGLE_OAUTH: ${{ vars.CLOUDRUN_ENABLE_GOOGLE_OAUTH || 'false' }}
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_DEPLOYER }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Resolve image tag
+        id: image_tag
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_IMAGE_TAG: ${{ github.event.inputs.image_tag }}
+          WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          GIT_SHA: ${{ github.sha }}
+        run: |
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$INPUT_IMAGE_TAG" ]]; then
+            TAG="$INPUT_IMAGE_TAG"
+          elif [[ "$EVENT_NAME" == "workflow_run" && -n "$WORKFLOW_RUN_HEAD_SHA" ]]; then
+            TAG="rev-${WORKFLOW_RUN_HEAD_SHA::7}"
+          else
+            TAG="rev-${GIT_SHA::7}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy backend to Cloud Run
+        env:
+          DATABASE_URL: ${{ secrets.CLOUDRUN_DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.CLOUDRUN_JWT_SECRET }}
+          FRONTEND_URL: ${{ secrets.CLOUDRUN_FRONTEND_URL }}
+          GOOGLE_CLIENT_ID: ${{ secrets.CLOUDRUN_GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.CLOUDRUN_GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REDIRECT_URI: ${{ secrets.CLOUDRUN_GOOGLE_REDIRECT_URI }}
+        run: |
+          IMAGE="${GAR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${GAR_REPOSITORY}/sdd-flow-backend:${{ steps.image_tag.outputs.tag }}"
+          gcloud run deploy "${CLOUD_RUN_SERVICE}" \
+            --project "${PROJECT_ID}" \
+            --region "${CLOUD_RUN_REGION}" \
+            --platform managed \
+            --image "${IMAGE}" \
+            --service-account "${RUNTIME_SERVICE_ACCOUNT}" \
+            --allow-unauthenticated \
+            --concurrency "${CONCURRENCY}" \
+            --max-instances "${MAX_INSTANCES}" \
+            --min-instances "0" \
+            --cpu-throttling \
+            --set-env-vars "DATABASE_URL=${DATABASE_URL},JWT_SECRET=${JWT_SECRET},FRONTEND_URL=${FRONTEND_URL},ENABLE_GOOGLE_OAUTH=${ENABLE_GOOGLE_OAUTH},GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID},GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET},GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI},AUTH_COOKIE_SECURE=true,AUTH_COOKIE_SAMESITE=lax"
+
+      - name: Show service URL
+        run: |
+          URL=$(gcloud run services describe "${CLOUD_RUN_SERVICE}" --project "${PROJECT_ID}" --region "${CLOUD_RUN_REGION}" --format='value(status.url)')
+          echo "Cloud Run URL: ${URL}"
