@@ -16,18 +16,23 @@ services:
       retries: 5
 
   backend:
+    image: ${BACKEND_IMAGE:-sdd-flow-backend:local}
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/sddflow
-      JWT_SECRET: change-me-in-production
-      GOOGLE_CLIENT_ID: ""
-      GOOGLE_CLIENT_SECRET: ""
-      GOOGLE_REDIRECT_URI: http://localhost:8000/api/v1/auth/google/callback
-      FRONTEND_URL: http://localhost:5173
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:postgres@db:5432/sddflow}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      APP_DOMAIN: ${APP_DOMAIN:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      ENABLE_GOOGLE_OAUTH: ${ENABLE_GOOGLE_OAUTH:-false}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8000/api/v1/auth/google/callback}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
+      AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-lax}
     depends_on:
       db:
         condition: service_healthy
@@ -35,11 +40,16 @@ services:
       - ./backend/app:/app/app
 
   frontend:
+    image: ${FRONTEND_IMAGE:-sdd-flow-frontend:local}
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
       - "5173:80"
+    environment:
+      NGINX_SERVER_NAME: ${NGINX_SERVER_NAME:-_}
+      BACKEND_UPSTREAM: ${BACKEND_UPSTREAM:-backend:8000}
+      PUBLIC_APP_DOMAIN: ${PUBLIC_APP_DOMAIN:-}
     depends_on:
       - backend
 

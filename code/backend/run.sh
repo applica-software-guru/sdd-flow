@@ -57,10 +57,14 @@ if [ ! -f .env ]; then
     cat > .env <<'ENVEOF'
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/sddflow
 JWT_SECRET=local-dev-secret-change-in-production
+APP_DOMAIN=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URI=http://localhost:8000/api/v1/auth/google/callback
+ENABLE_GOOGLE_OAUTH=false
 FRONTEND_URL=http://localhost:5173
+AUTH_COOKIE_SECURE=false
+AUTH_COOKIE_SAMESITE=lax
 ENVEOF
     info "Created .env — edit it to configure Google OAuth"
 fi
