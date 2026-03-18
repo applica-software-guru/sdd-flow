@@ -121,7 +121,7 @@ async def google_login():
         "client_id": settings.GOOGLE_CLIENT_ID,
         "redirect_uri": settings.GOOGLE_REDIRECT_URI,
         "response_type": "code",
-        "scope": "openid email profile",
+        "scope": "openid email",
         "access_type": "offline",
     }
     query = "&".join(f"{k}={v}" for k, v in params.items())
