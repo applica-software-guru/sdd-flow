@@ -1,9 +1,9 @@
 ---
 title: "Data Entities"
-status: synced
+status: changed
 author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.0"
+last-modified: "2026-03-18T00:00:00.000Z"
+version: "1.1"
 ---
 
 # Data Entities
@@ -128,9 +128,10 @@ A change request for a project.
 |-------|------|-------------|
 | id | UUID | Primary key |
 | project_id | UUID | FK → Project |
+| path | string? | Local file path from CLI (e.g. `change-requests/001-auth.md`) |
 | title | string | CR title |
 | body | text | Markdown body |
-| status | enum | draft, approved, rejected, applied, closed |
+| status | enum | draft, pending, approved, rejected, applied, closed |
 | author_id | UUID | FK → User |
 | assignee_id | UUID? | FK → User |
 | target_files | string[]? | List of affected doc file paths |
@@ -146,9 +147,10 @@ A bug report for a project.
 |-------|------|-------------|
 | id | UUID | Primary key |
 | project_id | UUID | FK → Project |
+| path | string? | Local file path from CLI (e.g. `bugs/001-login-crash.md`) |
 | title | string | Bug title |
 | body | text | Markdown body |
-| status | enum | open, in-progress, resolved, wont-fix, closed |
+| status | enum | draft, open, in-progress, resolved, wont-fix, closed |
 | severity | enum | critical, major, minor, trivial |
 | author_id | UUID | FK → User |
 | assignee_id | UUID? | FK → User |

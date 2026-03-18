@@ -1,9 +1,9 @@
 ---
 title: "API Interfaces"
-status: synced
+status: changed
 author: ""
-last-modified: "2026-03-17T00:00:00.000Z"
-version: "1.2"
+last-modified: "2026-03-18T00:00:00.000Z"
+version: "1.3"
 ---
 
 # API Interfaces
@@ -459,41 +459,74 @@ List audit log entries. Owner or Admin only.
 
 These endpoints accept API key auth (`Authorization: Bearer sddflow_sk_...`) instead of JWT cookies. The API key implicitly scopes requests to its project.
 
-### GET /cli/crs/pending
+### GET /cli/pending-crs
 
-Get approved CRs (ready for the agent).
+Get draft/pending/approved CRs.
 
-**Response:** `200` `[{ title, body, status, target_files }]`
+**Response:** `200` `[{ id, project_id, path, title, body, status, author_id, assignee_id, target_files, closed_at, created_at, updated_at }]`
 
-Response format matches SDD CLI frontmatter for direct use.
+### GET /cli/open-bugs
 
-### GET /cli/bugs/open
+Get draft/open/in-progress bugs.
 
-Get open bugs.
-
-**Response:** `200` `[{ title, body, status, severity }]`
+**Response:** `200` `[{ id, project_id, path, title, body, status, severity, author_id, assignee_id, closed_at, created_at, updated_at }]`
 
 ### POST /cli/crs/:cr_id/applied
 
 Mark a CR as applied.
 
-**Response:** `200`
+**Response:** `200` `{ id, path, title, body, status, ... }`
 
 ### POST /cli/bugs/:bug_id/resolved
 
 Mark a bug as resolved.
 
-**Response:** `200`
+**Response:** `200` `{ id, path, title, body, status, ... }`
 
-### POST /cli/docs/push
+### POST /cli/push-docs
 
 Push local documentation to SDD Flow.
 
-**Body:** `{ files: [{ path, content }] }`
-**Response:** `200` `{ created, updated }`
+**Body:** `{ documents: [{ path, title, content }] }`
+**Response:** `200` `{ created, updated, documents: [{ id, path, title, status, version, content, ... }] }`
 
-### GET /cli/docs/pull
+### GET /cli/pull-docs
 
 Pull documentation from SDD Flow.
 
-**Response:** `200` `{ files: [{ path, content }] }`
+**Response:** `200` `[{ id, path, title, status, version, content, ... }]`
+
+### POST /cli/push-crs
+
+Push change requests from CLI.
+
+**Body:** `{ change_requests: [{ path, title, body, status?, id? }] }`
+**Response:** `200` `{ created, updated, change_requests: [{ id, path, title, body, status, ... }] }`
+
+### POST /cli/push-bugs
+
+Push bugs from CLI.
+
+**Body:** `{ bugs: [{ path, title, body, severity?, status?, id? }] }`
+**Response:** `200` `{ created, updated, bugs: [{ id, path, title, body, status, severity, ... }] }`
+
+### POST /cli/docs/:doc_id/enriched
+
+Submit enriched content for a draft document.
+
+**Body:** `{ content }`
+**Response:** `200` `{ id, path, title, status, version, ... }`
+
+### POST /cli/crs/:cr_id/enriched
+
+Submit enriched content for a draft CR.
+
+**Body:** `{ body }`
+**Response:** `200` `{ id, path, title, body, status, ... }`
+
+### POST /cli/bugs/:bug_id/enriched
+
+Submit enriched content for a draft bug.
+
+**Body:** `{ body }`
+**Response:** `200` `{ id, path, title, body, status, ... }`

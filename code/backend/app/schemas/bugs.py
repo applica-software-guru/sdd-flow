@@ -28,6 +28,7 @@ class BugTransition(BaseModel):
 class BugResponse(BaseModel):
     id: uuid.UUID
     project_id: uuid.UUID
+    path: str | None = None
     title: str
     body: str
     status: BugStatus
@@ -54,6 +55,7 @@ class BugBulkItem(BaseModel):
     title: str
     body: str
     severity: BugSeverity = BugSeverity.minor
+    status: BugStatus | None = None
     id: uuid.UUID | None = None
 
 

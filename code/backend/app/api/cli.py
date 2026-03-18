@@ -244,17 +244,19 @@ async def push_crs(
             existing = result.scalar_one_or_none()
 
         if existing is not None:
+            existing.path = item.path
             existing.title = item.title
             existing.body = item.body
-            existing.status = CRStatus.pending
+            existing.status = item.status or existing.status
             crs.append(existing)
             updated += 1
         else:
             cr = ChangeRequest(
                 project_id=ctx.project.id,
+                path=item.path,
                 title=item.title,
                 body=item.body,
-                status=CRStatus.pending,
+                status=item.status or CRStatus.pending,
                 author_id=ctx.user_id,
             )
             db.add(cr)
@@ -293,17 +295,20 @@ async def push_bugs(
             existing = result.scalar_one_or_none()
 
         if existing is not None:
+            existing.path = item.path
             existing.title = item.title
             existing.body = item.body
             existing.severity = item.severity
+            existing.status = item.status or existing.status
             bugs.append(existing)
             updated += 1
         else:
             bug = Bug(
                 project_id=ctx.project.id,
+                path=item.path,
                 title=item.title,
                 body=item.body,
-                status=BugStatus.open,
+                status=item.status or BugStatus.open,
                 severity=item.severity,
                 author_id=ctx.user_id,
             )

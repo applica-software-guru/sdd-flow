@@ -31,6 +31,7 @@ class Bug(UUIDMixin, TimestampMixin, Base):
     project_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
     )
+    path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[BugStatus] = mapped_column(
