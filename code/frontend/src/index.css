@@ -6,8 +6,255 @@
   html {
     scroll-behavior: smooth;
   }
+
   body {
     @apply min-h-screen bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100;
+  }
+}
+
+@layer components {
+  .markdown-viewer {
+    color: #0f172a;
+    font-size: 0.95rem;
+    line-height: 1.8;
+  }
+
+  .dark .markdown-viewer {
+    color: #e2e8f0;
+  }
+
+  .markdown-viewer > :first-child {
+    margin-top: 0;
+  }
+
+  .markdown-viewer > :last-child {
+    margin-bottom: 0;
+  }
+
+  .markdown-viewer h1,
+  .markdown-viewer h2,
+  .markdown-viewer h3,
+  .markdown-viewer h4,
+  .markdown-viewer h5,
+  .markdown-viewer h6 {
+    color: #020617;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin: 1.5em 0 0.65em;
+    scroll-margin-top: 6rem;
+  }
+
+  .dark .markdown-viewer h1,
+  .dark .markdown-viewer h2,
+  .dark .markdown-viewer h3,
+  .dark .markdown-viewer h4,
+  .dark .markdown-viewer h5,
+  .dark .markdown-viewer h6 {
+    color: #f8fafc;
+  }
+
+  .markdown-viewer h1 {
+    font-size: 1.85rem;
+  }
+
+  .markdown-viewer h2 {
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 1.45rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .dark .markdown-viewer h2 {
+    border-bottom-color: #334155;
+  }
+
+  .markdown-viewer h3 {
+    font-size: 1.2rem;
+  }
+
+  .markdown-viewer p,
+  .markdown-viewer ul,
+  .markdown-viewer ol,
+  .markdown-viewer blockquote,
+  .markdown-viewer pre,
+  .markdown-viewer .markdown-table-wrap {
+    margin: 1em 0;
+  }
+
+  .markdown-viewer ul,
+  .markdown-viewer ol {
+    padding-left: 1.5rem;
+  }
+
+  .markdown-viewer li + li {
+    margin-top: 0.35rem;
+  }
+
+  .markdown-viewer ul.contains-task-list {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .markdown-viewer ul.contains-task-list li {
+    align-items: flex-start;
+    display: flex;
+    gap: 0.625rem;
+  }
+
+  .markdown-viewer ul.contains-task-list input[type='checkbox'] {
+    accent-color: #2563eb;
+    margin-top: 0.35rem;
+  }
+
+  .markdown-viewer blockquote {
+    background: linear-gradient(90deg, rgba(219, 234, 254, 0.7), rgba(219, 234, 254, 0));
+    border-left: 3px solid #93c5fd;
+    border-radius: 0 0.75rem 0.75rem 0;
+    color: #334155;
+    padding: 0.25rem 0 0.25rem 1rem;
+  }
+
+  .dark .markdown-viewer blockquote {
+    background: linear-gradient(90deg, rgba(30, 64, 175, 0.18), rgba(30, 64, 175, 0));
+    border-left-color: #60a5fa;
+    color: #cbd5e1;
+  }
+
+  .markdown-viewer a {
+    color: #2563eb;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    word-break: break-word;
+  }
+
+  .dark .markdown-viewer a {
+    color: #60a5fa;
+  }
+
+  .markdown-viewer a:hover {
+    color: #1d4ed8;
+  }
+
+  .dark .markdown-viewer a:hover {
+    color: #93c5fd;
+  }
+
+  .markdown-viewer .markdown-heading-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .markdown-viewer .markdown-heading-link::after {
+    color: #94a3b8;
+    content: '#';
+    font-size: 0.85em;
+    margin-left: 0.45rem;
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+
+  .markdown-viewer h1:hover .markdown-heading-link::after,
+  .markdown-viewer h2:hover .markdown-heading-link::after,
+  .markdown-viewer h3:hover .markdown-heading-link::after,
+  .markdown-viewer h4:hover .markdown-heading-link::after,
+  .markdown-viewer h5:hover .markdown-heading-link::after,
+  .markdown-viewer h6:hover .markdown-heading-link::after {
+    opacity: 1;
+  }
+
+  .markdown-viewer .markdown-inline-code {
+    background-color: #e2e8f0;
+    border-radius: 0.375rem;
+    color: #0f172a;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    font-size: 0.85em;
+    padding: 0.15rem 0.35rem;
+  }
+
+  .dark .markdown-viewer .markdown-inline-code {
+    background-color: #1e293b;
+    color: #e2e8f0;
+  }
+
+  .markdown-viewer .markdown-code-block {
+    background: linear-gradient(180deg, #0f172a, #111827);
+    border: 1px solid #1e293b;
+    border-radius: 0.9rem;
+    color: #e2e8f0;
+    overflow-x: auto;
+  }
+
+  .markdown-viewer .markdown-code-block pre,
+  .markdown-viewer .markdown-code-block > div {
+    margin: 0;
+  }
+
+  .markdown-viewer .markdown-code-block code {
+    display: block;
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    padding: 1rem 1.1rem;
+    white-space: pre;
+  }
+
+  .markdown-viewer .markdown-table-wrap {
+    overflow-x: auto;
+  }
+
+  .markdown-viewer table {
+    border-collapse: collapse;
+    min-width: 100%;
+    width: max-content;
+  }
+
+  .markdown-viewer th,
+  .markdown-viewer td {
+    border: 1px solid #cbd5e1;
+    padding: 0.7rem 0.85rem;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .dark .markdown-viewer th,
+  .dark .markdown-viewer td {
+    border-color: #334155;
+  }
+
+  .markdown-viewer th {
+    background-color: #f8fafc;
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  .dark .markdown-viewer th {
+    background-color: #0f172a;
+    color: #f8fafc;
+  }
+
+  .markdown-viewer tr:nth-child(even) td {
+    background-color: #f8fafc;
+  }
+
+  .dark .markdown-viewer tr:nth-child(even) td {
+    background-color: rgba(15, 23, 42, 0.6);
+  }
+
+  .markdown-viewer hr {
+    border: 0;
+    border-top: 1px solid #cbd5e1;
+    margin: 2rem 0;
+  }
+
+  .dark .markdown-viewer hr {
+    border-top-color: #334155;
+  }
+
+  .markdown-input {
+    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    font-size: 0.925rem;
+    line-height: 1.7;
   }
 }
 
@@ -89,8 +336,15 @@
 }
 
 /* Monospaced font for editor text */
+.md-editor-custom {
+  --md-editor-font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+}
+
 .md-editor-custom .w-md-editor-text-pre,
 .md-editor-custom .w-md-editor-text-input,
+.md-editor-custom .w-md-editor-text-input::placeholder,
+.md-editor-custom .w-md-editor-text,
+.md-editor-custom .w-md-editor-text-pre > code,
 .md-editor-custom .w-md-editor-text textarea {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
   font-size: 14px !important;

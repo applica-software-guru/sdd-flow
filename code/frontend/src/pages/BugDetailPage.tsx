@@ -146,7 +146,7 @@ export default function BugDetailPage() {
             onChange={(e) => setCommentBody(e.target.value)}
             placeholder="Write a comment..."
             rows={3}
-            className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+            className="markdown-input block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
           />
           <div className="mt-3 flex justify-end">
             <button
