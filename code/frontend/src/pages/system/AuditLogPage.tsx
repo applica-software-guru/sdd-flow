@@ -74,22 +74,22 @@ export default function AuditLogPage() {
           />
         ) : (
           <>
-            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+            <table className="min-w-full table-fixed divide-y divide-slate-200 dark:divide-slate-700">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-700/50">
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <th className="w-44 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Time
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <th className="w-40 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <th className="w-28 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Action
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  <th className="w-40 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Entity
                   </th>
-                  <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 lg:table-cell">
+                  <th className="hidden w-[28rem] px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 lg:table-cell">
                     Details
                   </th>
                 </tr>
@@ -127,10 +127,12 @@ export default function AuditLogPage() {
                         {entry.entity_id.slice(0, 8)}...
                       </span>
                     </td>
-                    <td className="hidden px-6 py-3 text-xs text-slate-400 dark:text-slate-500 lg:table-cell">
-                      {entry.details
-                        ? JSON.stringify(entry.details).slice(0, 80)
-                        : '--'}
+                    <td className="hidden px-6 py-3 text-xs text-slate-400 dark:text-slate-500 align-top lg:table-cell">
+                      <div className="max-h-24 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-5 text-slate-500 dark:text-slate-400">
+                        {entry.details
+                          ? JSON.stringify(entry.details)
+                          : '--'}
+                      </div>
                     </td>
                   </tr>
                 ))}
