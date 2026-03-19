@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAuditLog } from '../hooks/useAuditLog';
-import Pagination from '../components/Pagination';
-import EmptyState from '../components/EmptyState';
+import { useAuditLog } from '../../hooks/useAuditLog';
+import Pagination from '../../components/Pagination';
+import EmptyState from '../../components/EmptyState';
 
 export default function AuditLogPage() {
   const { tenantId } = useParams();

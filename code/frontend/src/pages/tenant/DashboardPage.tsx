@@ -1,9 +1,9 @@
 import { Link, useParams, useNavigate } from 'react-router-dom';
-import { useTenant, useTenants } from '../hooks/useTenants';
-import { useProjects } from '../hooks/useProjects';
-import EmptyState from '../components/EmptyState';
+import { useTenant, useTenants } from '../../hooks/useTenants';
+import { useProjects } from '../../hooks/useProjects';
+import EmptyState from '../../components/EmptyState';
 
-export default function TenantDashboardPage() {
+export default function DashboardPage() {
   const { tenantId } = useParams();
   const navigate = useNavigate();
   const { data: tenants, isLoading: tenantsLoading } = useTenants();

@@ -2,25 +2,25 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import TenantDashboardPage from './pages/TenantDashboardPage';
-import CreateTenantPage from './pages/CreateTenantPage';
-import TenantSettingsPage from './pages/TenantSettingsPage';
-import CreateProjectPage from './pages/CreateProjectPage';
-import ProjectDashboardPage from './pages/ProjectDashboardPage';
-import ProjectSettingsPage from './pages/ProjectSettingsPage';
-import CRListPage from './pages/CRListPage';
-import CRCreatePage from './pages/CRCreatePage';
-import CRDetailPage from './pages/CRDetailPage';
-import BugListPage from './pages/BugListPage';
-import BugCreatePage from './pages/BugCreatePage';
-import BugDetailPage from './pages/BugDetailPage';
-import DocsTreePage from './pages/DocsTreePage';
-import DocViewPage from './pages/DocViewPage';
-import AuditLogPage from './pages/AuditLogPage';
-import LandingPage from './pages/LandingPage';
-import NotFoundPage from './pages/NotFoundPage';
+import LoginPage from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
+import TenantDashboardPage from './pages/tenant/DashboardPage';
+import TenantCreatePage from './pages/tenant/CreatePage';
+import TenantSettingsPage from './pages/tenant/SettingsPage';
+import ProjectCreatePage from './pages/project/CreatePage';
+import ProjectDashboardPage from './pages/project/DashboardPage';
+import ProjectSettingsPage from './pages/project/SettingsPage';
+import CRListPage from './pages/change-requests/ListPage';
+import CRCreatePage from './pages/change-requests/CreatePage';
+import CRDetailPage from './pages/change-requests/DetailPage';
+import BugListPage from './pages/bugs/ListPage';
+import BugCreatePage from './pages/bugs/CreatePage';
+import BugDetailPage from './pages/bugs/DetailPage';
+import DocsTreePage from './pages/docs/TreePage';
+import DocViewPage from './pages/docs/ViewPage';
+import AuditLogPage from './pages/system/AuditLogPage';
+import LandingPage from './pages/system/LandingPage';
+import NotFoundPage from './pages/system/NotFoundPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,7 +51,7 @@ export default function App() {
             }
           >
             <Route path="/tenants" element={<TenantDashboardPage />} />
-            <Route path="/tenants/new" element={<CreateTenantPage />} />
+            <Route path="/tenants/new" element={<TenantCreatePage />} />
             <Route
               path="/tenants/:tenantId"
               element={<TenantDashboardPage />}
@@ -66,7 +66,7 @@ export default function App() {
             />
             <Route
               path="/tenants/:tenantId/projects/new"
-              element={<CreateProjectPage />}
+              element={<ProjectCreatePage />}
             />
             <Route
               path="/tenants/:tenantId/projects/:projectId"

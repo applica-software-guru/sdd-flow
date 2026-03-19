@@ -1,10 +1,10 @@
 import { useState, FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCreateBug } from '../hooks/useBugs';
-import { useTenantMembers } from '../hooks/useTenants';
-import MarkdownEditor from '../components/MarkdownEditor';
+import { useCreateBug } from '../../hooks/useBugs';
+import { useTenantMembers } from '../../hooks/useTenants';
+import MarkdownEditor from '../../components/MarkdownEditor';
 
-export default function BugCreatePage() {
+export default function CreatePage() {
   const { tenantId, projectId } = useParams();
   const navigate = useNavigate();
   const createBug = useCreateBug(tenantId!, projectId!);

@@ -1,8 +1,8 @@
 import { useMemo, useState, FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useDocs, useCreateDoc } from '../hooks/useDocs';
-import StatusBadge from '../components/StatusBadge';
-import EmptyState from '../components/EmptyState';
+import { useDocs, useCreateDoc } from '../../hooks/useDocs';
+import StatusBadge from '../../components/StatusBadge';
+import EmptyState from '../../components/EmptyState';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All statuses' },
@@ -26,7 +26,7 @@ function getFolderLabel(path: string) {
   return getFolderPath(path) || 'Root';
 }
 
-export default function DocsTreePage() {
+export default function TreePage() {
   const { tenantId, projectId } = useParams();
   const [status, setStatus] = useState('');
   const [search, setSearch] = useState('');

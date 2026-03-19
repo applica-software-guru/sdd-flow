@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useChangeRequests } from '../hooks/useChangeRequests';
-import StatusBadge from '../components/StatusBadge';
-import Pagination from '../components/Pagination';
-import EmptyState from '../components/EmptyState';
+import { useChangeRequests } from '../../hooks/useChangeRequests';
+import StatusBadge from '../../components/StatusBadge';
+import Pagination from '../../components/Pagination';
+import EmptyState from '../../components/EmptyState';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All statuses' },
@@ -15,7 +15,7 @@ const STATUS_OPTIONS = [
   { value: 'deleted', label: 'Deleted' },
 ];
 
-export default function CRListPage() {
+export default function ListPage() {
   const { tenantId, projectId } = useParams();
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);

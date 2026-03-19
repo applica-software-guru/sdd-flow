@@ -1,10 +1,10 @@
 import { useState, FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useProject, useUpdateProject, useArchiveProject, useRestoreProject } from '../hooks/useProjects';
-import { useApiKeys, useCreateApiKey, useRevokeApiKey } from '../hooks/useApiKeys';
-import ConfirmDialog from '../components/ConfirmDialog';
+import { useProject, useUpdateProject, useArchiveProject, useRestoreProject } from '../../hooks/useProjects';
+import { useApiKeys, useCreateApiKey, useRevokeApiKey } from '../../hooks/useApiKeys';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
-export default function ProjectSettingsPage() {
+export default function SettingsPage() {
   const { tenantId, projectId } = useParams<{ tenantId: string; projectId: string }>();
   const navigate = useNavigate();
   const { data: project, isLoading } = useProject(tenantId, projectId);

@@ -1,10 +1,10 @@
 import { useState, FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCreateCR } from '../hooks/useChangeRequests';
-import { useTenantMembers } from '../hooks/useTenants';
-import MarkdownEditor from '../components/MarkdownEditor';
+import { useCreateCR } from '../../hooks/useChangeRequests';
+import { useTenantMembers } from '../../hooks/useTenants';
+import MarkdownEditor from '../../components/MarkdownEditor';
 
-export default function CRCreatePage() {
+export default function CreatePage() {
   const { tenantId, projectId } = useParams();
   const navigate = useNavigate();
   const createCR = useCreateCR(tenantId!, projectId!);
