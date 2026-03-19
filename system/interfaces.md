@@ -2,8 +2,8 @@
 title: "API Interfaces"
 status: changed
 author: ""
-last-modified: "2026-03-18T00:00:00.000Z"
-version: "1.3"
+last-modified: "2026-03-19T00:00:00.000Z"
+version: "1.4"
 ---
 
 # API Interfaces
@@ -223,6 +223,14 @@ Archive a project. Admin or Owner only.
 Restore an archived project. Admin or Owner only.
 
 **Response:** `200` `{ archived_at: null }`
+
+### POST /tenants/:tenant_id/projects/:project_id/reset
+
+Reset all project data (docs, CRs, bugs, comments, notifications). Admin or Owner only. Requires slug confirmation to prevent accidental resets.
+
+**Body:** `{ confirm_slug: "project-slug" }`
+**Response:** `200` `{ message, deleted_documents, deleted_change_requests, deleted_bugs, deleted_comments, deleted_notifications }`
+**Error:** `400` if slug does not match
 
 ---
 
@@ -530,3 +538,11 @@ Submit enriched content for a draft bug.
 
 **Body:** `{ body }`
 **Response:** `200` `{ id, path, title, body, status, ... }`
+
+### POST /cli/reset
+
+Reset all project data (docs, CRs, bugs, comments, notifications). Requires slug confirmation.
+
+**Body:** `{ confirm_slug: "project-slug" }`
+**Response:** `200` `{ message, deleted_documents, deleted_change_requests, deleted_bugs, deleted_comments, deleted_notifications }`
+**Error:** `400` if slug does not match

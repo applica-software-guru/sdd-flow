@@ -14,6 +14,8 @@ from app.models.project import Project
 from app.schemas.bugs import BugBulkRequest, BugBulkResponse, BugEnrichRequest, BugResponse
 from app.schemas.change_requests import CRBulkRequest, CRBulkResponse, CREnrichRequest, CRResponse
 from app.schemas.docs import DocBulkRequest, DocBulkResponse, DocEnrichRequest, DocResponse
+from app.schemas.projects import ProjectResetRequest, ProjectResetResponse
+from app.services.project_reset import reset_project_data
 
 router = APIRouter(prefix="/cli", tags=["cli"])
 
@@ -323,4 +325,23 @@ async def push_bugs(
         created=created,
         updated=updated,
         bugs=[BugResponse.model_validate(bug) for bug in bugs],
+    )
+
+
+@router.post("/reset", response_model=ProjectResetResponse)
+async def cli_reset_project(
+    body: ProjectResetRequest,
+    ctx: ApiKeyContext = Depends(get_api_key_context),
+    db: AsyncSession = Depends(get_db),
+):
+    if body.confirm_slug != ctx.project.slug:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Slug mismatch: expected '{ctx.project.slug}'",
+        )
+
+    counts = await reset_project_data(db, ctx.project, ctx.project.tenant_id, ctx.user_id)
+    return ProjectResetResponse(
+        message=f"Project '{ctx.project.name}' has been reset",
+        **counts,
     )

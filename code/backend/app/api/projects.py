@@ -12,7 +12,8 @@ from app.models.change_request import CRStatus, ChangeRequest
 from app.models.document_file import DocumentFile
 from app.models.project import Project
 from app.models.tenant_member import MemberRole, TenantMember
-from app.schemas.projects import ProjectCreate, ProjectResponse, ProjectStats, ProjectUpdate
+from app.schemas.projects import ProjectCreate, ProjectResetRequest, ProjectResetResponse, ProjectResponse, ProjectStats, ProjectUpdate
+from app.services.project_reset import reset_project_data
 from app.services.audit import log_event
 
 router = APIRouter(prefix="/tenants/{tenant_id}/projects", tags=["projects"])
@@ -169,3 +170,31 @@ async def restore_project(
     await log_event(db, tenant_id, member.user_id, "project.restored", "project", project.id)
     await db.refresh(project)
     return await _project_response(db, project)
+
+
+@router.post("/{project_id}/reset", response_model=ProjectResetResponse)
+async def reset_project(
+    tenant_id: uuid.UUID,
+    project_id: uuid.UUID,
+    body: ProjectResetRequest,
+    member: TenantMember = Depends(require_role(MemberRole.owner, MemberRole.admin)),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.tenant_id == tenant_id)
+    )
+    project = result.scalar_one_or_none()
+    if project is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    if body.confirm_slug != project.slug:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Slug mismatch: expected '{project.slug}'",
+        )
+
+    counts = await reset_project_data(db, project, tenant_id, member.user_id)
+    return ProjectResetResponse(
+        message=f"Project '{project.name}' has been reset",
+        **counts,
+    )
