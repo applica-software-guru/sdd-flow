@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Outlet, NavLink, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useCurrentUser, useLogout } from '../hooks/useAuth';
+import { useProject, useProjects } from '../hooks/useProjects';
 import TenantSwitcher from './TenantSwitcher';
 import NotificationBell from './NotificationBell';
 import SearchModal from './SearchModal';
@@ -12,6 +13,13 @@ export default function Layout() {
   const logout = useLogout();
   const navigate = useNavigate();
   const location = useLocation();
+  const {
+    data: currentProject,
+    isLoading: isProjectLoading,
+    isError: isProjectError,
+    refetch: refetchProject,
+  } = useProject(tenantId, projectId);
+  const { data: projects, refetch: refetchProjects } = useProjects(tenantId);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -31,6 +39,15 @@ export default function Layout() {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (!projectId) {
+      return;
+    }
+
+    void refetchProject();
+    void refetchProjects();
+  }, [projectId, refetchProject, refetchProjects]);
+
   const handleLogout = async () => {
     await logout.mutateAsync();
     navigate('/login');
@@ -42,6 +59,62 @@ export default function Layout() {
         ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
     }`;
+
+  const projectNavLinkClass = ({ isActive }: { isActive: boolean }) =>
+    `flex items-center gap-3 rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors ${
+      isActive
+        ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-900/30 dark:text-blue-300'
+        : 'border-transparent text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200'
+    }`;
+
+  const activeProject = useMemo(() => {
+    if (!projectId) {
+      return null;
+    }
+
+    if (currentProject?.id === projectId) {
+      return currentProject;
+    }
+
+    return projects?.find((project) => project.id === projectId) ?? null;
+  }, [currentProject, projectId, projects]);
+
+  const isProjectScoped = Boolean(tenantId && projectId);
+  const projectSection = useMemo(() => {
+    if (!projectId) {
+      return '';
+    }
+
+    const marker = `/projects/${projectId}`;
+    const markerIndex = location.pathname.indexOf(marker);
+    if (markerIndex === -1) {
+      return '';
+    }
+
+    const trailingPath = location.pathname.slice(markerIndex + marker.length);
+    if (!trailingPath || trailingPath === '/') {
+      return 'Overview';
+    }
+    if (trailingPath.startsWith('/crs')) {
+      return 'Change Requests';
+    }
+    if (trailingPath.startsWith('/bugs')) {
+      return 'Bugs';
+    }
+    if (trailingPath.startsWith('/docs')) {
+      return 'Docs';
+    }
+    if (trailingPath.startsWith('/settings')) {
+      return 'Settings';
+    }
+
+    return 'Overview';
+  }, [location.pathname, projectId]);
+
+  const projectHeadingLabel = activeProject?.name || 'this project';
+  const showProjectWarning = Boolean(
+    isProjectScoped && !activeProject && !isProjectLoading && isProjectError
+  );
 
   return (
     <div className="flex h-screen flex-col">
@@ -69,6 +142,21 @@ export default function Layout() {
             <div className="p-3">
               <TenantSwitcher />
             </div>
+
+            {isProjectScoped && (
+              <div className="px-3 pb-3">
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-700 dark:bg-blue-900/20">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Current project</p>
+                  <p className="mt-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    {activeProject?.name || 'Loading project...'}
+                  </p>
+                  {activeProject?.slug && (
+                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">{activeProject.slug}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
             <nav className="flex flex-col gap-1 px-3">
               {tenantId && (
                 <>
@@ -94,32 +182,32 @@ export default function Layout() {
                   {projectId && (
                     <>
                       <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
-                      <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Project</p>
-                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}`} end className={navLinkClass}>
+                      <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Inside {projectHeadingLabel}</p>
+                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}`} end className={projectNavLinkClass}>
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
                         </svg>
                         Overview
                       </NavLink>
-                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}/crs`} className={navLinkClass}>
+                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}/crs`} className={projectNavLinkClass}>
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                         </svg>
                         Change Requests
                       </NavLink>
-                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}/bugs`} className={navLinkClass}>
+                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}/bugs`} className={projectNavLinkClass}>
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 12.75c1.148 0 2.278.08 3.383.237 1.037.146 1.866.966 1.866 2.013 0 3.728-2.35 6.75-5.25 6.75S6.75 18.728 6.75 15c0-1.046.83-1.867 1.866-2.013A24.204 24.204 0 0112 12.75zm0 0c2.883 0 5.647.508 8.207 1.44a23.91 23.91 0 01-1.152-6.135c-.22-2.058.11-4.162.97-6.055H3.975c.86 1.893 1.19 3.997.97 6.055a23.91 23.91 0 01-1.152 6.135A23.16 23.16 0 0112 12.75z" />
                         </svg>
                         Bugs
                       </NavLink>
-                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}/docs`} className={navLinkClass}>
+                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}/docs`} className={projectNavLinkClass}>
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
                         </svg>
                         Docs
                       </NavLink>
-                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}/settings`} className={navLinkClass}>
+                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}/settings`} className={projectNavLinkClass}>
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z" />
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -311,14 +399,23 @@ export default function Layout() {
                 {projectId && (
                   <>
                     <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
+                    <div className="mb-2 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-700 dark:bg-blue-900/20">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Current project</p>
+                      <p className="mt-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        {activeProject?.name || 'Loading project...'}
+                      </p>
+                      {activeProject?.slug && (
+                        <p className="truncate text-xs text-slate-500 dark:text-slate-400">{activeProject.slug}</p>
+                      )}
+                    </div>
                     <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                      Project
+                      Inside {projectHeadingLabel}
                     </p>
 
                     <NavLink
                       to={`/tenants/${tenantId}/projects/${projectId}`}
                       end
-                      className={navLinkClass}
+                      className={projectNavLinkClass}
                     >
                       <svg
                         className="h-4 w-4"
@@ -338,7 +435,7 @@ export default function Layout() {
 
                     <NavLink
                       to={`/tenants/${tenantId}/projects/${projectId}/crs`}
-                      className={navLinkClass}
+                      className={projectNavLinkClass}
                     >
                       <svg
                         className="h-4 w-4"
@@ -358,7 +455,7 @@ export default function Layout() {
 
                     <NavLink
                       to={`/tenants/${tenantId}/projects/${projectId}/bugs`}
-                      className={navLinkClass}
+                      className={projectNavLinkClass}
                     >
                       <svg
                         className="h-4 w-4"
@@ -378,7 +475,7 @@ export default function Layout() {
 
                     <NavLink
                       to={`/tenants/${tenantId}/projects/${projectId}/docs`}
-                      className={navLinkClass}
+                      className={projectNavLinkClass}
                     >
                       <svg
                         className="h-4 w-4"
@@ -398,7 +495,7 @@ export default function Layout() {
 
                     <NavLink
                       to={`/tenants/${tenantId}/projects/${projectId}/settings`}
-                      className={navLinkClass}
+                      className={projectNavLinkClass}
                     >
                       <svg
                         className="h-4 w-4"
@@ -429,6 +526,50 @@ export default function Layout() {
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto bg-slate-50 p-6 dark:bg-slate-900">
+          {isProjectScoped && tenantId && projectId && (
+            <div className="mx-auto mb-5 max-w-5xl space-y-3">
+              <div className="rounded-lg border border-blue-200 bg-white px-4 py-3 shadow-sm dark:border-blue-700/70 dark:bg-slate-800">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Project context</p>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      Project: {activeProject?.name || 'Loading project...'}
+                    </p>
+                    {activeProject?.slug && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{activeProject.slug}</p>
+                    )}
+                  </div>
+                  <NavLink
+                    to={`/tenants/${tenantId}`}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                  >
+                    Switch project
+                  </NavLink>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                <NavLink to={`/tenants/${tenantId}`} className="font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+                  Projects
+                </NavLink>
+                <span>/</span>
+                <span className="font-medium text-slate-700 dark:text-slate-200">{activeProject?.name || 'Project'}</span>
+                {projectSection && (
+                  <>
+                    <span>/</span>
+                    <span className="font-medium text-slate-900 dark:text-slate-100">{projectSection}</span>
+                  </>
+                )}
+              </div>
+
+              {showProjectWarning && (
+                <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-700/60 dark:bg-amber-900/20 dark:text-amber-300">
+                  Project context is being synchronized with the current route.
+                </div>
+              )}
+            </div>
+          )}
+
           <Outlet />
         </main>
       </div>
