@@ -34,6 +34,31 @@ async function createDoc(page: import('@playwright/test').Page) {
   return { docTitle, projectBase };
 }
 
+async function createDocInFolder(
+  page: import('@playwright/test').Page,
+  folder: string,
+  titleSuffix: string
+) {
+  const projectBase = await goToDocsPage(page);
+
+  await page.getByRole('button', { name: /New Document/i }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Create New Document' })
+  ).toBeVisible();
+
+  const docTitle = `E2E Doc ${titleSuffix} ${Date.now()}`;
+  await page.getByPlaceholder('Getting Started').fill(docTitle);
+  await page
+    .getByPlaceholder('guides/getting-started')
+    .fill(`${folder}/test-doc-${Date.now()}`);
+
+  await page.getByRole('button', { name: 'Create' }).click();
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByText(docTitle)).toBeVisible({ timeout: 10_000 });
+
+  return { docTitle, projectBase };
+}
+
 test.describe('Docs', () => {
   test.beforeEach(async ({ page }) => {
     await login(page);
@@ -56,6 +81,20 @@ test.describe('Docs', () => {
 
   test('can create a new document', async ({ page }) => {
     await createDoc(page);
+  });
+
+  test('groups documents by folder and filters with search', async ({ page }) => {
+    const folderName = `e2e-group-${Date.now()}`;
+    const { docTitle } = await createDocInFolder(page, folderName, 'Grouped');
+
+    await goToDocsPage(page);
+
+    await expect(page.getByRole('button', { name: new RegExp(folderName) })).toBeVisible({
+      timeout: 10_000,
+    });
+
+    await page.getByPlaceholder('Search by title or path').fill(folderName);
+    await expect(page.getByText(docTitle)).toBeVisible({ timeout: 10_000 });
   });
 
   test('can view a document', async ({ page }) => {

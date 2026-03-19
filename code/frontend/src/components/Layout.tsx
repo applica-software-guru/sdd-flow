@@ -153,6 +153,12 @@ export default function Layout() {
                   {activeProject?.slug && (
                     <p className="truncate text-xs text-slate-500 dark:text-slate-400">{activeProject.slug}</p>
                   )}
+                  <NavLink
+                    to={`/tenants/${tenantId}`}
+                    className="mt-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                  >
+                    Switch project
+                  </NavLink>
                 </div>
               </div>
             )}
@@ -407,6 +413,12 @@ export default function Layout() {
                       {activeProject?.slug && (
                         <p className="truncate text-xs text-slate-500 dark:text-slate-400">{activeProject.slug}</p>
                       )}
+                      <NavLink
+                        to={`/tenants/${tenantId}`}
+                        className="mt-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                      >
+                        Switch project
+                      </NavLink>
                     </div>
                     <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
                       Inside {projectHeadingLabel}
@@ -528,26 +540,6 @@ export default function Layout() {
         <main className="flex-1 overflow-y-auto bg-slate-50 p-6 dark:bg-slate-900">
           {isProjectScoped && tenantId && projectId && (
             <div className="mx-auto mb-5 max-w-5xl space-y-3">
-              <div className="rounded-lg border border-blue-200 bg-white px-4 py-3 shadow-sm dark:border-blue-700/70 dark:bg-slate-800">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Project context</p>
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                      Project: {activeProject?.name || 'Loading project...'}
-                    </p>
-                    {activeProject?.slug && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{activeProject.slug}</p>
-                    )}
-                  </div>
-                  <NavLink
-                    to={`/tenants/${tenantId}`}
-                    className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
-                  >
-                    Switch project
-                  </NavLink>
-                </div>
-              </div>
-
               <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                 <NavLink to={`/tenants/${tenantId}`} className="font-medium text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
                   Projects

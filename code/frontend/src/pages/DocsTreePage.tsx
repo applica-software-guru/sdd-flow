@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useMemo, useState, FormEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useDocs, useCreateDoc } from '../hooks/useDocs';
 import StatusBadge from '../components/StatusBadge';
@@ -13,16 +13,31 @@ const STATUS_OPTIONS = [
   { value: 'deleted', label: 'Deleted' },
 ];
 
+function getFolderPath(path: string) {
+  const parts = path.split('/').filter(Boolean);
+  if (parts.length <= 1) {
+    return '';
+  }
+
+  return parts.slice(0, -1).join('/');
+}
+
+function getFolderLabel(path: string) {
+  return getFolderPath(path) || 'Root';
+}
+
 export default function DocsTreePage() {
   const { tenantId, projectId } = useParams();
   const [status, setStatus] = useState('');
+  const [search, setSearch] = useState('');
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newPath, setNewPath] = useState('');
+  const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
   const { data: docs, isLoading } = useDocs(tenantId, projectId, {
     status: status || undefined,
   });
   const createDoc = useCreateDoc(tenantId!, projectId!);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newPath, setNewPath] = useState('');
 
   const handleCreate = async (e: FormEvent) => {
     e.preventDefault();
@@ -37,6 +52,56 @@ export default function DocsTreePage() {
     setShowCreateForm(false);
   };
 
+  const filteredDocs = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return [...(docs || [])]
+      .filter((doc) => {
+        if (!normalizedSearch) {
+          return true;
+        }
+
+        return [doc.title, doc.path]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(normalizedSearch));
+      })
+      .sort((a, b) => a.path.localeCompare(b.path));
+  }, [docs, search]);
+
+  const groupedDocs = useMemo(() => {
+    const groups = new Map<string, typeof filteredDocs>();
+
+    filteredDocs.forEach((doc) => {
+      const folder = getFolderLabel(doc.path);
+      const existing = groups.get(folder);
+
+      if (existing) {
+        existing.push(doc);
+      } else {
+        groups.set(folder, [doc]);
+      }
+    });
+
+    return Array.from(groups.entries())
+      .sort(([left], [right]) => {
+        if (left === 'Root') {
+          return -1;
+        }
+        if (right === 'Root') {
+          return 1;
+        }
+        return left.localeCompare(right);
+      })
+      .map(([folder, items]) => ({ folder, items }));
+  }, [filteredDocs]);
+
+  const toggleFolder = (folder: string) => {
+    setCollapsedFolders((current) => ({
+      ...current,
+      [folder]: !current[folder],
+    }));
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -45,13 +110,8 @@ export default function DocsTreePage() {
     );
   }
 
-  // Build a simple tree structure from paths
-  const sortedDocs = [...(docs || [])].sort((a, b) =>
-    a.path.localeCompare(b.path)
-  );
-
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-5xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Documentation</h1>
@@ -80,24 +140,32 @@ export default function DocsTreePage() {
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="mb-4 flex items-center gap-3">
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-        >
-          {STATUS_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {docs && (
-          <span className="text-sm text-slate-500 dark:text-slate-400">
-            {docs.length} document{docs.length !== 1 ? 's' : ''}
-          </span>
-        )}
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by title or path"
+          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 sm:flex-1"
+        />
+        <div className="flex items-center gap-3 sm:flex-shrink-0">
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+          >
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          {docs && (
+            <span className="text-sm text-slate-500 dark:text-slate-400">
+              {filteredDocs.length} of {docs.length} document{docs.length !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
       </div>
 
       {showCreateForm && (
@@ -116,7 +184,7 @@ export default function DocsTreePage() {
                   required
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                   placeholder="Getting Started"
                 />
               </div>
@@ -129,7 +197,7 @@ export default function DocsTreePage() {
                   required
                   value={newPath}
                   onChange={(e) => setNewPath(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                   placeholder="guides/getting-started"
                 />
               </div>
@@ -154,10 +222,14 @@ export default function DocsTreePage() {
         </div>
       )}
 
-      {sortedDocs.length === 0 ? (
+      {filteredDocs.length === 0 ? (
         <EmptyState
-          title="No documents yet"
-          description="Create your first document to start building your knowledge base"
+          title={docs?.length ? 'No matching documents' : 'No documents yet'}
+          description={
+            docs?.length
+              ? 'Try a different search term or status filter.'
+              : 'Create your first document to start building your knowledge base'
+          }
           icon={
             <svg
               className="h-12 w-12"
@@ -175,17 +247,30 @@ export default function DocsTreePage() {
           }
         />
       ) : (
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
-          <div className="divide-y divide-slate-100 dark:divide-slate-700">
-            {sortedDocs.map((doc) => (
-              <Link
-                key={doc.id}
-                to={`/tenants/${tenantId}/projects/${projectId}/docs/${doc.id}`}
-                className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700"
+        <div className="space-y-4">
+          {groupedDocs.map(({ folder, items }) => {
+            const isCollapsed = !search.trim() && collapsedFolders[folder];
+
+            return (
+              <section
+                key={folder}
+                className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"
               >
-                <div className="flex items-center gap-3 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => toggleFolder(folder)}
+                  className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      {folder}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {items.length} document{items.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
                   <svg
-                    className="h-5 w-5 flex-shrink-0 text-slate-400"
+                    className={`h-4 w-4 flex-shrink-0 text-slate-400 transition-transform ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
@@ -194,27 +279,55 @@ export default function DocsTreePage() {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                      d="M19.5 8.25L12 15.75 4.5 8.25"
                     />
                   </svg>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
-                      {doc.title}
-                    </p>
-                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                      {doc.path}
-                    </p>
+                </button>
+
+                {!isCollapsed && (
+                  <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                    {items.map((doc) => (
+                      <Link
+                        key={doc.id}
+                        to={`/tenants/${tenantId}/projects/${projectId}/docs/${doc.id}`}
+                        className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700"
+                      >
+                        <div className="min-w-0 flex items-center gap-3">
+                          <svg
+                            className="h-5 w-5 flex-shrink-0 text-slate-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                            />
+                          </svg>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+                              {doc.title}
+                            </p>
+                            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                              {doc.path}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="ml-4 flex flex-shrink-0 items-center gap-3">
+                          <StatusBadge status={doc.status} />
+                          <span className="text-xs text-slate-400">
+                            {new Date(doc.updated_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                  <StatusBadge status={doc.status} />
-                  <span className="text-xs text-slate-400">
-                    {new Date(doc.updated_at).toLocaleDateString()}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
+                )}
+              </section>
+            );
+          })}
         </div>
       )}
     </div>
