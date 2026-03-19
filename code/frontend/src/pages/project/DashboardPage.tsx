@@ -1,12 +1,12 @@
 import { Link, useParams } from 'react-router-dom';
-import { useProject } from '../hooks/useProjects';
-import { useChangeRequests } from '../hooks/useChangeRequests';
-import { useBugs } from '../hooks/useBugs';
-import { useDocs } from '../hooks/useDocs';
-import StatusBadge from '../components/StatusBadge';
-import SeverityBadge from '../components/SeverityBadge';
+import { useProject } from '../../hooks/useProjects';
+import { useChangeRequests } from '../../hooks/useChangeRequests';
+import { useBugs } from '../../hooks/useBugs';
+import { useDocs } from '../../hooks/useDocs';
+import StatusBadge from '../../components/StatusBadge';
+import SeverityBadge from '../../components/SeverityBadge';
 
-export default function ProjectDashboardPage() {
+export default function DashboardPage() {
   const { tenantId, projectId } = useParams();
   const { data: project, isLoading } = useProject(tenantId, projectId);
   const { data: crsData } = useChangeRequests(tenantId, projectId, {

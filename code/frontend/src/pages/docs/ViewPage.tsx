@@ -1,12 +1,12 @@
 import { useState, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useDoc, useUpdateDoc, useDeleteDoc } from '../hooks/useDocs';
-import StatusBadge from '../components/StatusBadge';
-import MarkdownRenderer from '../components/MarkdownRenderer';
-import MarkdownEditor from '../components/MarkdownEditor';
-import ConfirmDialog from '../components/ConfirmDialog';
+import { useDoc, useUpdateDoc, useDeleteDoc } from '../../hooks/useDocs';
+import StatusBadge from '../../components/StatusBadge';
+import MarkdownRenderer from '../../components/MarkdownRenderer';
+import MarkdownEditor from '../../components/MarkdownEditor';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
-export default function DocViewPage() {
+export default function ViewPage() {
   const { tenantId, projectId, docId } = useParams();
   const navigate = useNavigate();
   const { data: doc, isLoading } = useDoc(tenantId, projectId, docId);

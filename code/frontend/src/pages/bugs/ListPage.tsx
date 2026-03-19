@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useBugs } from '../hooks/useBugs';
-import StatusBadge from '../components/StatusBadge';
-import SeverityBadge from '../components/SeverityBadge';
-import Pagination from '../components/Pagination';
-import EmptyState from '../components/EmptyState';
+import { useBugs } from '../../hooks/useBugs';
+import StatusBadge from '../../components/StatusBadge';
+import SeverityBadge from '../../components/SeverityBadge';
+import Pagination from '../../components/Pagination';
+import EmptyState from '../../components/EmptyState';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All statuses' },
@@ -24,7 +24,7 @@ const SEVERITY_OPTIONS = [
   { value: 'trivial', label: 'Trivial' },
 ];
 
-export default function BugListPage() {
+export default function ListPage() {
   const { tenantId, projectId } = useParams();
   const [status, setStatus] = useState('');
   const [severity, setSeverity] = useState('');

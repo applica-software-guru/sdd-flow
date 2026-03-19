@@ -6,10 +6,10 @@ import {
   useTenantMembers,
   useInviteMember,
   useRemoveMember,
-} from '../hooks/useTenants';
-import ConfirmDialog from '../components/ConfirmDialog';
+} from '../../hooks/useTenants';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
-export default function TenantSettingsPage() {
+export default function SettingsPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
   const { data: tenant, isLoading } = useTenant(tenantId);
   const { data: members, isLoading: membersLoading } = useTenantMembers(tenantId);
