@@ -14,6 +14,7 @@ SDD Flow can run directly from prebuilt container images published in Google Art
 
 This feature explains a standard `docker-compose.yml` pattern to run backend + frontend using:
 
+- `vX.Y.Z` for official release versions
 - `latest` for the most recent stable publish
 - `rev-<short-sha>` for a deterministic revision rollout/rollback
 
@@ -26,8 +27,15 @@ Images are published to:
 
 Supported tags:
 
+- `vX.Y.Z` (release tags)
 - `latest`
 - `rev-<short-sha>` (example: `rev-19eb1e5`)
+
+Version mapping contract:
+
+- A single canonical `${VERSION}` is produced by `.github/workflows/docker-publish.yml` for each publish run.
+- Backend and frontend images always share the same `${VERSION}`.
+- `${VERSION}` precedence is: manual `image_tag` input -> git tag name (`v*`) -> `rev-<short-sha>`.
 
 ## Sample Docker Compose
 
@@ -99,8 +107,9 @@ Optional OAuth:
 
 1. Create `.env` with runtime values (at minimum `JWT_SECRET`).
 2. Choose the release tag:
-   - `IMAGE_TAG=latest` for most recent release
-   - `IMAGE_TAG=rev-<short-sha>` for pinned revision
+  - `IMAGE_TAG=vX.Y.Z` for an official release
+  - `IMAGE_TAG=latest` for most recent stable release
+  - `IMAGE_TAG=rev-<short-sha>` for pinned revision
 3. Start services:
 
 ```bash
@@ -129,8 +138,18 @@ IMAGE_TAG=rev-19eb1e5 docker compose up -d
 
 This keeps deployment immutable and reproducible.
 
+## Notifications and Upgrade Awareness
+
+Users can track new versions through:
+
+1. GitHub Releases watch (recommended and always available)
+2. Registry/repository notifications where organization settings allow it
+
+When a new release is published, use the same version string in both release notes and image tags (for example `v1.3.0`) to avoid ambiguity.
+
 ## Agent Notes
 
 - Keep production credentials in secret managers or CI/CD secret stores, not in committed `.env` files.
 - Prefer `rev-<short-sha>` in staging/production for traceability.
+- Prefer `vX.Y.Z` in production when following formal releases.
 - Use `latest` for local demos and quick smoke tests.

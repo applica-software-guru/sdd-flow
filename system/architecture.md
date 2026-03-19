@@ -122,9 +122,12 @@ sdd-flow/
 
 ### Container Artifact Flow: Build Once, Configure at Runtime
 
-- CI builds backend/frontend images and publishes them to registry (`ghcr.io`/Docker Hub/private registry)
+- CI builds backend/frontend images and publishes them to Google Artifact Registry (GAR)
 - Deployments consume immutable image tags and inject environment-specific runtime parameters
 - Same image tag is promoted across environments (`dev` -> `staging` -> `prod`) by changing runtime configuration, not rebuilding
+- Publish runs must share one canonical `VERSION` value between backend/frontend images
+- Version source precedence in workflow: manual `image_tag` override -> git tag `v*` -> `rev-<short_sha>` fallback
+- Stable releases can additionally publish `latest`, but `${VERSION}` remains the canonical deploy reference
 - Runtime config boundary:
   - Image content is environment-agnostic
   - Domain, OAuth, JWT, DB URL, and proxy upstream values come from deployment environment

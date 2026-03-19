@@ -70,24 +70,47 @@ Steps:
 
 ### Inputs and parameters
 
-- `REGISTRY` (for example `ghcr.io`, `docker.io`)
-- `IMAGE_NAMESPACE`
+- `GAR_LOCATION` (for example `europe-west1`)
+- `PROJECT_ID` (`vars.GCP_PROJECT_ID`)
+- `GAR_REPOSITORY` (default `sdd-flow`)
 - `IMAGE_NAME_BACKEND` (default `sdd-flow-backend`)
 - `IMAGE_NAME_FRONTEND` (default `sdd-flow-frontend`)
-- `IMAGE_TAG` (single tag) or metadata-driven multi-tag policy (`latest`, sha, semver)
-- `PUSH_IMAGES` toggle (dry-run builds for PR or manual validation)
+- `workflow_dispatch.inputs.image_tag` (manual version override)
+- `workflow_dispatch.inputs.push_images` toggle (dry-run builds for PR or manual validation)
 
 Image reference format:
 
-`${REGISTRY}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_TAG}`
+`${GAR_LOCATION}-docker.pkg.dev/${PROJECT_ID}/${GAR_REPOSITORY}/${IMAGE_NAME}:${TAG}`
+
+### Canonical version contract
+
+`docker-publish.yml` must compute one canonical `VERSION` per run and use it for both backend/frontend images.
+
+Version precedence:
+
+1. `workflow_dispatch.inputs.image_tag` when non-empty
+2. `github.ref_name` when event is a git tag (`v*`)
+3. `rev-<short_sha>` fallback for branch builds
+
+Tag policy:
+
+- `${VERSION}` is mandatory on every publish.
+- `latest` is optional and should be emitted only for approved stable release publishes.
+- Backend and frontend must always receive the same `${VERSION}`.
 
 ### Publish jobs
 
-1. Authenticate to registry using secrets (`REGISTRY_USERNAME` + `REGISTRY_PASSWORD` or token).
+1. Authenticate to Google Cloud via Workload Identity and configure Docker for GAR.
 2. Generate tags and labels using `docker/metadata-action`.
 3. Build/push backend image from `backend/Dockerfile`.
 4. Build/push frontend image from `frontend/Dockerfile`.
 5. Use BuildKit cache (`cache-from`/`cache-to`) to reduce build time.
+
+### Consistency checks
+
+- Fail the job if backend/frontend generated tags do not contain the same `${VERSION}`.
+- For release tag events (`v*`), ensure release communication references the same GAR image tags.
+- Keep PR behavior as build-only (`push: false`).
 
 ### Runtime configuration boundary
 

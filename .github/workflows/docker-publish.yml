@@ -81,14 +81,51 @@ jobs:
         if: github.event_name != 'pull_request' && (github.event.inputs.push_images != 'false')
         run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
 
+      - name: Compute canonical version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          short_sha="${GITHUB_SHA::7}"
+          manual_tag="${{ github.event.inputs.image_tag || '' }}"
+          ref_type="${GITHUB_REF_TYPE}"
+          ref_name="${GITHUB_REF_NAME}"
+
+          if [[ -n "${manual_tag}" ]]; then
+            version="${manual_tag}"
+          elif [[ "${ref_type}" == "tag" && "${ref_name}" == v* ]]; then
+            version="${ref_name}"
+          else
+            version="rev-${short_sha}"
+          fi
+
+          emit_latest="false"
+          if [[ "${ref_type}" == "tag" && "${ref_name}" == v* ]]; then
+            emit_latest="true"
+          fi
+
+          if [[ -n "${manual_tag}" && "${ref_type}" == "tag" && "${ref_name}" == v* && "${manual_tag}" != "${ref_name}" ]]; then
+            echo "Manual image_tag (${manual_tag}) must match git tag (${ref_name}) on release-tag events." >&2
+            exit 1
+          fi
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "emit_latest=${emit_latest}" >> "$GITHUB_OUTPUT"
+
+      - name: Show publish version
+        run: |
+          echo "VERSION=${{ steps.version.outputs.version }}"
+          echo "EMIT_LATEST=${{ steps.version.outputs.emit_latest }}"
+
       - name: Backend metadata
         id: backend_meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.IMAGE_NAME_BACKEND }}
           tags: |
-            type=raw,value=latest
-            type=sha,format=short,prefix=rev-
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=latest,enable=${{ steps.version.outputs.emit_latest == 'true' }}
 
       - name: Frontend metadata
         id: frontend_meta
@@ -96,8 +133,53 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.IMAGE_NAME_FRONTEND }}
           tags: |
-            type=raw,value=latest
-            type=sha,format=short,prefix=rev-
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=raw,value=latest,enable=${{ steps.version.outputs.emit_latest == 'true' }}
+
+      - name: Verify backend/frontend version alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.version.outputs.version }}"
+          backend_tags="${{ steps.backend_meta.outputs.tags }}"
+          frontend_tags="${{ steps.frontend_meta.outputs.tags }}"
+
+          if ! grep -q ":${version}$" <<< "${backend_tags}"; then
+            echo "Backend tags do not include canonical version ${version}" >&2
+            exit 1
+          fi
+
+          if ! grep -q ":${version}$" <<< "${frontend_tags}"; then
+            echo "Frontend tags do not include canonical version ${version}" >&2
+            exit 1
+          fi
+
+          echo "Version alignment check passed for ${version}."
+
+      - name: Publish image summary
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.version.outputs.version }}"
+          backend_image="${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.IMAGE_NAME_BACKEND }}:${version}"
+          frontend_image="${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.GAR_REPOSITORY }}/${{ env.IMAGE_NAME_FRONTEND }}:${version}"
+
+          {
+            echo "## Docker Publish Summary"
+            echo
+            echo "- Version: ${version}"
+            echo "- Backend image: ${backend_image}"
+            echo "- Frontend image: ${frontend_image}"
+            echo
+            echo "### Pull commands"
+            echo
+            echo "\`\`\`bash"
+            echo "docker pull ${backend_image}"
+            echo "docker pull ${frontend_image}"
+            echo "\`\`\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Build and optionally push backend image
         uses: docker/build-push-action@v6
