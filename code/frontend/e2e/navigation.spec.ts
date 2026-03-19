@@ -20,6 +20,12 @@ test.describe('Navigation', () => {
     await page.waitForURL(`**/projects/**`);
     // Project dashboard page should show an overview heading or content
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 10_000 });
+
+    // Project context bar and breadcrumb should make active project obvious
+    await expect(page.getByText('Project context')).toBeVisible();
+    await expect(page.getByText('Project: E2E Test Project')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Projects' })).toBeVisible();
+    await expect(page.getByText('Overview')).toBeVisible();
   });
 
   test('sidebar links work for CR list, Bug list, Docs, Settings', async ({

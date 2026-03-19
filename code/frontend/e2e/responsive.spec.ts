@@ -50,4 +50,16 @@ test.describe('Responsive layout', () => {
     expect(box!.x).toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width).toBeLessThanOrEqual(375 + 10); // small tolerance
   });
+
+  test('mobile drawer shows active project context', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto(`/tenants/${getTenantId()}/projects/${getProjectId()}`);
+
+    const menuButton = page.locator('header button').first();
+    await menuButton.click();
+
+    await expect(page.getByText('Current project')).toBeVisible();
+    await expect(page.getByText('E2E Test Project')).toBeVisible();
+    await expect(page.getByText('Inside E2E Test Project')).toBeVisible();
+  });
 });
