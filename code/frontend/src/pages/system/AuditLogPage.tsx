@@ -62,7 +62,7 @@ export default function AuditLogPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+      <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
@@ -89,7 +89,7 @@ export default function AuditLogPage() {
                   <th className="w-40 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Entity
                   </th>
-                  <th className="hidden w-[28rem] px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 lg:table-cell">
+                  <th className="hidden w-[26rem] px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 lg:table-cell">
                     Details
                   </th>
                 </tr>
@@ -127,10 +127,10 @@ export default function AuditLogPage() {
                         {entry.entity_id.slice(0, 8)}...
                       </span>
                     </td>
-                    <td className="hidden px-6 py-3 text-xs text-slate-400 dark:text-slate-500 align-top lg:table-cell">
-                      <div className="max-h-24 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-5 text-slate-500 dark:text-slate-400">
+                    <td className="hidden max-w-0 px-6 py-3 text-xs text-slate-400 dark:text-slate-500 align-top lg:table-cell">
+                      <div className="max-h-28 w-full overflow-auto rounded-md bg-slate-50 px-2 py-1 whitespace-pre-wrap break-all font-mono text-[11px] leading-5 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300">
                         {entry.details
-                          ? JSON.stringify(entry.details)
+                          ? JSON.stringify(entry.details, null, 2)
                           : '--'}
                       </div>
                     </td>
