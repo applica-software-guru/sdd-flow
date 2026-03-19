@@ -16,6 +16,7 @@ class BugStatus(str, enum.Enum):
     resolved = "resolved"
     wont_fix = "wont_fix"
     closed = "closed"
+    deleted = "deleted"
 
 
 class BugSeverity(str, enum.Enum):

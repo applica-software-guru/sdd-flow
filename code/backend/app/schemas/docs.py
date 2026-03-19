@@ -51,3 +51,12 @@ class DocBulkResponse(BaseModel):
 
 class DocEnrichRequest(BaseModel):
     content: str
+
+
+class DocDeleteRequest(BaseModel):
+    paths: list[str]
+
+
+class DocDeleteResponse(BaseModel):
+    deleted: int
+    paths: list[str]

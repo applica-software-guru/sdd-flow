@@ -16,6 +16,7 @@ class CRStatus(str, enum.Enum):
     rejected = "rejected"
     applied = "applied"
     closed = "closed"
+    deleted = "deleted"
 
 
 class ChangeRequest(UUIDMixin, TimestampMixin, Base):
