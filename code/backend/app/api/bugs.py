@@ -81,6 +81,9 @@ async def list_bugs(
     if status_filter is not None:
         query = query.where(Bug.status == status_filter)
         count_query = count_query.where(Bug.status == status_filter)
+    else:
+        query = query.where(Bug.status != BugStatus.deleted)
+        count_query = count_query.where(Bug.status != BugStatus.deleted)
 
     total = (await db.execute(count_query)).scalar() or 0
     query = query.order_by(Bug.created_at.desc()).offset((page - 1) * page_size).limit(page_size)

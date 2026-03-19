@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,15 +32,19 @@ async def _get_project(db: AsyncSession, tenant_id: uuid.UUID, project_id: uuid.
 async def list_docs(
     tenant_id: uuid.UUID,
     project_id: uuid.UUID,
+    status_filter: DocStatus | None = Query(None, alias="status"),
     member: TenantMember = Depends(get_current_tenant_member),
     db: AsyncSession = Depends(get_db),
 ):
     await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(DocumentFile)
-        .where(DocumentFile.project_id == project_id, DocumentFile.status != DocStatus.deleted)
-        .order_by(DocumentFile.path)
-    )
+    query = select(DocumentFile).where(DocumentFile.project_id == project_id)
+
+    if status_filter is not None:
+        query = query.where(DocumentFile.status == status_filter)
+    else:
+        query = query.where(DocumentFile.status != DocStatus.deleted)
+
+    result = await db.execute(query.order_by(DocumentFile.path))
     return result.scalars().all()
 
 

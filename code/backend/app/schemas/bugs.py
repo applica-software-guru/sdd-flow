@@ -67,3 +67,12 @@ class BugBulkResponse(BaseModel):
     created: int
     updated: int
     bugs: list[BugResponse]
+
+
+class BugDeleteRequest(BaseModel):
+    paths: list[str]
+
+
+class BugDeleteResponse(BaseModel):
+    deleted: int
+    paths: list[str]

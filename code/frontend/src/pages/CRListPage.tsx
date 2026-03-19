@@ -12,6 +12,7 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: 'Rejected' },
   { value: 'applied', label: 'Applied' },
   { value: 'closed', label: 'Closed' },
+  { value: 'deleted', label: 'Deleted' },
 ];
 
 export default function CRListPage() {

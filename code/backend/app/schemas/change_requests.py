@@ -66,3 +66,12 @@ class CRBulkResponse(BaseModel):
     created: int
     updated: int
     change_requests: list[CRResponse]
+
+
+class CRDeleteRequest(BaseModel):
+    paths: list[str]
+
+
+class CRDeleteResponse(BaseModel):
+    deleted: int
+    paths: list[str]

@@ -11,9 +11,9 @@ from app.models.bug import Bug, BugSeverity, BugStatus
 from app.models.change_request import CRStatus, ChangeRequest
 from app.models.document_file import DocStatus, DocumentFile
 from app.models.project import Project
-from app.schemas.bugs import BugBulkRequest, BugBulkResponse, BugEnrichRequest, BugResponse
-from app.schemas.change_requests import CRBulkRequest, CRBulkResponse, CREnrichRequest, CRResponse
-from app.schemas.docs import DocBulkRequest, DocBulkResponse, DocEnrichRequest, DocResponse
+from app.schemas.bugs import BugBulkRequest, BugBulkResponse, BugDeleteRequest, BugDeleteResponse, BugEnrichRequest, BugResponse
+from app.schemas.change_requests import CRBulkRequest, CRBulkResponse, CRDeleteRequest, CRDeleteResponse, CREnrichRequest, CRResponse
+from app.schemas.docs import DocBulkRequest, DocBulkResponse, DocDeleteRequest, DocDeleteResponse, DocEnrichRequest, DocResponse
 from app.schemas.projects import ProjectResetRequest, ProjectResetResponse
 from app.services.project_reset import reset_project_data
 
@@ -326,6 +326,89 @@ async def push_bugs(
         updated=updated,
         bugs=[BugResponse.model_validate(bug) for bug in bugs],
     )
+
+
+@router.post("/delete-docs", response_model=DocDeleteResponse)
+async def delete_docs(
+    body: DocDeleteRequest,
+    project: Project = Depends(get_api_key_project),
+    db: AsyncSession = Depends(get_db),
+):
+    deleted = 0
+    deleted_paths = []
+
+    for path in body.paths:
+        result = await db.execute(
+            select(DocumentFile).where(
+                DocumentFile.project_id == project.id,
+                DocumentFile.path == path,
+                DocumentFile.status != DocStatus.deleted,
+            )
+        )
+        doc = result.scalar_one_or_none()
+        if doc is not None:
+            doc.status = DocStatus.deleted
+            deleted += 1
+            deleted_paths.append(path)
+
+    await db.flush()
+    return DocDeleteResponse(deleted=deleted, paths=deleted_paths)
+
+
+@router.post("/delete-crs", response_model=CRDeleteResponse)
+async def delete_crs(
+    body: CRDeleteRequest,
+    project: Project = Depends(get_api_key_project),
+    db: AsyncSession = Depends(get_db),
+):
+    deleted = 0
+    deleted_paths = []
+
+    for path in body.paths:
+        result = await db.execute(
+            select(ChangeRequest).where(
+                ChangeRequest.project_id == project.id,
+                ChangeRequest.path == path,
+                ChangeRequest.status != CRStatus.deleted,
+            )
+        )
+        cr = result.scalar_one_or_none()
+        if cr is not None:
+            cr.status = CRStatus.deleted
+            cr.closed_at = datetime.now(timezone.utc)
+            deleted += 1
+            deleted_paths.append(path)
+
+    await db.flush()
+    return CRDeleteResponse(deleted=deleted, paths=deleted_paths)
+
+
+@router.post("/delete-bugs", response_model=BugDeleteResponse)
+async def delete_bugs(
+    body: BugDeleteRequest,
+    project: Project = Depends(get_api_key_project),
+    db: AsyncSession = Depends(get_db),
+):
+    deleted = 0
+    deleted_paths = []
+
+    for path in body.paths:
+        result = await db.execute(
+            select(Bug).where(
+                Bug.project_id == project.id,
+                Bug.path == path,
+                Bug.status != BugStatus.deleted,
+            )
+        )
+        bug = result.scalar_one_or_none()
+        if bug is not None:
+            bug.status = BugStatus.deleted
+            bug.closed_at = datetime.now(timezone.utc)
+            deleted += 1
+            deleted_paths.append(path)
+
+    await db.flush()
+    return BugDeleteResponse(deleted=deleted, paths=deleted_paths)
 
 
 @router.post("/reset", response_model=ProjectResetResponse)

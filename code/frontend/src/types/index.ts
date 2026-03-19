@@ -50,7 +50,8 @@ export type CRStatus =
   | 'approved'
   | 'rejected'
   | 'applied'
-  | 'closed';
+  | 'closed'
+  | 'deleted';
 
 export interface ChangeRequest {
   id: string;
@@ -74,7 +75,8 @@ export type BugStatus =
   | 'in_progress'
   | 'resolved'
   | 'wont_fix'
-  | 'closed';
+  | 'closed'
+  | 'deleted';
 
 export interface Bug {
   id: string;
@@ -102,7 +104,7 @@ export interface Comment {
   updated_at: string;
 }
 
-export type DocStatus = 'new' | 'changed' | 'synced' | 'deleted';
+export type DocStatus = 'draft' | 'new' | 'changed' | 'synced' | 'deleted';
 
 export interface DocumentFile {
   id: string;

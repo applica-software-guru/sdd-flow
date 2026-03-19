@@ -4,9 +4,21 @@ import { useDocs, useCreateDoc } from '../hooks/useDocs';
 import StatusBadge from '../components/StatusBadge';
 import EmptyState from '../components/EmptyState';
 
+const STATUS_OPTIONS = [
+  { value: '', label: 'All statuses' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'new', label: 'New' },
+  { value: 'changed', label: 'Changed' },
+  { value: 'synced', label: 'Synced' },
+  { value: 'deleted', label: 'Deleted' },
+];
+
 export default function DocsTreePage() {
   const { tenantId, projectId } = useParams();
-  const { data: docs, isLoading } = useDocs(tenantId, projectId);
+  const [status, setStatus] = useState('');
+  const { data: docs, isLoading } = useDocs(tenantId, projectId, {
+    status: status || undefined,
+  });
   const createDoc = useCreateDoc(tenantId!, projectId!);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -66,6 +78,26 @@ export default function DocsTreePage() {
           </svg>
           New Document
         </button>
+      </div>
+
+      {/* Filters */}
+      <div className="mb-4 flex items-center gap-3">
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+        >
+          {STATUS_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        {docs && (
+          <span className="text-sm text-slate-500 dark:text-slate-400">
+            {docs.length} document{docs.length !== 1 ? 's' : ''}
+          </span>
+        )}
       </div>
 
       {showCreateForm && (

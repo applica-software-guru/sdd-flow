@@ -13,6 +13,7 @@ const STATUS_OPTIONS = [
   { value: 'resolved', label: 'Resolved' },
   { value: 'wont_fix', label: "Won't Fix" },
   { value: 'closed', label: 'Closed' },
+  { value: 'deleted', label: 'Deleted' },
 ];
 
 const SEVERITY_OPTIONS = [

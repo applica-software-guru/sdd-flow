@@ -5,13 +5,17 @@ import type { DocumentFile } from '../types';
 
 export function useDocs(
   tenantId: string | undefined,
-  projectId: string | undefined
+  projectId: string | undefined,
+  filters?: { status?: string }
 ) {
   return useQuery<DocumentFile[]>({
-    queryKey: ['tenants', tenantId, 'projects', projectId, 'docs'],
+    queryKey: ['tenants', tenantId, 'projects', projectId, 'docs', filters],
     queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters?.status) params.set('status', filters.status);
+      const query = params.toString();
       const { data } = await api.get(
-        `/tenants/${tenantId}/projects/${projectId}/docs`
+        `/tenants/${tenantId}/projects/${projectId}/docs${query ? `?${query}` : ''}`
       );
       return data;
     },
