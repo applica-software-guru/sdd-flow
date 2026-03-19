@@ -3,10 +3,17 @@
 import uuid
 
 import pytest
+import pytest_asyncio
 from httpx import AsyncClient
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.bug import Bug, BugSeverity, BugStatus
+from app.models.change_request import ChangeRequest, CRStatus
+from app.models.document_file import DocStatus, DocumentFile
 from app.models.project import Project
 from app.models.tenant import Tenant
+from app.models.user import User
 
 
 # ---------------------------------------------------------------------------
@@ -120,3 +127,100 @@ async def test_archive_and_restore_project(
     )
     assert resp.status_code == 200
     assert resp.json()["archived_at"] is None
+
+
+# ---------------------------------------------------------------------------
+# Reset project
+# ---------------------------------------------------------------------------
+
+@pytest_asyncio.fixture
+async def project_with_data(
+    db_session: AsyncSession, test_project: Project, test_user: User
+):
+    """Populate a project with docs, CRs, and bugs for reset tests."""
+    doc = DocumentFile(
+        project_id=test_project.id,
+        path="product/vision.md",
+        title="Vision",
+        content="# Vision",
+        status=DocStatus.synced,
+        version=1,
+    )
+    cr = ChangeRequest(
+        project_id=test_project.id,
+        path="change-requests/001-auth.md",
+        title="Add auth",
+        body="Implement JWT",
+        status=CRStatus.pending,
+        author_id=test_user.id,
+    )
+    bug = Bug(
+        project_id=test_project.id,
+        path="bugs/001-crash.md",
+        title="Login crash",
+        body="App crashes on login",
+        status=BugStatus.open,
+        severity=BugSeverity.major,
+        author_id=test_user.id,
+    )
+    db_session.add_all([doc, cr, bug])
+    await db_session.commit()
+    return test_project
+
+
+@pytest.mark.asyncio
+async def test_reset_project(
+    client: AsyncClient,
+    test_tenant: Tenant,
+    project_with_data: Project,
+    db_session: AsyncSession,
+):
+    project = project_with_data
+    resp = await client.post(
+        f"/api/v1/tenants/{test_tenant.id}/projects/{project.id}/reset",
+        json={"confirm_slug": project.slug},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["deleted_documents"] == 1
+    assert data["deleted_change_requests"] == 1
+    assert data["deleted_bugs"] == 1
+
+    # Verify entities are gone
+    docs = await db_session.execute(
+        select(DocumentFile).where(DocumentFile.project_id == project.id)
+    )
+    assert docs.scalars().all() == []
+
+    # Verify project still exists
+    proj = await db_session.execute(
+        select(Project).where(Project.id == project.id)
+    )
+    assert proj.scalar_one_or_none() is not None
+
+
+@pytest.mark.asyncio
+async def test_reset_project_wrong_slug(
+    client: AsyncClient, test_tenant: Tenant, test_project: Project
+):
+    resp = await client.post(
+        f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}/reset",
+        json={"confirm_slug": "wrong-slug"},
+    )
+    assert resp.status_code == 400
+    assert "Slug mismatch" in resp.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_reset_empty_project(
+    client: AsyncClient, test_tenant: Tenant, test_project: Project
+):
+    resp = await client.post(
+        f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}/reset",
+        json={"confirm_slug": test_project.slug},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["deleted_documents"] == 0
+    assert data["deleted_change_requests"] == 0
+    assert data["deleted_bugs"] == 0

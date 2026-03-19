@@ -33,3 +33,16 @@ class ProjectResponse(BaseModel):
     stats: ProjectStats | None = None
 
     model_config = {"from_attributes": True}
+
+
+class ProjectResetRequest(BaseModel):
+    confirm_slug: str
+
+
+class ProjectResetResponse(BaseModel):
+    message: str
+    deleted_documents: int
+    deleted_change_requests: int
+    deleted_bugs: int
+    deleted_comments: int
+    deleted_notifications: int
