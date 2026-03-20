@@ -9,38 +9,45 @@ export default function Pagination({
   totalPages,
   onPageChange,
 }: PaginationProps) {
-  if (totalPages <= 1) return null;
+  const safeTotalPages = Number.isFinite(totalPages)
+    ? Math.max(0, Math.floor(totalPages))
+    : 0;
+  if (safeTotalPages <= 1) return null;
+
+  const safePage = Number.isFinite(page)
+    ? Math.min(Math.max(1, Math.floor(page)), safeTotalPages)
+    : 1;
 
   const pages: (number | '...')[] = [];
-  if (totalPages <= 7) {
-    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  if (safeTotalPages <= 7) {
+    for (let i = 1; i <= safeTotalPages; i++) pages.push(i);
   } else {
     pages.push(1);
-    if (page > 3) pages.push('...');
+    if (safePage > 3) pages.push('...');
     for (
-      let i = Math.max(2, page - 1);
-      i <= Math.min(totalPages - 1, page + 1);
+      let i = Math.max(2, safePage - 1);
+      i <= Math.min(safeTotalPages - 1, safePage + 1);
       i++
     ) {
       pages.push(i);
     }
-    if (page < totalPages - 2) pages.push('...');
-    pages.push(totalPages);
+    if (safePage < safeTotalPages - 2) pages.push('...');
+    pages.push(safeTotalPages);
   }
 
   return (
     <nav className="flex items-center justify-between border-t border-slate-200 px-4 py-3 dark:border-slate-700 sm:px-6">
       <div className="flex flex-1 justify-between sm:hidden">
         <button
-          onClick={() => onPageChange(page - 1)}
-          disabled={page <= 1}
+          onClick={() => onPageChange(safePage - 1)}
+          disabled={safePage <= 1}
           className="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         >
           Previous
         </button>
         <button
-          onClick={() => onPageChange(page + 1)}
-          disabled={page >= totalPages}
+          onClick={() => onPageChange(safePage + 1)}
+          disabled={safePage >= safeTotalPages}
           className="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         >
           Next
@@ -49,8 +56,8 @@ export default function Pagination({
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-center">
         <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
           <button
-            onClick={() => onPageChange(page - 1)}
-            disabled={page <= 1}
+            onClick={() => onPageChange(safePage - 1)}
+            disabled={safePage <= 1}
             className="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-500 dark:ring-slate-600 dark:hover:bg-slate-700"
           >
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -74,7 +81,7 @@ export default function Pagination({
                 key={p}
                 onClick={() => onPageChange(p)}
                 className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-300 dark:ring-slate-600 ${
-                  p === page
+                  p === safePage
                     ? 'z-10 bg-blue-600 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
                     : 'text-slate-900 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700'
                 }`}
@@ -84,8 +91,8 @@ export default function Pagination({
             )
           )}
           <button
-            onClick={() => onPageChange(page + 1)}
-            disabled={page >= totalPages}
+            onClick={() => onPageChange(safePage + 1)}
+            disabled={safePage >= safeTotalPages}
             className="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-500 dark:ring-slate-600 dark:hover:bg-slate-700"
           >
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

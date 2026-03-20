@@ -143,26 +143,6 @@ export default function Layout() {
               <TenantSwitcher />
             </div>
 
-            {isProjectScoped && (
-              <div className="px-3 pb-3">
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-700 dark:bg-blue-900/20">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Current project</p>
-                  <p className="mt-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                    {activeProject?.name || 'Loading project...'}
-                  </p>
-                  {activeProject?.slug && (
-                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">{activeProject.slug}</p>
-                  )}
-                  <NavLink
-                    to={`/tenants/${tenantId}`}
-                    className="mt-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
-                  >
-                    Switch project
-                  </NavLink>
-                </div>
-              </div>
-            )}
-
             <nav className="flex flex-col gap-1 px-3">
               {tenantId && (
                 <>
@@ -405,21 +385,6 @@ export default function Layout() {
                 {projectId && (
                   <>
                     <div className="my-2 border-t border-slate-200 dark:border-slate-700" />
-                    <div className="mb-2 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-700 dark:bg-blue-900/20">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">Current project</p>
-                      <p className="mt-1 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        {activeProject?.name || 'Loading project...'}
-                      </p>
-                      {activeProject?.slug && (
-                        <p className="truncate text-xs text-slate-500 dark:text-slate-400">{activeProject.slug}</p>
-                      )}
-                      <NavLink
-                        to={`/tenants/${tenantId}`}
-                        className="mt-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
-                      >
-                        Switch project
-                      </NavLink>
-                    </div>
                     <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
                       Inside {projectHeadingLabel}
                     </p>

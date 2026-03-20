@@ -44,7 +44,7 @@ export default function AuditLogPage() {
             setEntityType(e.target.value);
             setPage(1);
           }}
-          className="rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm dark:text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="sdd-select rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm dark:text-slate-100 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           <option value="">All entity types</option>
           <option value="project">Project</option>
@@ -140,7 +140,7 @@ export default function AuditLogPage() {
             </table>
             <Pagination
               page={data.page}
-              totalPages={data.total_pages}
+              totalPages={data.pages}
               onPageChange={setPage}
             />
           </>
