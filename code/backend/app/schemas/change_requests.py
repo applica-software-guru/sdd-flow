@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 from app.models.change_request import CRStatus
 from app.schemas.common import PaginatedResponse
@@ -28,6 +28,8 @@ class CRTransition(BaseModel):
 class CRResponse(BaseModel):
     id: uuid.UUID
     project_id: uuid.UUID
+    number: int
+    slug: str
     path: str | None = None
     title: str
     body: str
@@ -40,6 +42,11 @@ class CRResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @computed_field
+    @property
+    def formatted_number(self) -> str:
+        return str(self.number).zfill(3)
 
 
 class CRListResponse(PaginatedResponse[CRResponse]):

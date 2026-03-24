@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 from app.models.bug import BugSeverity, BugStatus
 from app.schemas.common import PaginatedResponse
@@ -28,6 +28,8 @@ class BugTransition(BaseModel):
 class BugResponse(BaseModel):
     id: uuid.UUID
     project_id: uuid.UUID
+    number: int
+    slug: str
     path: str | None = None
     title: str
     body: str
@@ -40,6 +42,11 @@ class BugResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @computed_field
+    @property
+    def formatted_number(self) -> str:
+        return str(self.number).zfill(3)
 
 
 class BugListResponse(PaginatedResponse[BugResponse]):

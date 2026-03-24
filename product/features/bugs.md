@@ -1,6 +1,6 @@
 ---
 title: "Bug Tracking"
-status: changed
+status: synced
 author: ""
 last-modified: "2026-03-24T00:00:00.000Z"
 version: "1.1"

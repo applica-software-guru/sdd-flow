@@ -16,6 +16,7 @@ from app.schemas.change_requests import CRBulkRequest, CRBulkResponse, CRDeleteR
 from app.schemas.docs import DocBulkRequest, DocBulkResponse, DocDeleteRequest, DocDeleteResponse, DocEnrichRequest, DocResponse
 from app.schemas.projects import ProjectResetRequest, ProjectResetResponse
 from app.services.project_reset import reset_project_data
+from app.services.slug import assign_number_and_slug
 
 router = APIRouter(prefix="/cli", tags=["cli"])
 
@@ -253,8 +254,13 @@ async def push_crs(
             crs.append(existing)
             updated += 1
         else:
+            number, slug = await assign_number_and_slug(
+                db, ChangeRequest, ctx.project.id, item.title, item.path
+            )
             cr = ChangeRequest(
                 project_id=ctx.project.id,
+                number=number,
+                slug=slug,
                 path=item.path,
                 title=item.title,
                 body=item.body,
@@ -305,8 +311,13 @@ async def push_bugs(
             bugs.append(existing)
             updated += 1
         else:
+            number, slug = await assign_number_and_slug(
+                db, Bug, ctx.project.id, item.title, item.path
+            )
             bug = Bug(
                 project_id=ctx.project.id,
+                number=number,
+                slug=slug,
                 path=item.path,
                 title=item.title,
                 body=item.body,

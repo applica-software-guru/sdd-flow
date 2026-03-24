@@ -69,7 +69,12 @@ export default function DetailPage() {
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div className="border-b border-slate-200 px-6 py-5 dark:border-slate-700">
           <div className="flex items-start justify-between gap-4">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">{bug.title}</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+              <span className="mr-2 font-mono text-base font-normal text-slate-400 dark:text-slate-500">
+                #{bug.formatted_number}
+              </span>
+              {bug.title}
+            </h1>
             <div className="flex items-center gap-2">
               <SeverityBadge severity={bug.severity} />
               <StatusBadge status={bug.status} />

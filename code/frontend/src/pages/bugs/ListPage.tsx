@@ -152,6 +152,9 @@ export default function ListPage() {
                         to={`/tenants/${tenantId}/projects/${projectId}/bugs/${bug.id}`}
                         className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                       >
+                        <span className="mr-1.5 font-mono text-slate-400 dark:text-slate-500">
+                          #{bug.formatted_number}
+                        </span>
                         {bug.title}
                       </Link>
                     </td>
