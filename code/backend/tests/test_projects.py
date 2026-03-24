@@ -153,6 +153,8 @@ async def project_with_data(
         body="Implement JWT",
         status=CRStatus.pending,
         author_id=test_user.id,
+        number=1,
+        slug="add-auth",
     )
     bug = Bug(
         project_id=test_project.id,
@@ -162,6 +164,8 @@ async def project_with_data(
         status=BugStatus.open,
         severity=BugSeverity.major,
         author_id=test_user.id,
+        number=1,
+        slug="login-crash",
     )
     db_session.add_all([doc, cr, bug])
     await db_session.commit()
