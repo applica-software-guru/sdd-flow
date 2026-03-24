@@ -1,9 +1,9 @@
 ---
 title: "Change Request Management"
-status: synced
+status: changed
 author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.0"
+last-modified: "2026-03-24T00:00:00.000Z"
+version: "1.1"
 ---
 
 # Change Request Management
@@ -36,6 +36,7 @@ draft → approved → applied → closed
 - Body in Markdown (required) — describes what to change and why
 - Target files — optional list of documentation files affected
 - Author is set automatically to the current user
+- A **progressive number** (scoped to the project, zero-padded to 3 digits, e.g. `001`) and an immutable **slug** (derived from the title) are assigned automatically at creation. Neither can be changed afterwards.
 
 ### CR List & Filtering
 
@@ -67,3 +68,4 @@ draft → approved → applied → closed
 
 - The SDD CLI uses only `draft` and `applied` statuses. The `approved`, `rejected`, and `closed` statuses are additions for the web workflow. When the CLI fetches pending CRs via API, it should receive CRs with status `approved`.
 - CR body format must be compatible with the SDD CLI frontmatter format for bidirectional sync.
+- `number` and `slug` are server-generated at creation and immutable. Do not expose a slug edit field in the UI. `formatted_number` is `number` zero-padded to at least 3 digits and is computed, not stored.

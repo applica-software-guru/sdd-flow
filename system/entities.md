@@ -1,9 +1,9 @@
 ---
 title: "Data Entities"
-status: synced
+status: changed
 author: ""
-last-modified: "2026-03-18T00:00:00.000Z"
-version: "1.1"
+last-modified: "2026-03-24T00:00:00.000Z"
+version: "1.2"
 ---
 
 # Data Entities
@@ -128,6 +128,8 @@ A change request for a project.
 |-------|------|-------------|
 | id | UUID | Primary key |
 | project_id | UUID | FK → Project |
+| number | integer | Per-project progressive number (e.g. `1`, `42`). Immutable after creation. |
+| slug | string | URL-friendly identifier derived from title at creation. Immutable after creation. |
 | path | string? | Local file path from CLI (e.g. `change-requests/001-auth.md`) |
 | title | string | CR title |
 | body | text | Markdown body |
@@ -139,6 +141,12 @@ A change request for a project.
 | updated_at | datetime | Last update |
 | closed_at | datetime? | When the CR was closed |
 
+Unique constraints: `(project_id, number)`, `(project_id, slug)`
+
+**Number assignment:** on insert, if the CLI `path` filename has a numeric prefix (e.g. `001-fix-auth.md`), that integer is restored as the `number`; otherwise `MAX(number) + 1` within the project. If the restored number is already taken, falls back to auto-increment.
+
+**Slug assignment:** on insert, if the CLI `path` has a numeric prefix, the slug is derived from the remainder of the filename without the `.md` extension (e.g. `001-fix-auth.md` → `fix-auth`); otherwise derived from the title (lowercase, non-alphanumeric replaced with `-`). Duplicate slugs within the same project are disambiguated by appending `-2`, `-3`, etc. The `slug` is never updated from client requests.
+
 ### Bug
 
 A bug report for a project.
@@ -147,6 +155,8 @@ A bug report for a project.
 |-------|------|-------------|
 | id | UUID | Primary key |
 | project_id | UUID | FK → Project |
+| number | integer | Per-project progressive number (e.g. `1`, `42`). Immutable after creation. |
+| slug | string | URL-friendly identifier derived from title at creation. Immutable after creation. |
 | path | string? | Local file path from CLI (e.g. `bugs/001-login-crash.md`) |
 | title | string | Bug title |
 | body | text | Markdown body |
@@ -157,6 +167,10 @@ A bug report for a project.
 | created_at | datetime | Creation time |
 | updated_at | datetime | Last update |
 | closed_at | datetime? | When the bug was closed |
+
+Unique constraints: `(project_id, number)`, `(project_id, slug)`
+
+**Number and slug assignment:** same rules as ChangeRequest above.
 
 ### Comment
 
