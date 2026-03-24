@@ -1,9 +1,9 @@
 ---
 title: "API Interfaces"
-status: synced
+status: changed
 author: ""
 last-modified: "2026-03-24T00:00:00.000Z"
-version: "1.5"
+version: "1.6"
 ---
 
 # API Interfaces
@@ -264,27 +264,27 @@ Scoped to a project: `/tenants/:tenant_id/projects/:project_id/crs`
 Create a CR.
 
 **Body:** `{ title, body, target_files?, assignee_id? }`
-**Response:** `201` `{ id, title, status: "draft", ... }`
+**Response:** `201` `{ id, number, formatted_number, slug, title, status: "draft", ... }`
 
 ### GET .../crs
 
 List CRs.
 
 **Query:** `status`, `author_id`, `assignee_id`, `page`, `per_page`
-**Response:** `200` `{ items: [...], total, page, per_page }`
+**Response:** `200` `{ items: [{ ..., number, formatted_number, slug }], total, page, per_page }`
 
 ### GET .../crs/:cr_id
 
 Get CR details.
 
-**Response:** `200` `{ id, title, body, status, author, assignee, target_files, comments, created_at, updated_at }`
+**Response:** `200` `{ id, number, formatted_number, slug, title, body, status, author, assignee, target_files, comments, created_at, updated_at }`
 
 ### PATCH .../crs/:cr_id
 
-Update a CR.
+Update a CR. The `slug` field is ignored if sent — it is immutable after creation.
 
 **Body:** `{ title?, body?, target_files?, assignee_id? }`
-**Response:** `200` `{ ... }`
+**Response:** `200` `{ ..., number, formatted_number, slug }`
 
 ### POST .../crs/:cr_id/transition
 
@@ -311,27 +311,27 @@ Scoped to a project: `/tenants/:tenant_id/projects/:project_id/bugs`
 Create a bug.
 
 **Body:** `{ title, body, severity, assignee_id? }`
-**Response:** `201` `{ id, title, status: "open", severity, ... }`
+**Response:** `201` `{ id, number, formatted_number, slug, title, status: "open", severity, ... }`
 
 ### GET .../bugs
 
 List bugs.
 
 **Query:** `status`, `severity`, `author_id`, `assignee_id`, `page`, `per_page`
-**Response:** `200` `{ items: [...], total, page, per_page }`
+**Response:** `200` `{ items: [{ ..., number, formatted_number, slug }], total, page, per_page }`
 
 ### GET .../bugs/:bug_id
 
 Get bug details.
 
-**Response:** `200` `{ id, title, body, status, severity, author, assignee, comments, created_at, updated_at }`
+**Response:** `200` `{ id, number, formatted_number, slug, title, body, status, severity, author, assignee, comments, created_at, updated_at }`
 
 ### PATCH .../bugs/:bug_id
 
-Update a bug.
+Update a bug. The `slug` field is ignored if sent — it is immutable after creation.
 
 **Body:** `{ title?, body?, severity?, assignee_id? }`
-**Response:** `200` `{ ... }`
+**Response:** `200` `{ ..., number, formatted_number, slug }`
 
 ### POST .../bugs/:bug_id/transition
 
@@ -492,25 +492,25 @@ These endpoints accept API key auth (`Authorization: Bearer sddflow_sk_...`) ins
 
 Get draft/pending/approved CRs.
 
-**Response:** `200` `[{ id, project_id, path, title, body, status, author_id, assignee_id, target_files, closed_at, created_at, updated_at }]`
+**Response:** `200` `[{ id, project_id, number, formatted_number, slug, path, title, body, status, author_id, assignee_id, target_files, closed_at, created_at, updated_at }]`
 
 ### GET /cli/open-bugs
 
 Get draft/open/in-progress bugs.
 
-**Response:** `200` `[{ id, project_id, path, title, body, status, severity, author_id, assignee_id, closed_at, created_at, updated_at }]`
+**Response:** `200` `[{ id, project_id, number, formatted_number, slug, path, title, body, status, severity, author_id, assignee_id, closed_at, created_at, updated_at }]`
 
 ### POST /cli/crs/:cr_id/applied
 
 Mark a CR as applied.
 
-**Response:** `200` `{ id, path, title, body, status, ... }`
+**Response:** `200` `{ id, number, formatted_number, slug, path, title, body, status, ... }`
 
 ### POST /cli/bugs/:bug_id/resolved
 
 Mark a bug as resolved.
 
-**Response:** `200` `{ id, path, title, body, status, ... }`
+**Response:** `200` `{ id, number, formatted_number, slug, path, title, body, status, ... }`
 
 ### POST /cli/push-docs
 
@@ -530,14 +530,18 @@ Pull documentation from SDD Flow.
 Push change requests from CLI.
 
 **Body:** `{ change_requests: [{ path, title, body, status?, id? }] }`
-**Response:** `200` `{ created, updated, change_requests: [{ id, path, title, body, status, ... }] }`
+**Response:** `200` `{ created, updated, change_requests: [{ id, number, formatted_number, slug, path, title, body, status, ... }] }`
+
+Number and slug are server-generated. If `path` has a numeric prefix (e.g. `001-fix-auth.md`), the server restores that number and derives the slug from the path remainder. For existing entities (push with `id`), `number` and `slug` are immutable and never updated from the payload.
 
 ### POST /cli/push-bugs
 
 Push bugs from CLI.
 
 **Body:** `{ bugs: [{ path, title, body, severity?, status?, id? }] }`
-**Response:** `200` `{ created, updated, bugs: [{ id, path, title, body, status, severity, ... }] }`
+**Response:** `200` `{ created, updated, bugs: [{ id, number, formatted_number, slug, path, title, body, status, severity, ... }] }`
+
+Same number and slug rules as `push-crs`.
 
 ### POST /cli/docs/:doc_id/enriched
 
@@ -551,14 +555,14 @@ Submit enriched content for a draft document.
 Submit enriched content for a draft CR.
 
 **Body:** `{ body }`
-**Response:** `200` `{ id, path, title, body, status, ... }`
+**Response:** `200` `{ id, number, formatted_number, slug, path, title, body, status, ... }`
 
 ### POST /cli/bugs/:bug_id/enriched
 
 Submit enriched content for a draft bug.
 
 **Body:** `{ body }`
-**Response:** `200` `{ id, path, title, body, status, ... }`
+**Response:** `200` `{ id, number, formatted_number, slug, path, title, body, status, ... }`
 
 ### POST /cli/reset
 
