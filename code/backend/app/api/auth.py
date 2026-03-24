@@ -11,13 +11,20 @@ from app.db.session import get_db
 from app.middleware.auth import get_current_user
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
-from app.schemas.auth import LoginRequest, RegisterRequest, UserResponse
+from app.schemas.auth import (
+    ForgotPasswordRequest,
+    LoginRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+    UserResponse,
+)
 from app.services.auth import (
     authenticate_user,
     create_tokens,
     create_user,
     refresh_access_token,
 )
+from app.services.password_reset import request_password_reset, reset_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -184,3 +191,28 @@ async def google_callback(
 @router.get("/me", response_model=UserResponse)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/forgot-password")
+async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)):
+    await request_password_reset(db, body.email)
+    return {
+        "detail": "If an account with that email exists, a password reset link has been sent"
+    }
+
+
+@router.post("/reset-password")
+async def reset_password_endpoint(body: ResetPasswordRequest, db: AsyncSession = Depends(get_db)):
+    if len(body.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters",
+        )
+
+    success = await reset_password(db, body.token, body.new_password)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired reset token",
+        )
+    return {"detail": "Password reset successful"}

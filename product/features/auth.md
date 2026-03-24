@@ -2,8 +2,8 @@
 title: "Authentication & Authorization"
 status: synced
 author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.1"
+last-modified: "2026-03-24T00:00:00.000Z"
+version: "1.2"
 ---
 
 # Authentication & Authorization
@@ -34,6 +34,14 @@ Users can sign up and log in via Google OAuth or email/password. Authorization i
 - Access token (short-lived, 15 minutes) + refresh token (long-lived, 7 days)
 - Tokens sent via HTTP-only cookies
 - Refresh endpoint to rotate tokens
+- Auth redirects preserve return URL for protected invitation acceptance flow
+
+### Invitation Acceptance Authentication Rules
+
+- Invitation acceptance requires an authenticated session
+- If user is not authenticated, app redirects to login and then returns to invitation route
+- Authenticated user email must match invitation target email
+- Mismatched email blocks acceptance with explicit forbidden response
 
 ## Authorization
 

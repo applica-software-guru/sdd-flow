@@ -1,4 +1,5 @@
 import hashlib
+import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -51,6 +52,7 @@ def _create_token(user_id: uuid.UUID, token_type: str, expires_delta: timedelta)
     payload = {
         "sub": str(user_id),
         "type": token_type,
+        "jti": secrets.token_urlsafe(8),
         "iat": now,
         "exp": now + expires_delta,
     }

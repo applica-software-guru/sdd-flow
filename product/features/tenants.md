@@ -2,8 +2,8 @@
 title: "Multi-Tenancy & Organizations"
 status: synced
 author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.0"
+last-modified: "2026-03-24T00:00:00.000Z"
+version: "1.1"
 ---
 
 # Multi-Tenancy & Organizations
@@ -28,6 +28,23 @@ A tenant represents an organization. Each tenant has its own projects, members, 
 - Members can leave a tenant voluntarily
 - Owner can transfer ownership to another member
 
+### Invitation Lifecycle
+
+- Invitation is created by Owner/Admin from tenant settings with target email and role
+- Backend generates a secure, single-use token with expiration
+- System sends an invitation email containing the acceptance link
+- Acceptance flow is completed from a dedicated frontend route
+- Invite can be accepted only by an authenticated user whose email matches the invited email
+- Accepted invites create tenant membership exactly once and are marked as consumed
+
+### Invitation Error States
+
+- If invited user is already a member, invitation creation is rejected
+- Expired invitation tokens cannot be accepted
+- Already accepted tokens cannot be reused
+- Token acceptance with a different authenticated email is forbidden
+- Invalid or unknown tokens return not found
+
 ### Tenant Switching
 
 - Users who belong to multiple tenants see a tenant switcher in the UI
@@ -39,6 +56,7 @@ A tenant represents an organization. Each tenant has its own projects, members, 
 - Name and slug
 - Default role for new members (Member or Viewer)
 - Billing information (SaaS mode only)
+- Invitation management with clear success/error feedback
 
 ## Agent Notes
 

@@ -57,6 +57,7 @@ if [ ! -f .env ]; then
     cat > .env <<'ENVEOF'
 DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/sddflow
 JWT_SECRET=local-dev-secret-change-in-production
+PASSWORD_RESET_TOKEN_EXPIRE_MINUTES=30
 APP_DOMAIN=
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=

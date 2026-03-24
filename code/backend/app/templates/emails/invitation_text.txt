@@ -1,0 +1,10 @@
+Hello,
+
+{{ inviter_name }} invited you to join {{ tenant_name }} on SDD Flow with the role "{{ role }}".
+
+Accept your invitation:
+{{ accept_url }}
+
+This invitation expires in 7 days.
+
+If the link does not open, copy and paste it into your browser.

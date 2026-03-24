@@ -1,7 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { AxiosError } from 'axios';
 import api from '../lib/api';
 import { useToast } from '../context/ToastContext';
-import type { Tenant, TenantMember } from '../types';
+import type { Tenant, TenantInvitation, TenantMember } from '../types';
+
+type ApiErrorResponse = { detail?: string };
+
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  const axiosError = error as AxiosError<ApiErrorResponse>;
+  const detail = axiosError.response?.data?.detail;
+  if (typeof detail === 'string' && detail.trim().length > 0) {
+    return detail;
+  }
+  return fallback;
+}
 
 export function useTenants() {
   return useQuery<Tenant[]>({
@@ -71,13 +83,24 @@ export function useTenantMembers(tenantId: string | undefined) {
   });
 }
 
+export function useTenantInvitations(tenantId: string | undefined) {
+  return useQuery<TenantInvitation[]>({
+    queryKey: ['tenants', tenantId, 'invitations'],
+    queryFn: async () => {
+      const { data } = await api.get(`/tenants/${tenantId}/invitations`);
+      return data;
+    },
+    enabled: !!tenantId,
+  });
+}
+
 export function useInviteMember(tenantId: string) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
     mutationFn: async (payload: { email: string; role: string }) => {
       const { data } = await api.post(
-        `/tenants/${tenantId}/members`,
+        `/tenants/${tenantId}/invitations`,
         payload
       );
       return data;
@@ -86,10 +109,51 @@ export function useInviteMember(tenantId: string) {
       queryClient.invalidateQueries({
         queryKey: ['tenants', tenantId, 'members'],
       });
+      queryClient.invalidateQueries({
+        queryKey: ['tenants', tenantId, 'invitations'],
+      });
       addToast('Member invited successfully', 'success');
     },
-    onError: () => {
-      addToast('Failed to invite member', 'error');
+    onError: (error) => {
+      addToast(getApiErrorMessage(error, 'Failed to invite member'), 'error');
+    },
+  });
+}
+
+export type InvitationVerification = {
+  email: string;
+  role: string;
+  tenant_name: string;
+  expires_at: string;
+};
+
+export function useVerifyInvitation(token: string) {
+  return useQuery<InvitationVerification>({
+    queryKey: ['invitation-verify', token],
+    queryFn: async () => {
+      const { data } = await api.get(`/tenants/invitations/${token}/verify`);
+      return data;
+    },
+    enabled: !!token,
+    retry: false,
+  });
+}
+
+export function useAcceptInvitation(token: string) {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post(`/tenants/invitations/${token}/accept`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.refetchQueries({ queryKey: ['tenants'] });
+      addToast('Invitation accepted', 'success');
+    },
+    onError: (error) => {
+      addToast(getApiErrorMessage(error, 'Failed to accept invitation'), 'error');
     },
   });
 }

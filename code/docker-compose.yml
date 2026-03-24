@@ -25,6 +25,7 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://postgres:postgres@db:5432/sddflow}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: ${PASSWORD_RESET_TOKEN_EXPIRE_MINUTES:-30}
       APP_DOMAIN: ${APP_DOMAIN:-}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       ENABLE_GOOGLE_OAUTH: ${ENABLE_GOOGLE_OAUTH:-false}
@@ -33,6 +34,15 @@ services:
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-http://localhost:8000/api/v1/auth/google/callback}
       AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-false}
       AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-lax}
+      MAIL_PROVIDER: ${MAIL_PROVIDER:-brevo}
+      MAIL_FROM_EMAIL: ${MAIL_FROM_EMAIL:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-SDD Flow}
+      MAIL_SMTP_HOST: ${MAIL_SMTP_HOST:-}
+      MAIL_SMTP_PORT: ${MAIL_SMTP_PORT:-587}
+      MAIL_SMTP_USERNAME: ${MAIL_SMTP_USERNAME:-}
+      MAIL_SMTP_PASSWORD: ${MAIL_SMTP_PASSWORD:-}
+      MAIL_SMTP_USE_TLS: ${MAIL_SMTP_USE_TLS:-true}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
     depends_on:
       db:
         condition: service_healthy

@@ -50,7 +50,8 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError);
         const publicPaths = ['/', '/login', '/register'];
-        if (!publicPaths.includes(window.location.pathname)) {
+        const isInvitationPath = window.location.pathname.startsWith('/invitations/');
+        if (!publicPaths.includes(window.location.pathname) && !isInvitationPath) {
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);
