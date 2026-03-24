@@ -51,3 +51,21 @@ export function useLogout() {
     },
   });
 }
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async (payload: { email: string }) => {
+      const { data } = await api.post('/auth/forgot-password', payload);
+      return data as { detail: string };
+    },
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: async (payload: { token: string; new_password: string }) => {
+      const { data } = await api.post('/auth/reset-password', payload);
+      return data as { detail: string };
+    },
+  });
+}

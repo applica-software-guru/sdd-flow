@@ -14,6 +14,7 @@ from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
 from app.schemas.tenants import (
     InvitationCreate,
+    InvitationListResponse,
     InvitationResponse,
     MemberResponse,
     TenantCreate,
@@ -21,8 +22,24 @@ from app.schemas.tenants import (
     TenantUpdate,
 )
 from app.services.audit import log_event
+from app.services.invitations import send_tenant_invitation_email
 
 router = APIRouter(prefix="/tenants", tags=["tenants"])
+
+
+def _compute_invitation_status(invitation: TenantInvitation) -> str:
+    if invitation.accepted_at is not None:
+        return "accepted"
+
+    now = datetime.now(timezone.utc)
+    expires_at = invitation.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at < now:
+        return "expired"
+
+    return "pending"
 
 
 @router.post("", response_model=TenantResponse, status_code=status.HTTP_201_CREATED)
@@ -133,6 +150,11 @@ async def invite_member(
     member: TenantMember = Depends(require_role(MemberRole.owner, MemberRole.admin)),
     db: AsyncSession = Depends(get_db),
 ):
+    tenant_result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
+    tenant = tenant_result.scalar_one_or_none()
+    if tenant is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")
+
     # Check if already a member
     result = await db.execute(
         select(TenantMember)
@@ -157,8 +179,85 @@ async def invite_member(
         db, tenant_id, member.user_id, "invitation.created", "invitation", invitation.id,
         details={"email": body.email, "role": body.role.value},
     )
+
+    inviter_result = await db.execute(select(User).where(User.id == member.user_id))
+    inviter = inviter_result.scalar_one_or_none()
+    inviter_name = inviter.display_name if inviter is not None else "A team member"
+
+    await send_tenant_invitation_email(
+        recipient_email=body.email,
+        tenant_name=tenant.name,
+        inviter_name=inviter_name,
+        role=body.role.value,
+        token=invitation.token,
+    )
+
     await db.refresh(invitation)
     return invitation
+
+
+@router.get("/{tenant_id}/invitations", response_model=list[InvitationListResponse])
+async def list_invitations(
+    tenant_id: uuid.UUID,
+    member: TenantMember = Depends(get_current_tenant_member),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(TenantInvitation)
+        .where(TenantInvitation.tenant_id == tenant_id)
+        .order_by(TenantInvitation.created_at.desc())
+    )
+    invitations = result.scalars().all()
+
+    return [
+        InvitationListResponse(
+            id=invitation.id,
+            tenant_id=invitation.tenant_id,
+            email=invitation.email,
+            role=invitation.role,
+            expires_at=invitation.expires_at,
+            accepted_at=invitation.accepted_at,
+            created_at=invitation.created_at,
+            status=_compute_invitation_status(invitation),
+        )
+        for invitation in invitations
+    ]
+
+
+@router.get("/invitations/{token}/verify")
+async def verify_invitation(
+    token: str,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(TenantInvitation).where(TenantInvitation.token == token)
+    )
+    invitation = result.scalar_one_or_none()
+    if invitation is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation not found")
+
+    if invitation.email != current_user.email:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invitation is for a different email")
+
+    if invitation.accepted_at is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation already accepted")
+
+    expires_at = invitation.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation expired")
+
+    tenant_result = await db.execute(select(Tenant).where(Tenant.id == invitation.tenant_id))
+    tenant = tenant_result.scalar_one_or_none()
+
+    return {
+        "email": invitation.email,
+        "role": invitation.role.value,
+        "tenant_name": tenant.name if tenant else "Unknown",
+        "expires_at": invitation.expires_at.isoformat(),
+    }
 
 
 @router.post("/invitations/{token}/accept", response_model=MemberResponse)
@@ -174,14 +273,14 @@ async def accept_invitation(
     if invitation is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation not found")
 
+    if invitation.email != current_user.email:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invitation is for a different email")
+
     if invitation.accepted_at is not None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation already accepted")
 
     if invitation.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation expired")
-
-    if invitation.email != current_user.email:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invitation is for a different email")
 
     # Check not already member
     result = await db.execute(

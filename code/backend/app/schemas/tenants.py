@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -54,5 +55,21 @@ class InvitationResponse(BaseModel):
     expires_at: datetime
     accepted_at: datetime | None = None
     created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+InvitationStatus = Literal["pending", "accepted", "expired"]
+
+
+class InvitationListResponse(BaseModel):
+    id: uuid.UUID
+    tenant_id: uuid.UUID
+    email: str
+    role: MemberRole
+    expires_at: datetime
+    accepted_at: datetime | None = None
+    created_at: datetime
+    status: InvitationStatus
 
     model_config = {"from_attributes": True}

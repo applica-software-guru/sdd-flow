@@ -2,8 +2,8 @@
 title: "API Interfaces"
 status: synced
 author: ""
-last-modified: "2026-03-19T00:00:00.000Z"
-version: "1.4"
+last-modified: "2026-03-24T00:00:00.000Z"
+version: "1.5"
 ---
 
 # API Interfaces
@@ -32,11 +32,20 @@ Required:
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_REDIRECT_URI`
+- `MAIL_FROM_EMAIL`
+- `MAIL_FROM_NAME`
 
 Optional:
 
 - `AUTH_COOKIE_SECURE` (`true` for HTTPS deployments)
 - `AUTH_COOKIE_SAMESITE` (`lax` default; configurable for cross-site flows)
+- `MAIL_PROVIDER` (`brevo`, `smtp` or `log`)
+- `MAIL_SMTP_HOST`
+- `MAIL_SMTP_PORT`
+- `MAIL_SMTP_USERNAME`
+- `MAIL_SMTP_PASSWORD`
+- `MAIL_SMTP_USE_TLS` (`true` default)
+- `BREVO_API_KEY` (required when `MAIL_PROVIDER=brevo`)
 
 ### Frontend container runtime variables
 
@@ -163,13 +172,25 @@ List tenant members.
 Invite a user by email. Owner or Admin only.
 
 **Body:** `{ email, role }`
-**Response:** `201` `{ id, email, role, expires_at }`
+**Response:** `201` `{ id, tenant_id, email, role, token, expires_at, accepted_at, created_at }`
+
+Validation and behavior:
+
+- Returns `409` if invited email already belongs to an existing tenant member
+- Triggers invitation email delivery containing acceptance link generated from `FRONTEND_URL`
 
 ### POST /tenants/invitations/:token/accept
 
 Accept an invitation.
 
-**Response:** `200` `{ tenant_id, role }`
+**Response:** `200` `{ id, user_id, email, display_name, role, joined_at }`
+
+Validation and behavior:
+
+- Returns `404` when token is not found
+- Returns `400` when invitation is expired or already accepted
+- Returns `403` when authenticated user email does not match invitation email
+- Returns `409` when user is already a member
 
 ### DELETE /tenants/:tenant_id/members/:user_id
 

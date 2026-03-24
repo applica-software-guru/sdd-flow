@@ -1,0 +1,14 @@
+{% extends "emails/base.html" %}
+
+{% block body %}
+<p style="margin:0 0 12px 0;font-size:15px;line-height:1.65;color:#334155;">
+	Hello,
+</p>
+<p style="margin:0 0 12px 0;font-size:15px;line-height:1.65;color:#334155;">
+	<strong>{{ inviter_name }}</strong> invited you to join the tenant
+	<strong>{{ tenant_name }}</strong> with the role <strong>{{ role }}</strong>.
+</p>
+<p style="margin:0;font-size:14px;line-height:1.6;color:#475569;">
+	This invitation is valid for 7 days.
+</p>
+{% endblock %}

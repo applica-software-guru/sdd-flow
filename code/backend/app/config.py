@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "change-me-in-production"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 30
     APP_DOMAIN: str = ""
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
@@ -15,6 +16,15 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:5173"
     AUTH_COOKIE_SECURE: bool = False
     AUTH_COOKIE_SAMESITE: str = "lax"
+    MAIL_PROVIDER: str = "log"
+    MAIL_FROM_EMAIL: str = "noreply@sdd-flow.local"
+    MAIL_FROM_NAME: str = "SDD Flow"
+    MAIL_SMTP_HOST: str = ""
+    MAIL_SMTP_PORT: int = 587
+    MAIL_SMTP_USERNAME: str = ""
+    MAIL_SMTP_PASSWORD: str = ""
+    MAIL_SMTP_USE_TLS: bool = True
+    BREVO_API_KEY: str = ""
 
     @field_validator("AUTH_COOKIE_SAMESITE")
     @classmethod
@@ -22,6 +32,14 @@ class Settings(BaseSettings):
         normalized = value.lower()
         if normalized not in {"lax", "strict", "none"}:
             raise ValueError("AUTH_COOKIE_SAMESITE must be one of: lax, strict, none")
+        return normalized
+
+    @field_validator("MAIL_PROVIDER")
+    @classmethod
+    def validate_mail_provider(cls, value: str) -> str:
+        normalized = value.lower()
+        if normalized not in {"log", "smtp", "brevo"}:
+            raise ValueError("MAIL_PROVIDER must be one of: log, smtp, brevo")
         return normalized
 
     @model_validator(mode="after")

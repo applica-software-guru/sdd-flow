@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useLogin } from '../../hooks/useAuth';
 
 export default function LoginPage() {
@@ -7,12 +7,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const login = useLogin();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
       await login.mutateAsync({ email, password });
-      navigate('/tenants');
+      const fromPath = (location.state as { from?: { pathname?: string; search?: string } } | null)?.from;
+      const destination = fromPath?.pathname
+        ? `${fromPath.pathname}${fromPath.search ?? ''}`
+        : '/tenants';
+      navigate(destination, { replace: true });
     } catch {
       // error handled by mutation state
     }
@@ -75,6 +80,14 @@ export default function LoginPage() {
                 className="mt-1 block w-full rounded-md border border-slate-300 dark:border-slate-600 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:text-slate-100"
                 placeholder="Enter your password"
               />
+              <div className="mt-2 text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
             <button

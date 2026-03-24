@@ -4,9 +4,12 @@ import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import TenantDashboardPage from './pages/tenant/DashboardPage';
 import TenantCreatePage from './pages/tenant/CreatePage';
 import TenantSettingsPage from './pages/tenant/SettingsPage';
+import InvitationAcceptPage from './pages/tenant/InvitationAcceptPage';
 import ProjectCreatePage from './pages/project/CreatePage';
 import ProjectDashboardPage from './pages/project/DashboardPage';
 import ProjectSettingsPage from './pages/project/SettingsPage';
@@ -41,6 +44,8 @@ export default function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
           {/* Protected routes */}
           <Route
@@ -59,6 +64,10 @@ export default function App() {
             <Route
               path="/tenants/:tenantId/settings"
               element={<TenantSettingsPage />}
+            />
+            <Route
+              path="/invitations/:token"
+              element={<InvitationAcceptPage />}
             />
             <Route
               path="/tenants/:tenantId/audit-log"

@@ -26,6 +26,17 @@ export interface TenantMember {
   joined_at: string;
 }
 
+export interface TenantInvitation {
+  id: string;
+  tenant_id: string;
+  email: string;
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+  expires_at: string;
+  accepted_at: string | null;
+  created_at: string;
+  status: 'pending' | 'accepted' | 'expired';
+}
+
 export interface Project {
   id: string;
   tenant_id: string;

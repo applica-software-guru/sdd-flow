@@ -12,6 +12,7 @@ from app.models.audit_log_entry import AuditLogEntry
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
 from app.models.refresh_token import RefreshToken
+from app.models.password_reset_token import PasswordResetToken
 
 __all__ = [
     "User",
@@ -28,4 +29,5 @@ __all__ = [
     "Notification",
     "NotificationPreference",
     "RefreshToken",
+    "PasswordResetToken",
 ]
