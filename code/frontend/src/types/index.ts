@@ -67,6 +67,9 @@ export type CRStatus =
 export interface ChangeRequest {
   id: string;
   project_id: string;
+  number: number;
+  formatted_number: string;
+  slug: string;
   title: string;
   body: string;
   status: CRStatus;
@@ -92,6 +95,9 @@ export type BugStatus =
 export interface Bug {
   id: string;
   project_id: string;
+  number: number;
+  formatted_number: string;
+  slug: string;
   title: string;
   body: string;
   status: BugStatus;

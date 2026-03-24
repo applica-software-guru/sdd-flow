@@ -17,6 +17,7 @@ from app.schemas.change_requests import CRCreate, CRListResponse, CRResponse, CR
 from app.schemas.comments import CommentCreate, CommentResponse
 from app.services.audit import log_event
 from app.services.notifications import create_notification
+from app.services.slug import assign_number_and_slug
 
 router = APIRouter(
     prefix="/tenants/{tenant_id}/projects/{project_id}/change-requests",
@@ -43,8 +44,11 @@ async def create_cr(
     db: AsyncSession = Depends(get_db),
 ):
     await _get_project(db, tenant_id, project_id)
+    number, slug = await assign_number_and_slug(db, ChangeRequest, project_id, body.title)
     cr = ChangeRequest(
         project_id=project_id,
+        number=number,
+        slug=slug,
         title=body.title,
         body=body.body,
         author_id=member.user_id,

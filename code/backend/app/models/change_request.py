@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, String, Text, func
+from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,10 +21,16 @@ class CRStatus(str, enum.Enum):
 
 class ChangeRequest(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "change_requests"
+    __table_args__ = (
+        UniqueConstraint("project_id", "number", name="uq_cr_project_number"),
+        UniqueConstraint("project_id", "slug", name="uq_cr_project_slug"),
+    )
 
     project_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
     )
+    number: Mapped[int] = mapped_column(Integer, nullable=False)
+    slug: Mapped[str] = mapped_column(String(512), nullable=False)
     path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)

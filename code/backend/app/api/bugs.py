@@ -16,6 +16,7 @@ from app.schemas.bugs import BugCreate, BugListResponse, BugResponse, BugTransit
 from app.schemas.comments import CommentCreate, CommentResponse
 from app.services.audit import log_event
 from app.services.notifications import create_notification
+from app.services.slug import assign_number_and_slug
 
 router = APIRouter(
     prefix="/tenants/{tenant_id}/projects/{project_id}/bugs",
@@ -42,8 +43,11 @@ async def create_bug(
     db: AsyncSession = Depends(get_db),
 ):
     await _get_project(db, tenant_id, project_id)
+    number, slug = await assign_number_and_slug(db, Bug, project_id, body.title)
     bug = Bug(
         project_id=project_id,
+        number=number,
+        slug=slug,
         title=body.title,
         body=body.body,
         severity=body.severity,
