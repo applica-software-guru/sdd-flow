@@ -40,6 +40,8 @@ async def search_data(db_session: AsyncSession, test_tenant: Tenant, test_projec
         body="Change request body with keyword",
         status="draft",
         author_id=test_user.id,
+        number=1,
+        slug="searchable-cr-foobar",
     )
     bug = Bug(
         project_id=test_project.id,
@@ -48,6 +50,8 @@ async def search_data(db_session: AsyncSession, test_tenant: Tenant, test_projec
         status="open",
         severity="minor",
         author_id=test_user.id,
+        number=1,
+        slug="searchable-bug-foobar",
     )
     audit = AuditLogEntry(
         tenant_id=test_tenant.id,
