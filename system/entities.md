@@ -2,8 +2,8 @@
 title: "Data Entities"
 status: synced
 author: ""
-last-modified: "2026-03-24T00:00:00.000Z"
-version: "1.2"
+last-modified: "2026-03-26T12:00:00.000Z"
+version: "1.4"
 ---
 
 # Data Entities
@@ -231,6 +231,62 @@ Per-user email notification settings.
 | email_enabled | boolean | Whether to send email for this event type |
 
 Unique constraint: `(user_id, event_type)`
+
+### Worker
+
+A registered remote worker machine that can execute AI agent jobs.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| project_id | UUID | FK → Project |
+| name | string | Worker name, unique per project (default: hostname) |
+| status | enum | online, offline, busy |
+| agent | string | Agent adapter identifier (default: "claude") |
+| last_heartbeat_at | datetime | Last heartbeat timestamp |
+| registered_at | datetime | First registration time |
+| metadata | jsonb? | Optional: hostname, OS, etc. |
+
+Unique constraint: `(project_id, name)`
+
+### WorkerJob
+
+A job dispatched to a worker for execution.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| project_id | UUID | FK → Project |
+| worker_id | UUID? | FK → Worker (null while queued) |
+| entity_type | string | `change_request` or `bug` |
+| entity_id | UUID | FK → ChangeRequest or Bug |
+| job_type | enum | `apply` (default), `enrich` |
+| status | enum | queued, assigned, running, completed, failed, cancelled |
+| prompt | text | Generated prompt sent to the agent |
+| agent | string | Agent adapter used for this job |
+| exit_code | int? | Agent process exit code (null until completed/failed) |
+| created_by | UUID | FK → User who dispatched the job |
+| started_at | datetime? | When agent execution began |
+| completed_at | datetime? | When job finished |
+| created_at | datetime | Creation time |
+| updated_at | datetime | Last update |
+
+Index: `(project_id, status)`
+
+### WorkerJobMessage
+
+A message in a job's execution transcript (output line, question, or answer).
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Primary key |
+| job_id | UUID | FK → WorkerJob (CASCADE delete) |
+| kind | enum | output, question, answer |
+| content | text | Message content |
+| sequence | int | Ordering within the job |
+| created_at | datetime | Message timestamp |
+
+Index: `(job_id, sequence)`
 
 ### RefreshToken
 

@@ -21,6 +21,8 @@ import BugCreatePage from './pages/bugs/CreatePage';
 import BugDetailPage from './pages/bugs/DetailPage';
 import DocsTreePage from './pages/docs/TreePage';
 import DocViewPage from './pages/docs/ViewPage';
+import WorkerJobsListPage from './pages/worker-jobs/ListPage';
+import WorkerJobDetailPage from './pages/worker-jobs/DetailPage';
 import AuditLogPage from './pages/system/AuditLogPage';
 import LandingPage from './pages/system/LandingPage';
 import NotFoundPage from './pages/system/NotFoundPage';
@@ -108,6 +110,14 @@ export default function App() {
             <Route
               path="/tenants/:tenantId/projects/:projectId/bugs/:bugId"
               element={<BugDetailPage />}
+            />
+            <Route
+              path="/tenants/:tenantId/projects/:projectId/workers"
+              element={<WorkerJobsListPage />}
+            />
+            <Route
+              path="/tenants/:tenantId/projects/:projectId/workers/:jobId"
+              element={<WorkerJobDetailPage />}
             />
             <Route
               path="/tenants/:tenantId/projects/:projectId/docs"

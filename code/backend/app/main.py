@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.api import auth, tenants, projects, change_requests, bugs, docs, api_keys, notifications, audit_log, search, cli
+from app.api import auth, tenants, projects, change_requests, bugs, docs, api_keys, notifications, audit_log, search, cli, workers, workers_cli
 from app.db.session import async_session_factory
 from app.services.seed import seed_admin_user
 
@@ -38,6 +38,8 @@ app.include_router(notifications.router, prefix="/api/v1")
 app.include_router(audit_log.router, prefix="/api/v1")
 app.include_router(search.router, prefix="/api/v1")
 app.include_router(cli.router, prefix="/api/v1")
+app.include_router(workers_cli.router, prefix="/api/v1")
+app.include_router(workers.router, prefix="/api/v1")
 
 
 @app.get("/health")

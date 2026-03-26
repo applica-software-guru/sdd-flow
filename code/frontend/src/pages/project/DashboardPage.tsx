@@ -3,8 +3,11 @@ import { useProject } from '../../hooks/useProjects';
 import { useChangeRequests } from '../../hooks/useChangeRequests';
 import { useBugs } from '../../hooks/useBugs';
 import { useDocs } from '../../hooks/useDocs';
+import { useWorkers, useWorkerJobs } from '../../hooks/useWorkers';
 import StatusBadge from '../../components/StatusBadge';
 import SeverityBadge from '../../components/SeverityBadge';
+import WorkerStatusBadge from '../../components/WorkerStatusBadge';
+import JobStatusBadge from '../../components/JobStatusBadge';
 
 export default function DashboardPage() {
   const { tenantId, projectId } = useParams();
@@ -14,6 +17,8 @@ export default function DashboardPage() {
   });
   const { data: bugsData } = useBugs(tenantId, projectId, { page_size: 5 });
   const { data: docs } = useDocs(tenantId, projectId);
+  const { data: workers } = useWorkers(tenantId, projectId);
+  const { data: jobsData } = useWorkerJobs(tenantId, projectId, { page_size: 5 });
 
   if (isLoading) {
     return (
@@ -28,6 +33,9 @@ export default function DashboardPage() {
   const totalCRs = crsData?.total || 0;
   const totalBugs = bugsData?.total || 0;
   const totalDocs = docs?.length || 0;
+  const onlineWorkers = workers?.filter((w) => w.is_online).length ?? 0;
+  const totalWorkers = workers?.length ?? 0;
+  const recentJobs = jobsData?.items ?? [];
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -39,7 +47,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Link
           to={`/tenants/${tenantId}/projects/${projectId}/crs`}
           className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm hover:border-blue-300 transition-colors"
@@ -117,6 +125,35 @@ export default function DashboardPage() {
             <div>
               <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalDocs}</p>
               <p className="text-sm text-slate-500 dark:text-slate-400">Documents</p>
+            </div>
+          </div>
+        </Link>
+
+        <Link
+          to={`/tenants/${tenantId}/projects/${projectId}/workers`}
+          className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm hover:border-blue-300 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/30">
+              <svg
+                className="h-5 w-5 text-purple-600 dark:text-purple-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z"
+                />
+              </svg>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                {onlineWorkers}<span className="text-base font-normal text-slate-400">/{totalWorkers}</span>
+              </p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Workers Online</p>
             </div>
           </div>
         </Link>
@@ -204,6 +241,48 @@ export default function DashboardPage() {
           </div>
         )}
       </div>
+      {/* Recent Jobs */}
+      {(recentJobs.length > 0 || totalWorkers > 0) && (
+        <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Recent Worker Jobs</h2>
+            <Link
+              to={`/tenants/${tenantId}/projects/${projectId}/workers`}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
+            >
+              View all
+            </Link>
+          </div>
+          {recentJobs.length === 0 ? (
+            <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+              No worker jobs yet
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-slate-700">
+              {recentJobs.map((job) => (
+                <Link
+                  key={job.id}
+                  to={`/tenants/${tenantId}/projects/${projectId}/workers/${job.id}`}
+                  className="flex items-center justify-between px-6 py-3 hover:bg-slate-50 dark:hover:bg-slate-700"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
+                      <span className="text-xs text-slate-400 dark:text-slate-500 mr-1">
+                        {job.entity_type === 'change_request' ? 'CR' : 'Bug'}
+                      </span>
+                      {job.entity_title || job.entity_id.slice(0, 8)}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {job.worker_name || 'Queued'} &middot; {new Date(job.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <JobStatusBadge status={job.status} />
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
