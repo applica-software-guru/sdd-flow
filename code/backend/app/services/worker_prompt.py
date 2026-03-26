@@ -32,10 +32,14 @@ async def _fetch_comments(db: AsyncSession, entity_type: str, entity_id: uuid.UU
     return "\n".join(lines)
 
 
-def _branch_note(branch: str | None) -> str:
-    if not branch:
-        return ""
-    return f"\n> **Working branch:** Make sure you are on branch `{branch}` before making any changes.\n"
+_REPORT_SECTION = (
+    "\n\n---\n\n"
+    "## Report\n\n"
+    "At the end of your work, provide a detailed report including:\n"
+    "- What was done (files created, modified, enriched)\n"
+    "- Actions taken for each item\n"
+    "- Any issues encountered or decisions made"
+)
 
 
 async def generate_worker_prompt(
@@ -48,13 +52,11 @@ async def generate_worker_prompt(
 ) -> str:
     """Generate a full agent prompt for the given job type and entity."""
 
-    branch_note = _branch_note(branch)
-
     # ── sync job: project-level, no entity ───────────────────────────────────
     if job_type == "sync" or (entity_type is None and entity_id is None):
         return (
             f"Run `sdd pull`, then run the `sdd` skill, then run `sdd push`.\n"
-            f"{branch_note}"
+            f"{_REPORT_SECTION}"
         )
 
     # ── entity-scoped jobs ────────────────────────────────────────────────────
@@ -129,9 +131,9 @@ async def generate_worker_prompt(
             f"and rewrite its content with the enriched version — more complete, "
             f"well-structured, and detailed enough to serve as authoritative reference.\n"
             f"Then run `sdd push`.\n"
-            f"{branch_note}\n"
             f"---\n\n"
             f"{entity_section}"
+            f"{_REPORT_SECTION}"
         )
     else:
         prompt = (
@@ -141,10 +143,10 @@ async def generate_worker_prompt(
             f"acceptance criteria, edge cases, and implementation hints.\n"
             f"Then run `sdd mark-drafts-enriched <file>` on that specific file only, "
             f"then run `sdd push`.\n"
-            f"{branch_note}\n"
             f"---\n\n"
             f"{entity_section}"
             f"{comments_section}"
+            f"{_REPORT_SECTION}"
         )
 
     return prompt
