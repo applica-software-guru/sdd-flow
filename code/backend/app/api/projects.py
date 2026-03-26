@@ -28,7 +28,7 @@ async def _project_response(db: AsyncSession, project: Project) -> ProjectRespon
         .select_from(ChangeRequest)
         .where(
             ChangeRequest.project_id == project.id,
-            ChangeRequest.status.in_([CRStatus.draft, CRStatus.approved]),
+            ChangeRequest.status.in_([CRStatus.draft, CRStatus.pending]),
         )
     )
     bug_count = await db.execute(
@@ -36,7 +36,7 @@ async def _project_response(db: AsyncSession, project: Project) -> ProjectRespon
         .select_from(Bug)
         .where(
             Bug.project_id == project.id,
-            Bug.status.in_([BugStatus.open, BugStatus.in_progress]),
+            Bug.status.in_([BugStatus.draft, BugStatus.open, BugStatus.in_progress]),
         )
     )
     stats = ProjectStats(

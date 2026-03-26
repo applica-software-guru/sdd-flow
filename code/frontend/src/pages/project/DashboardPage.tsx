@@ -1,4 +1,5 @@
-import { Link, useParams } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useProject } from '../../hooks/useProjects';
 import { useChangeRequests } from '../../hooks/useChangeRequests';
 import { useBugs } from '../../hooks/useBugs';
@@ -6,11 +7,13 @@ import { useDocs } from '../../hooks/useDocs';
 import { useWorkers, useWorkerJobs } from '../../hooks/useWorkers';
 import StatusBadge from '../../components/StatusBadge';
 import SeverityBadge from '../../components/SeverityBadge';
-import WorkerStatusBadge from '../../components/WorkerStatusBadge';
 import JobStatusBadge from '../../components/JobStatusBadge';
+import JobOptionsDialog from '../../components/JobOptionsDialog';
 
 export default function DashboardPage() {
   const { tenantId, projectId } = useParams();
+  const navigate = useNavigate();
+  const [showSyncDialog, setShowSyncDialog] = useState(false);
   const { data: project, isLoading } = useProject(tenantId, projectId);
   const { data: crsData } = useChangeRequests(tenantId, projectId, {
     page_size: 5,
@@ -246,12 +249,25 @@ export default function DashboardPage() {
         <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
           <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4">
             <h2 className="font-semibold text-slate-900 dark:text-slate-100">Recent Worker Jobs</h2>
-            <Link
-              to={`/tenants/${tenantId}/projects/${projectId}/workers`}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
-            >
-              View all
-            </Link>
+            <div className="flex items-center gap-3">
+              {onlineWorkers > 0 && (
+                <button
+                  onClick={() => setShowSyncDialog(true)}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-purple-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-purple-700"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
+                  Sync on Worker
+                </button>
+              )}
+              <Link
+                to={`/tenants/${tenantId}/projects/${projectId}/workers`}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700"
+              >
+                View all
+              </Link>
+            </div>
           </div>
           {recentJobs.length === 0 ? (
             <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
@@ -267,10 +283,14 @@ export default function DashboardPage() {
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
-                      <span className="text-xs text-slate-400 dark:text-slate-500 mr-1">
-                        {job.entity_type === 'change_request' ? 'CR' : 'Bug'}
-                      </span>
-                      {job.entity_title || job.entity_id.slice(0, 8)}
+                      {job.entity_type && (
+                        <span className="text-xs text-slate-400 dark:text-slate-500 mr-1">
+                          {job.entity_type === 'change_request' ? 'CR' : job.entity_type === 'bug' ? 'Bug' : 'Doc'}
+                        </span>
+                      )}
+                      {job.job_type === 'sync' && !job.entity_title
+                        ? 'Project Sync'
+                        : job.entity_title || (job.entity_id ? job.entity_id.slice(0, 8) : 'Sync')}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {job.worker_name || 'Queued'} &middot; {new Date(job.created_at).toLocaleDateString()}
@@ -282,6 +302,19 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+      )}
+
+      {showSyncDialog && (
+        <JobOptionsDialog
+          tenantId={tenantId!}
+          projectId={projectId!}
+          jobType="sync"
+          onSuccess={(jobId) => {
+            setShowSyncDialog(false);
+            navigate(`/tenants/${tenantId}/projects/${projectId}/workers/${jobId}`);
+          }}
+          onCancel={() => setShowSyncDialog(false)}
+        />
       )}
     </div>
   );

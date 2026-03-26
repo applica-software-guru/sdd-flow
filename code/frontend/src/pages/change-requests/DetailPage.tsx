@@ -2,14 +2,15 @@ import { useState, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useChangeRequest, useTransitionCR } from '../../hooks/useChangeRequests';
 import { useComments, useAddComment } from '../../hooks/useComments';
-import { useWorkers, useCreateWorkerJob } from '../../hooks/useWorkers';
+import { useWorkers } from '../../hooks/useWorkers';
 import StatusBadge from '../../components/StatusBadge';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
-import type { CRStatus } from '../../types';
+import JobOptionsDialog from '../../components/JobOptionsDialog';
+import type { CRStatus, JobType } from '../../types';
 
 const TRANSITIONS: Record<string, CRStatus[]> = {
-  draft: ['approved', 'rejected'],
-  approved: ['applied', 'rejected'],
+  draft: ['pending', 'rejected'],
+  pending: ['rejected', 'draft'],
   rejected: ['draft'],
   applied: ['closed'],
   closed: [],
@@ -22,9 +23,9 @@ export default function DetailPage() {
   const transitionCR = useTransitionCR(tenantId!, projectId!, crId!);
   const addComment = useAddComment(tenantId!, projectId!, 'change-requests', crId!);
   const { data: workers } = useWorkers(tenantId, projectId);
-  const createJob = useCreateWorkerJob(tenantId!, projectId!);
   const navigate = useNavigate();
   const [commentBody, setCommentBody] = useState('');
+  const [jobDialog, setJobDialog] = useState<{ jobType: JobType } | null>(null);
   const hasOnlineWorker = workers?.some((w) => w.is_online) ?? false;
 
   if (isLoading) {
@@ -115,47 +116,33 @@ export default function DetailPage() {
         {cr.status === 'draft' && hasOnlineWorker && (
           <div className="border-t border-slate-200 px-6 py-4 dark:border-slate-700">
             <button
-              onClick={async () => {
-                const result = await createJob.mutateAsync({
-                  entity_type: 'change_request',
-                  entity_id: cr.id,
-                  job_type: 'enrich',
-                });
-                navigate(`/tenants/${tenantId}/projects/${projectId}/workers/${result.id}`);
-              }}
-              disabled={createJob.isPending}
-              className="inline-flex items-center gap-2 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+              onClick={() => setJobDialog({ jobType: 'enrich' })}
+              className="inline-flex items-center gap-2 rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white hover:bg-amber-700"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
               </svg>
-              {createJob.isPending ? 'Dispatching...' : 'Enrich on Worker'}
+              Enrich on Worker
             </button>
           </div>
         )}
 
-        {/* Apply on Worker */}
-        {cr.status === 'approved' && hasOnlineWorker && (
-          <div className="border-t border-slate-200 px-6 py-4 dark:border-slate-700">
-            <button
-              onClick={async () => {
-                const result = await createJob.mutateAsync({
-                  entity_type: 'change_request',
-                  entity_id: cr.id,
-                });
-                navigate(`/tenants/${tenantId}/projects/${projectId}/workers/${result.id}`);
-              }}
-              disabled={createJob.isPending}
-              className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-            >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347a1.125 1.125 0 0 1-1.667-.986V5.653Z" />
-              </svg>
-              {createJob.isPending ? 'Dispatching...' : 'Apply on Worker'}
-            </button>
-          </div>
-        )}
       </div>
+
+      {jobDialog && (
+        <JobOptionsDialog
+          tenantId={tenantId!}
+          projectId={projectId!}
+          jobType={jobDialog.jobType}
+          entityType="change_request"
+          entityId={cr.id}
+          onSuccess={(jobId) => {
+            setJobDialog(null);
+            navigate(`/tenants/${tenantId}/projects/${projectId}/workers/${jobId}`);
+          }}
+          onCancel={() => setJobDialog(null)}
+        />
+      )}
 
       {/* Comments */}
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">

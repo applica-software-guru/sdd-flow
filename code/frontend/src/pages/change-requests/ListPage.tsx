@@ -8,7 +8,7 @@ import EmptyState from '../../components/EmptyState';
 const STATUS_OPTIONS = [
   { value: '', label: 'All statuses' },
   { value: 'draft', label: 'Draft' },
-  { value: 'approved', label: 'Approved' },
+  { value: 'pending', label: 'Pending' },
   { value: 'rejected', label: 'Rejected' },
   { value: 'applied', label: 'Applied' },
   { value: 'closed', label: 'Closed' },

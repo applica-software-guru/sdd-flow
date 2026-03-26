@@ -58,7 +58,7 @@ export interface ProjectStats {
 
 export type CRStatus =
   | 'draft'
-  | 'approved'
+  | 'pending'
   | 'rejected'
   | 'applied'
   | 'closed'
@@ -198,32 +198,45 @@ export interface Worker {
   name: string;
   status: WorkerStatus;
   agent: string;
+  branch?: string;
   last_heartbeat_at: string | null;
   registered_at: string;
   is_online: boolean;
 }
 
 export type JobStatus = 'queued' | 'assigned' | 'running' | 'completed' | 'failed' | 'cancelled';
-export type JobType = 'apply' | 'enrich';
+export type JobType = 'enrich' | 'sync';
 export type MessageKind = 'output' | 'question' | 'answer';
+
+export interface ChangedFile {
+  path: string;
+  status: 'new' | 'modified' | 'deleted';
+}
 
 export interface WorkerJob {
   id: string;
   project_id: string;
   worker_id?: string;
   worker_name?: string;
-  entity_type: 'change_request' | 'bug';
-  entity_id: string;
+  entity_type?: 'change_request' | 'bug' | 'document';
+  entity_id?: string;
   entity_title?: string;
   job_type: JobType;
   status: JobStatus;
   agent: string;
+  model?: string;
   exit_code?: number;
   created_by: string;
   started_at?: string;
   completed_at?: string;
   created_at: string;
   updated_at: string;
+  changed_files?: ChangedFile[];
+}
+
+export interface AgentModel {
+  id: string;
+  label: string;
 }
 
 export interface WorkerJobMessage {

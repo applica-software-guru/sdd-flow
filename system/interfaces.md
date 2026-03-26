@@ -3,7 +3,7 @@ title: "API Interfaces"
 status: synced
 author: ""
 last-modified: "2026-03-26T12:00:00.000Z"
-version: "1.8"
+version: "1.9"
 ---
 
 # API Interfaces
@@ -492,21 +492,41 @@ Scoped to a project: `/tenants/:tenant_id/projects/:project_id`
 
 List registered workers for the project. Each worker includes a computed `is_online` field (true if last heartbeat within 60 seconds).
 
-**Response:** `200` `[{ id, name, status, agent, is_online, last_heartbeat_at, registered_at, metadata }]`
+**Response:** `200` `[{ id, name, status, agent, branch, is_online, last_heartbeat_at, registered_at }]`
+
+### GET .../worker-jobs/agent-models
+
+Return available models grouped by agent adapter. Used to populate the Job Options Dialog.
+
+**Response:** `200` `{ claude: [{ id, label }, ...], codex: [...], opencode: [...] }`
+
+### POST .../worker-jobs/preview
+
+Generate the prompt for a job without creating it. Used for the prompt preview in the Job Options Dialog.
+
+**Body:** `{ entity_type?, entity_id?, job_type }`
+- `entity_type`/`entity_id` required for `enrich`/`apply`; omit for `sync`
+
+**Response:** `200` `{ prompt: string }`
 
 ### POST .../worker-jobs
 
 Create a new worker job (dispatch to queue).
 
-**Body:** `{ entity_type, entity_id, job_type? }`
-- `job_type`: `"apply"` (default) or `"enrich"`
+**Body:** `{ entity_type?, entity_id?, job_type?, agent?, model?, prompt?, worker_id? }`
+- `job_type`: `"apply"`, `"enrich"` (default), or `"sync"`
+- `entity_type`: `change_request`, `bug`, or `document`; omit for `sync` jobs
+- `model`: optional model override passed to the agent CLI (`--model` flag)
+- `prompt`: optional prompt override (if omitted, server generates it)
+- `worker_id`: optional target worker; if omitted, any available worker picks it up
 
-**Response:** `201` `{ id, entity_type, entity_id, job_type, status: "queued", agent, prompt, created_at }`
+**Response:** `201` `{ id, entity_type, entity_id, job_type, status: "queued", agent, model, created_at }`
 
 Validation:
-- `entity_type` must be `change_request` or `bug`
+- `entity_type` and `entity_id` are required for `enrich`/`apply` jobs
+- `entity_type` must be `change_request`, `bug`, or `document`
 - For `job_type: "enrich"`: entity must be in `draft` status
-- For `job_type: "apply"`: CR must be `approved`; Bug must be `open` or `in_progress`
+- For `job_type: "apply"`: CR must be `approved`; Bug must be `open` or `in_progress`; documents are not supported with `apply`
 - Returns `400` if entity is not in a valid status for the given job type
 
 ### GET .../worker-jobs
@@ -514,20 +534,22 @@ Validation:
 List worker jobs for the project.
 
 **Query:** `status`, `page`, `page_size`
-**Response:** `200` `{ items: [{ id, entity_type, entity_id, entity_title, status, agent, worker_name, exit_code, created_at, completed_at }], total, page, page_size }`
+**Response:** `200` `{ items: [{ id, entity_type, entity_id, entity_title, job_type, status, agent, model, worker_name, exit_code, created_at, completed_at }], total, page, page_size }`
 
 ### GET .../worker-jobs/:job_id
 
 Get job details including full message transcript.
 
-**Response:** `200` `{ id, entity_type, entity_id, entity_title, status, agent, worker_name, exit_code, prompt, started_at, completed_at, created_at, messages: [{ id, kind, content, sequence, created_at }] }`
+**Response:** `200` `{ id, entity_type, entity_id, entity_title, job_type, status, agent, model, worker_name, exit_code, started_at, completed_at, created_at, messages: [{ id, kind, content, sequence, created_at }] }`
 
 ### GET .../worker-jobs/:job_id/stream
 
 Server-Sent Events stream for real-time job output. Polls the database every 0.5 seconds and yields new messages as SSE events. Sends a `done` event when the job reaches a terminal status.
 
 **Response:** `200` `text/event-stream`
-**Events:** `data: { id, kind, content, sequence, created_at }` | `event: done`
+**Events:** `data: { id, kind, content, sequence, created_at }` | `event: done\ndata: { type, status, exit_code }`
+
+When the frontend receives the `done` event it invalidates the React Query cache for the job, causing the status badge to update automatically.
 
 ### POST .../worker-jobs/:job_id/answer
 
@@ -626,10 +648,10 @@ Submit enriched content for a draft bug.
 
 ### POST /cli/workers/register
 
-Register or reconnect a worker. Upserts by (project_id, name).
+Register or reconnect a worker. Upserts by (project_id, name). Sends the configured working branch so it is visible in the web UI.
 
-**Body:** `{ name, agent?, metadata? }`
-**Response:** `200` `{ id, name, status, agent, registered_at }`
+**Body:** `{ name, agent?, branch?, metadata? }`
+**Response:** `200` `{ id, name, status, agent, branch, registered_at }`
 
 ### POST /cli/workers/:worker_id/heartbeat
 
@@ -642,7 +664,11 @@ Send worker heartbeat. Also triggers stale worker/job cleanup.
 
 Long-poll for a queued job (holds connection up to 30 seconds). Atomically assigns the job to the requesting worker using `SELECT FOR UPDATE SKIP LOCKED`.
 
-**Response:** `200` `{ id, entity_type, entity_id, job_type, prompt, agent }` or `204` if no job available
+**Response:** `200` `{ job_id, entity_type, entity_id, job_type, prompt, agent, model, branch }` or `204` if no job available
+
+- `entity_type`/`entity_id` are null for `sync` jobs
+- `model` is the model override requested by the user (null if default)
+- `branch` is the worker's registered working branch (for confirmation)
 
 ### POST /cli/workers/jobs/:job_id/started
 
@@ -659,7 +685,7 @@ Post a batch of output lines from the agent.
 
 ### POST /cli/workers/jobs/:job_id/question
 
-Post an agent question for the user to answer.
+Post an agent question for the user to answer. Triggers a `worker_question` notification to the job creator.
 
 **Body:** `{ content }`
 **Response:** `200` `{ ok: true }`
@@ -673,10 +699,18 @@ Get user answers posted after a given sequence number.
 
 ### POST /cli/workers/jobs/:job_id/completed
 
-Mark a job as completed or failed. If `exit_code` is 0, auto-transitions the CR to `applied` or the Bug to `resolved`.
+Mark a job as completed or failed. On success (`exit_code: 0`):
+- CR enrich: `draft → pending`
+- Bug enrich: `draft → open`
+- Document enrich: `draft → new`
+- CR apply: `approved → applied`
+- Bug apply: `open`/`in_progress → resolved`
+- Sync: no entity transition (CLI commands handle it)
+
+Triggers a `worker_job_completed` or `worker_job_failed` notification to the job creator.
 
 **Body:** `{ exit_code }`
-**Response:** `200` `{ ok: true }`
+**Response:** `200` `{ status, exit_code }`
 
 ### POST /cli/reset
 
