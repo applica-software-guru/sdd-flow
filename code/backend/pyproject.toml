@@ -1,6 +1,6 @@
 [project]
 name = "sdd-flow-backend"
-version = "0.1.4"
+version = "0.1.5"
 description = "SDD Flow Backend API"
 requires-python = ">=3.12"
 dependencies = [
