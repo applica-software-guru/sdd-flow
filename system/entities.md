@@ -243,7 +243,7 @@ A registered remote worker machine that can execute AI agent jobs.
 | name | string | Worker name, unique per project (default: hostname) |
 | status | enum | online, offline, busy |
 | agent | string | Agent adapter identifier (default: "claude") |
-| branch | string? | Working branch this worker operates on (from `.sdd/config.yaml`) |
+| branch | string? | Current git branch at worker startup (informational) |
 | last_heartbeat_at | datetime | Last heartbeat timestamp |
 | registered_at | datetime | First registration time |
 | metadata | jsonb? | Optional: hostname, OS, etc. |

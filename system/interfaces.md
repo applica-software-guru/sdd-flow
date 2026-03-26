@@ -648,7 +648,7 @@ Submit enriched content for a draft bug.
 
 ### POST /cli/workers/register
 
-Register or reconnect a worker. Upserts by (project_id, name). Sends the configured working branch so it is visible in the web UI.
+Register or reconnect a worker. Upserts by (project_id, name). Sends the current git branch at startup so it is visible in the web UI.
 
 **Body:** `{ name, agent?, branch?, metadata? }`
 **Response:** `200` `{ id, name, status, agent, branch, registered_at }`
@@ -668,7 +668,7 @@ Long-poll for a queued job (holds connection up to 30 seconds). Atomically assig
 
 - `entity_type`/`entity_id` are null for `sync` jobs
 - `model` is the model override requested by the user (null if default)
-- `branch` is the worker's registered working branch (for confirmation)
+- `branch` is the worker's registered branch at startup (informational)
 
 ### POST /cli/workers/jobs/:job_id/started
 

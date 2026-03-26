@@ -20,21 +20,11 @@ Output streams in real-time to the web UI and users can answer agent questions i
 
 ## Features
 
-### Working Branch
+### Branch
 
-Each SDD project has a single **working branch** configured at `sdd init` (default: `sdd`). All SDD write commands enforce this branch:
+The worker uses whatever git branch is active when `sdd remote worker` is started — no checkout is performed. The current branch is sent to the server at registration and shown in the web UI (worker cards and job list) as informational context.
 
-- Commands that modify state (`sdd sync`, `sdd push`, `sdd pull`, `sdd mark-synced`, `sdd mark-drafts-enriched`, `sdd drafts`, `sdd mark-cr-applied`, `sdd mark-bug-resolved`) **stop with an error** if the current branch doesn't match.
-- `sdd status` shows a warning but continues (read-only).
-- The working branch is stored in `.sdd/config.yaml` as `branch: sdd`.
-
-When a worker starts (`sdd remote worker`), it:
-1. Reads `branch` from `.sdd/config.yaml`
-2. Checks out (or creates) that branch
-3. Registers with the server, sending the branch name
-4. Before each job, checks out the working branch again to ensure correctness
-
-The branch is visible in the web UI (worker cards and job list).
+SDD commands work on any branch; there is no branch restriction.
 
 ### Worker Registration
 
@@ -85,35 +75,31 @@ Job dispatch buttons appear on entity pages when at least one worker is online:
 ### Job Execution
 
 - The worker receives the job with a server-generated prompt appropriate to the job type
-- The prompt includes branch instructions, entity content, comments (if any), and project documentation
+- The prompt includes entity content, comments (if any), and project documentation
 - Agent output streams to the server in batches (every ~2 seconds)
 - The server relays output to the frontend via Server-Sent Events (SSE)
 - On failure (non-zero exit), the job is marked `failed` with no status transition
 - When SSE completes (`done` event), the frontend automatically refreshes the job status badge
 
 **Enrich job prompt** (CR/Bug) follows the `sdd-remote` skill workflow:
-1. Checkout working branch
-2. Pull the latest remote state (`sdd pull --crs-only` or `--bugs-only`)
+1. Pull the latest remote state (`sdd pull --crs-only` or `--bugs-only`)
 3. Run `sdd drafts` to list pending drafts
 4. Enrich the draft with technical details, acceptance criteria, edge cases, plus any comments from the web UI
 5. Run `sdd mark-drafts-enriched` → transitions `draft → pending` (CR) / `draft → open` (Bug)
 6. Run `sdd push` to publish the enriched content
 
 **Enrich job prompt** (Document):
-1. Checkout working branch
-2. Pull the latest remote state (`sdd pull`)
+1. Pull the latest remote state (`sdd pull`)
 3. Update the local document file with enriched content
 4. Run `sdd push` to publish
 
 **Apply job prompt** instructs the agent to implement the CR or fix the bug:
-1. Checkout working branch
-2. Implement the change described in the specification (using all project documentation and comments as context)
+1. Implement the change described in the specification (using all project documentation and comments as context)
 3. Commit the changes
 4. Run `sdd push`
 
 **Sync job prompt** (project-level):
-1. Checkout working branch
-2. Run `sdd pull` to fetch latest specs
+1. Run `sdd pull` to fetch latest specs
 3. Run `sdd sync` to see what is pending
 4. Implement all pending change requests and bug fixes
 5. Run `sdd mark-synced` to mark implemented items
@@ -168,7 +154,7 @@ Notifications appear in the NotificationBell. Clicking a notification navigates 
 ### Worker Jobs List
 
 - Project-level page listing all worker jobs with status filters
-- Shows worker status cards: name, status badge, agent, working branch
+- Shows worker status cards: name, status badge, agent, branch
 - A "Sync on Worker" button dispatches a project-level sync job
 - Each job row shows entity type/title (or "Project Sync" for sync jobs), worker name, status badge, and timestamp
 
