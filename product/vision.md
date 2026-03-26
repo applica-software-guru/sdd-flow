@@ -2,8 +2,8 @@
 title: "Product Vision"
 status: synced
 author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.0"
+last-modified: "2026-03-26T00:00:00.000Z"
+version: "1.1"
 ---
 
 # Product Vision
@@ -37,9 +37,10 @@ SDD Flow is the **companion platform** for the SDD CLI. It can be used:
 4. **Multi-tenant SaaS** — organizations sign up, create projects, invite members
 5. **Self-hostable** — provide a Dockerfile for on-premise deployment
 6. **Open source friendly** — core platform is open source, SaaS adds managed hosting
+7. **Remote worker orchestration** — dispatch AI agent jobs to registered worker machines, with real-time output streaming and interactive Q&A from the web UI
 
 ## Non-Goals
 
 - SDD Flow does **not** replace the SDD CLI — it complements it
-- SDD Flow does **not** run agents or generate code — that stays in the CLI
+- SDD Flow does **not** run agents directly — agent execution happens on registered Remote Workers (machines running the SDD CLI). SDD Flow orchestrates job dispatch, relays output, and enables interactive Q&A, but the actual agent process runs on the worker machine.
 - SDD Flow does **not** host or deploy application code

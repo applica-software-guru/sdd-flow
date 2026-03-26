@@ -113,6 +113,9 @@ export default function Layout() {
     if (trailingPath.startsWith('/docs')) {
       return 'Docs';
     }
+    if (trailingPath.startsWith('/workers')) {
+      return 'Workers';
+    }
     if (trailingPath.startsWith('/settings')) {
       return 'Settings';
     }
@@ -205,6 +208,12 @@ export default function Layout() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
                         </svg>
                         Docs
+                      </NavLink>
+                      <NavLink to={`/tenants/${tenantId}/projects/${projectId}/workers`} className={projectNavLinkClass}>
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                        Workers
                       </NavLink>
                       <NavLink to={`/tenants/${tenantId}/projects/${projectId}/settings`} className={projectNavLinkClass}>
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -485,6 +494,26 @@ export default function Layout() {
                         />
                       </svg>
                       Docs
+                    </NavLink>
+
+                    <NavLink
+                      to={`/tenants/${tenantId}/projects/${projectId}/workers`}
+                      className={projectNavLinkClass}
+                    >
+                      <svg
+                        className="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z"
+                        />
+                      </svg>
+                      Workers
                     </NavLink>
 
                     <NavLink

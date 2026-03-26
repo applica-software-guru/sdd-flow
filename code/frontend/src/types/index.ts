@@ -187,3 +187,54 @@ export interface PaginatedResponse<T> {
   page_size: number;
   pages: number;
 }
+
+// --- Worker types ---
+
+export type WorkerStatus = 'online' | 'offline' | 'busy';
+
+export interface Worker {
+  id: string;
+  project_id: string;
+  name: string;
+  status: WorkerStatus;
+  agent: string;
+  last_heartbeat_at: string | null;
+  registered_at: string;
+  is_online: boolean;
+}
+
+export type JobStatus = 'queued' | 'assigned' | 'running' | 'completed' | 'failed' | 'cancelled';
+export type JobType = 'apply' | 'enrich';
+export type MessageKind = 'output' | 'question' | 'answer';
+
+export interface WorkerJob {
+  id: string;
+  project_id: string;
+  worker_id?: string;
+  worker_name?: string;
+  entity_type: 'change_request' | 'bug';
+  entity_id: string;
+  entity_title?: string;
+  job_type: JobType;
+  status: JobStatus;
+  agent: string;
+  exit_code?: number;
+  created_by: string;
+  started_at?: string;
+  completed_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorkerJobMessage {
+  id: string;
+  job_id: string;
+  kind: MessageKind;
+  content: string;
+  sequence: number;
+  created_at: string;
+}
+
+export interface WorkerJobDetail extends WorkerJob {
+  messages: WorkerJobMessage[];
+}

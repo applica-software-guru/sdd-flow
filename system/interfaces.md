@@ -2,8 +2,8 @@
 title: "API Interfaces"
 status: synced
 author: ""
-last-modified: "2026-03-24T00:00:00.000Z"
-version: "1.6"
+last-modified: "2026-03-26T12:00:00.000Z"
+version: "1.8"
 ---
 
 # API Interfaces
@@ -484,6 +484,66 @@ List audit log entries. Owner or Admin only.
 
 ---
 
+## Workers & Jobs
+
+Scoped to a project: `/tenants/:tenant_id/projects/:project_id`
+
+### GET .../workers
+
+List registered workers for the project. Each worker includes a computed `is_online` field (true if last heartbeat within 60 seconds).
+
+**Response:** `200` `[{ id, name, status, agent, is_online, last_heartbeat_at, registered_at, metadata }]`
+
+### POST .../worker-jobs
+
+Create a new worker job (dispatch to queue).
+
+**Body:** `{ entity_type, entity_id, job_type? }`
+- `job_type`: `"apply"` (default) or `"enrich"`
+
+**Response:** `201` `{ id, entity_type, entity_id, job_type, status: "queued", agent, prompt, created_at }`
+
+Validation:
+- `entity_type` must be `change_request` or `bug`
+- For `job_type: "enrich"`: entity must be in `draft` status
+- For `job_type: "apply"`: CR must be `approved`; Bug must be `open` or `in_progress`
+- Returns `400` if entity is not in a valid status for the given job type
+
+### GET .../worker-jobs
+
+List worker jobs for the project.
+
+**Query:** `status`, `page`, `page_size`
+**Response:** `200` `{ items: [{ id, entity_type, entity_id, entity_title, status, agent, worker_name, exit_code, created_at, completed_at }], total, page, page_size }`
+
+### GET .../worker-jobs/:job_id
+
+Get job details including full message transcript.
+
+**Response:** `200` `{ id, entity_type, entity_id, entity_title, status, agent, worker_name, exit_code, prompt, started_at, completed_at, created_at, messages: [{ id, kind, content, sequence, created_at }] }`
+
+### GET .../worker-jobs/:job_id/stream
+
+Server-Sent Events stream for real-time job output. Polls the database every 0.5 seconds and yields new messages as SSE events. Sends a `done` event when the job reaches a terminal status.
+
+**Response:** `200` `text/event-stream`
+**Events:** `data: { id, kind, content, sequence, created_at }` | `event: done`
+
+### POST .../worker-jobs/:job_id/answer
+
+Post a user answer to an agent question.
+
+**Body:** `{ content }`
+**Response:** `201` `{ id, kind: "answer", content, sequence, created_at }`
+
+### POST .../worker-jobs/:job_id/cancel
+
+Cancel a queued or running job.
+
+**Response:** `200` `{ id, status: "cancelled" }`
+
+---
+
 ## CLI Integration (API Key Auth)
 
 These endpoints accept API key auth (`Authorization: Bearer sddflow_sk_...`) instead of JWT cookies. The API key implicitly scopes requests to its project.
@@ -563,6 +623,60 @@ Submit enriched content for a draft bug.
 
 **Body:** `{ body }`
 **Response:** `200` `{ id, number, formatted_number, slug, path, title, body, status, ... }`
+
+### POST /cli/workers/register
+
+Register or reconnect a worker. Upserts by (project_id, name).
+
+**Body:** `{ name, agent?, metadata? }`
+**Response:** `200` `{ id, name, status, agent, registered_at }`
+
+### POST /cli/workers/:worker_id/heartbeat
+
+Send worker heartbeat. Also triggers stale worker/job cleanup.
+
+**Body:** `{ status }`
+**Response:** `200` `{ ok: true }`
+
+### GET /cli/workers/:worker_id/poll
+
+Long-poll for a queued job (holds connection up to 30 seconds). Atomically assigns the job to the requesting worker using `SELECT FOR UPDATE SKIP LOCKED`.
+
+**Response:** `200` `{ id, entity_type, entity_id, job_type, prompt, agent }` or `204` if no job available
+
+### POST /cli/workers/jobs/:job_id/started
+
+Notify that the worker has started executing the agent.
+
+**Response:** `200` `{ ok: true }`
+
+### POST /cli/workers/jobs/:job_id/output
+
+Post a batch of output lines from the agent.
+
+**Body:** `{ lines: [string] }`
+**Response:** `200` `{ ok: true }`
+
+### POST /cli/workers/jobs/:job_id/question
+
+Post an agent question for the user to answer.
+
+**Body:** `{ content }`
+**Response:** `200` `{ ok: true }`
+
+### GET /cli/workers/jobs/:job_id/answers
+
+Get user answers posted after a given sequence number.
+
+**Query:** `after_sequence`
+**Response:** `200` `[{ id, kind: "answer", content, sequence, created_at }]`
+
+### POST /cli/workers/jobs/:job_id/completed
+
+Mark a job as completed or failed. If `exit_code` is 0, auto-transitions the CR to `applied` or the Bug to `resolved`.
+
+**Body:** `{ exit_code }`
+**Response:** `200` `{ ok: true }`
 
 ### POST /cli/reset
 

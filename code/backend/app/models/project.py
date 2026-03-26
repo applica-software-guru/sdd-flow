@@ -33,3 +33,5 @@ class Project(UUIDMixin, TimestampMixin, Base):
     )
     bugs: Mapped[list["Bug"]] = relationship("Bug", back_populates="project")
     api_keys: Mapped[list["ApiKey"]] = relationship("ApiKey", back_populates="project")
+    workers: Mapped[list["Worker"]] = relationship("Worker", back_populates="project")
+    worker_jobs: Mapped[list["WorkerJob"]] = relationship("WorkerJob", back_populates="project")

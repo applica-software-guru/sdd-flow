@@ -13,6 +13,9 @@ from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
 from app.models.refresh_token import RefreshToken
 from app.models.password_reset_token import PasswordResetToken
+from app.models.worker import Worker
+from app.models.worker_job import WorkerJob
+from app.models.worker_job_message import WorkerJobMessage
 
 __all__ = [
     "User",
@@ -30,4 +33,7 @@ __all__ = [
     "NotificationPreference",
     "RefreshToken",
     "PasswordResetToken",
+    "Worker",
+    "WorkerJob",
+    "WorkerJobMessage",
 ]

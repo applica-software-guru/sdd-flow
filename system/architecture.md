@@ -2,8 +2,8 @@
 title: "Architecture Decisions"
 status: synced
 author: ""
-last-modified: "2026-03-17T00:00:00.000Z"
-version: "1.4"
+last-modified: "2026-03-26T00:00:00.000Z"
+version: "1.5"
 ---
 
 # Architecture Decisions
@@ -25,6 +25,8 @@ sdd-flow/
 │   │   │   ├── change_requests.py
 │   │   │   ├── bugs.py
 │   │   │   ├── docs.py
+│   │   │   ├── workers.py        # Web routes: workers & jobs (JWT)
+│   │   │   ├── workers_cli.py    # CLI routes: worker daemon (API key)
 │   │   │   └── ...
 │   │   ├── services/      # Business logic
 │   │   ├── middleware/     # Auth, tenant scoping
@@ -145,6 +147,49 @@ sdd-flow/
 - Frontend production image is static (nginx) and must not require rebuild per environment
 - Runtime values are injected at container startup (entrypoint template + generated runtime config)
 - NGINX upstream and server_name are runtime-configurable via env vars
+
+### Remote Worker Architecture
+
+Workers are machines running `sdd remote worker` that connect to SDD Flow to receive and execute AI agent jobs.
+
+**Communication Protocol:**
+
+```
+┌─────────────────┐     SSE (output stream)     ┌──────────────┐
+│   Web Frontend   │◄────────────────────────────│              │
+│   (React)        │─── POST answer ────────────►│   Backend    │
+└─────────────────┘                              │   (FastAPI)  │
+                                                 │              │
+┌─────────────────┐     Long-poll (jobs)         │              │
+│   Worker (CLI)   │◄────────────────────────────│              │
+│   sdd remote     │─── POST output/question ──►│              │
+│   worker         │─── POST heartbeat ─────────►│              │
+└─────────────────┘                              └──────────────┘
+```
+
+- **Worker → Server**: Long polling for job assignment (30s hold) + POST for output/heartbeat. Chosen over WebSocket for NAT/firewall friendliness — no persistent connection required.
+- **Server → Frontend**: SSE (Server-Sent Events) via `StreamingResponse` for real-time output streaming. The server polls the database every 0.5s and yields new messages.
+- **Q&A relay**: Worker posts a question → Server stores it → SSE delivers to frontend → User answers via POST → Worker polls for answers → Writes to agent stdin.
+
+**Atomic Job Assignment:**
+
+Jobs are assigned using `SELECT ... FOR UPDATE SKIP LOCKED` to prevent two workers from grabbing the same job. The first worker to execute the query wins.
+
+**Health Monitoring:**
+
+No separate scheduler or cron. Stale worker detection piggybacks on heartbeat and poll requests:
+- Worker offline: heartbeat older than 60 seconds
+- Job failed: worker offline for more than 5 minutes with a running job
+
+**Agent Abstraction:**
+
+The worker uses the existing agent runner infrastructure (`startAgent()` in `agent-runner.ts`) with `stdio: ['pipe', 'pipe', 'pipe']` for interactive mode. The agent adapter (Claude Code, Codex, OpenCode) is selected by the `--agent` flag or project config.
+
+**Auto-transition on Completion:**
+
+When a job completes with exit code 0, the backend automatically transitions the associated entity:
+- Change Request: `approved` → `applied`
+- Bug: `open`/`in_progress` → `resolved`
 
 ### Deployment
 
