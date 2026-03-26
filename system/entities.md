@@ -3,7 +3,7 @@ title: "Data Entities"
 status: synced
 author: ""
 last-modified: "2026-03-26T12:00:00.000Z"
-version: "1.4"
+version: "1.5"
 ---
 
 # Data Entities
@@ -243,6 +243,7 @@ A registered remote worker machine that can execute AI agent jobs.
 | name | string | Worker name, unique per project (default: hostname) |
 | status | enum | online, offline, busy |
 | agent | string | Agent adapter identifier (default: "claude") |
+| branch | string? | Working branch this worker operates on (from `.sdd/config.yaml`) |
 | last_heartbeat_at | datetime | Last heartbeat timestamp |
 | registered_at | datetime | First registration time |
 | metadata | jsonb? | Optional: hostname, OS, etc. |
@@ -258,12 +259,13 @@ A job dispatched to a worker for execution.
 | id | UUID | Primary key |
 | project_id | UUID | FK → Project |
 | worker_id | UUID? | FK → Worker (null while queued) |
-| entity_type | string | `change_request` or `bug` |
-| entity_id | UUID | FK → ChangeRequest or Bug |
-| job_type | enum | `apply` (default), `enrich` |
+| entity_type | string? | `change_request`, `bug`, or `document`; null for `sync` jobs |
+| entity_id | UUID? | FK → entity; null for `sync` jobs |
+| job_type | enum | `apply`, `enrich`, or `sync` |
 | status | enum | queued, assigned, running, completed, failed, cancelled |
 | prompt | text | Generated prompt sent to the agent |
 | agent | string | Agent adapter used for this job |
+| model | string? | Model override passed to the agent CLI (`--model` flag) |
 | exit_code | int? | Agent process exit code (null until completed/failed) |
 | created_by | UUID | FK → User who dispatched the job |
 | started_at | datetime? | When agent execution began |
@@ -272,6 +274,11 @@ A job dispatched to a worker for execution.
 | updated_at | datetime | Last update |
 
 Index: `(project_id, status)`
+
+**Job types:**
+- `enrich` — enriches a draft entity (CR/Bug/Document). Entity fields required.
+- `apply` — implements an approved CR or open/in-progress Bug. Entity fields required.
+- `sync` — project-level sync: pull → sync → implement all pending → push. No entity fields.
 
 ### WorkerJobMessage
 

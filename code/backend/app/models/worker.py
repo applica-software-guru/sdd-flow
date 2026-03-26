@@ -31,6 +31,7 @@ class Worker(UUIDMixin, TimestampMixin, Base):
         nullable=False,
     )
     agent: Mapped[str] = mapped_column(String(100), default="claude", nullable=False)
+    branch: Mapped[str | None] = mapped_column(String(200), nullable=True)
     last_heartbeat_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

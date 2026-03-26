@@ -3,7 +3,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String, Text, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, UUIDMixin, TimestampMixin
@@ -21,6 +21,7 @@ class JobStatus(str, enum.Enum):
 class JobType(str, enum.Enum):
     apply = "apply"
     enrich = "enrich"
+    sync = "sync"
 
 
 class WorkerJob(UUIDMixin, TimestampMixin, Base):
@@ -35,8 +36,8 @@ class WorkerJob(UUIDMixin, TimestampMixin, Base):
     worker_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("workers.id", ondelete="SET NULL"), nullable=True
     )
-    entity_type: Mapped[str] = mapped_column(String(50), nullable=False)
-    entity_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
+    entity_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     status: Mapped[JobStatus] = mapped_column(
         Enum(JobStatus, name="job_status_enum"),
         default=JobStatus.queued,
@@ -49,6 +50,7 @@ class WorkerJob(UUIDMixin, TimestampMixin, Base):
     )
     prompt: Mapped[str] = mapped_column(Text, nullable=False)
     agent: Mapped[str] = mapped_column(String(100), default="claude", nullable=False)
+    model: Mapped[str | None] = mapped_column(String(100), nullable=True)
     exit_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_by: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
@@ -59,6 +61,7 @@ class WorkerJob(UUIDMixin, TimestampMixin, Base):
     completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    changed_files: Mapped[list | None] = mapped_column(JSONB, nullable=True)
 
     project: Mapped["Project"] = relationship("Project", back_populates="worker_jobs")
     worker: Mapped["Worker | None"] = relationship("Worker", back_populates="jobs")

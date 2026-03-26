@@ -10,6 +10,7 @@ from app.db.session import get_db
 from app.middleware.auth import ApiKeyContext, get_api_key_context, get_api_key_project
 from app.models.bug import Bug, BugStatus
 from app.models.change_request import ChangeRequest, CRStatus
+from app.models.document_file import DocumentFile, DocStatus
 from app.models.worker import Worker, WorkerStatus
 from app.models.worker_job import JobStatus, JobType, WorkerJob
 from app.models.worker_job_message import MessageKind, WorkerJobMessage
@@ -23,6 +24,7 @@ from app.schemas.workers import (
     WorkerRegisterRequest,
     WorkerResponse,
 )
+from app.services.notifications import create_notification
 
 router = APIRouter(prefix="/cli/workers", tags=["cli-workers"])
 
@@ -37,7 +39,6 @@ async def _cleanup_stale_workers(db: AsyncSession, project_id: uuid.UUID) -> Non
     cutoff = datetime.now(timezone.utc) - HEARTBEAT_TIMEOUT
     stale_job_cutoff = datetime.now(timezone.utc) - STALE_JOB_TIMEOUT
 
-    # Mark stale workers offline
     await db.execute(
         update(Worker).where(
             Worker.project_id == project_id,
@@ -46,7 +47,6 @@ async def _cleanup_stale_workers(db: AsyncSession, project_id: uuid.UUID) -> Non
         ).values(status=WorkerStatus.offline)
     )
 
-    # Fail jobs assigned to workers that have been offline too long
     stale_workers_sq = select(Worker.id).where(
         Worker.project_id == project_id,
         Worker.status == WorkerStatus.offline,
@@ -83,6 +83,7 @@ async def register_worker(
     if worker is not None:
         worker.status = WorkerStatus.online
         worker.agent = body.agent
+        worker.branch = body.branch
         worker.last_heartbeat_at = now
         worker.metadata_ = body.metadata
     else:
@@ -91,6 +92,7 @@ async def register_worker(
             name=body.name,
             status=WorkerStatus.online,
             agent=body.agent,
+            branch=body.branch,
             last_heartbeat_at=now,
             metadata_=body.metadata,
         )
@@ -105,6 +107,7 @@ async def register_worker(
         name=worker.name,
         status=worker.status,
         agent=worker.agent,
+        branch=worker.branch,
         last_heartbeat_at=worker.last_heartbeat_at,
         registered_at=worker.registered_at,
         is_online=True,
@@ -133,7 +136,6 @@ async def heartbeat(
     worker.last_heartbeat_at = datetime.now(timezone.utc)
     await db.flush()
 
-    # Piggyback cleanup on heartbeat
     await _cleanup_stale_workers(db, project.id)
 
     return {"status": "ok"}
@@ -146,7 +148,6 @@ async def poll_job(
     db: AsyncSession = Depends(get_db),
 ):
     """Long-poll for a queued job. Holds connection up to 30s."""
-    # Verify worker exists
     result = await db.execute(
         select(Worker).where(
             Worker.id == worker_id,
@@ -157,12 +158,9 @@ async def poll_job(
     if worker is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker not found")
 
-    # Piggyback cleanup
     await _cleanup_stale_workers(db, project.id)
 
-    # Long-poll loop
     for _ in range(POLL_DURATION):
-        # Try to atomically claim a queued job
         job_result = await db.execute(
             select(WorkerJob).where(
                 WorkerJob.project_id == project.id,
@@ -186,9 +184,11 @@ async def poll_job(
                 job_type=job.job_type,
                 prompt=job.prompt,
                 agent=job.agent,
+                model=job.model,
+                branch=worker.branch,
             )
 
-        await db.commit()  # release any locks before sleeping
+        await db.commit()
         await asyncio.sleep(POLL_INTERVAL)
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -225,7 +225,6 @@ async def job_output(
     db: AsyncSession = Depends(get_db),
 ):
     """Worker posts batched output lines."""
-    # Get the current max sequence for this job
     result = await db.execute(
         select(WorkerJobMessage.sequence)
         .where(WorkerJobMessage.job_id == job_id)
@@ -273,6 +272,22 @@ async def job_question(
     await db.flush()
     await db.refresh(msg)
 
+    # Notify the job creator
+    job_result = await db.execute(
+        select(WorkerJob).where(WorkerJob.id == job_id, WorkerJob.project_id == project.id)
+    )
+    job = job_result.scalar_one_or_none()
+    if job:
+        await create_notification(
+            db=db,
+            user_id=job.created_by,
+            tenant_id=project.tenant_id,
+            event_type="worker_question",
+            entity_type="worker_job",
+            entity_id=job_id,
+            title=f"Worker needs your attention on job #{str(job_id)[:8]}",
+        )
+
     return WorkerJobMessageResponse.model_validate(msg)
 
 
@@ -316,6 +331,8 @@ async def job_completed(
     job.exit_code = body.exit_code
     job.completed_at = now
     job.status = JobStatus.completed if body.exit_code == 0 else JobStatus.failed
+    if body.changed_files:
+        job.changed_files = [f.model_dump() for f in body.changed_files]
 
     # Set worker back to online
     if job.worker_id:
@@ -333,29 +350,30 @@ async def job_completed(
                 select(ChangeRequest).where(ChangeRequest.id == job.entity_id)
             )
             cr = cr_result.scalar_one_or_none()
-            if cr:
-                if job.job_type == JobType.enrich:
-                    # draft → pending (enriched, awaiting approval)
-                    if cr.status == CRStatus.draft:
-                        cr.status = CRStatus.pending
-                else:
-                    # apply: approved → applied
-                    cr.status = CRStatus.applied
-                    cr.closed_at = now
-        elif job.entity_type == "bug":
-            bug_result = await db.execute(
-                select(Bug).where(Bug.id == job.entity_id)
+            if cr and cr.status == CRStatus.draft:
+                cr.status = CRStatus.pending
+
+        elif job.entity_type == "document":
+            doc_result = await db.execute(
+                select(DocumentFile).where(DocumentFile.id == job.entity_id)
             )
-            bug = bug_result.scalar_one_or_none()
-            if bug:
-                if job.job_type == JobType.enrich:
-                    # draft → open (enriched, ready to work on)
-                    if bug.status == BugStatus.draft:
-                        bug.status = BugStatus.open
-                else:
-                    # apply: open/in_progress → resolved
-                    bug.status = BugStatus.resolved
-                    bug.closed_at = now
+            doc = doc_result.scalar_one_or_none()
+            if doc and doc.status == DocStatus.draft:
+                doc.status = DocStatus.new
 
     await db.flush()
+
+    # Send notification to job creator
+    event_type = "worker_job_completed" if body.exit_code == 0 else "worker_job_failed"
+    status_label = "completed" if body.exit_code == 0 else "failed"
+    await create_notification(
+        db=db,
+        user_id=job.created_by,
+        tenant_id=project.tenant_id,
+        event_type=event_type,
+        entity_type="worker_job",
+        entity_id=job_id,
+        title=f"Worker job #{str(job_id)[:8]} {status_label}",
+    )
+
     return {"status": job.status.value, "exit_code": body.exit_code}

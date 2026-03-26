@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useWorkerJobs, useWorkers } from '../../hooks/useWorkers';
 import JobStatusBadge from '../../components/JobStatusBadge';
 import WorkerStatusBadge from '../../components/WorkerStatusBadge';
 import Pagination from '../../components/Pagination';
 import EmptyState from '../../components/EmptyState';
+import JobOptionsDialog from '../../components/JobOptionsDialog';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All statuses' },
@@ -18,8 +19,10 @@ const STATUS_OPTIONS = [
 
 export default function ListPage() {
   const { tenantId, projectId } = useParams();
+  const navigate = useNavigate();
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+  const [showSyncDialog, setShowSyncDialog] = useState(false);
 
   const { data: workers } = useWorkers(tenantId, projectId);
   const { data, isLoading } = useWorkerJobs(tenantId, projectId, {
@@ -32,11 +35,24 @@ export default function ListPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Workers</h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Remote workers and job execution history
-        </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Workers</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            Remote workers and job execution history
+          </p>
+        </div>
+        {onlineWorkers.length > 0 && (
+          <button
+            onClick={() => setShowSyncDialog(true)}
+            className="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            Sync on Worker
+          </button>
+        )}
       </div>
 
       {/* Worker status cards */}
@@ -55,6 +71,11 @@ export default function ListPage() {
               </div>
               <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                 Agent: {worker.agent}
+                {worker.branch && (
+                  <span className="ml-2">
+                    Branch: <code className="font-mono">{worker.branch}</code>
+                  </span>
+                )}
               </div>
               {worker.last_heartbeat_at && (
                 <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
@@ -94,6 +115,19 @@ export default function ListPage() {
         )}
       </div>
 
+      {showSyncDialog && (
+        <JobOptionsDialog
+          tenantId={tenantId!}
+          projectId={projectId!}
+          jobType="sync"
+          onSuccess={(jobId) => {
+            setShowSyncDialog(false);
+            navigate(`/tenants/${tenantId}/projects/${projectId}/workers/${jobId}`);
+          }}
+          onCancel={() => setShowSyncDialog(false)}
+        />
+      )}
+
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
@@ -128,10 +162,14 @@ export default function ListPage() {
                         to={`/tenants/${tenantId}/projects/${projectId}/workers/${job.id}`}
                         className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                       >
-                        <span className="mr-1.5 text-xs text-slate-400 dark:text-slate-500">
-                          {job.entity_type === 'change_request' ? 'CR' : 'Bug'}
-                        </span>
-                        {job.entity_title || job.entity_id.slice(0, 8)}
+                        {job.entity_type && (
+                          <span className="mr-1.5 text-xs text-slate-400 dark:text-slate-500">
+                            {job.entity_type === 'change_request' ? 'CR' : job.entity_type === 'bug' ? 'Bug' : 'Doc'}
+                          </span>
+                        )}
+                        {job.job_type === 'sync' && !job.entity_title
+                          ? 'Project Sync'
+                          : job.entity_title || (job.entity_id ? job.entity_id.slice(0, 8) : 'Sync')}
                       </Link>
                     </td>
                     <td className="px-6 py-4">

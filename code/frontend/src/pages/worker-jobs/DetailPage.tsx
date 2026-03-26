@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useWorkerJob, useWorkerJobStream, useAnswerQuestion, useCancelJob } from '../../hooks/useWorkers';
 import JobStatusBadge from '../../components/JobStatusBadge';
 import WorkerTerminal from '../../components/WorkerTerminal';
@@ -6,12 +7,21 @@ import WorkerQAPanel from '../../components/WorkerQAPanel';
 
 export default function DetailPage() {
   const { tenantId, projectId, jobId } = useParams();
+  const queryClient = useQueryClient();
 
   const { data: job, isLoading } = useWorkerJob(tenantId, projectId, jobId);
 
   const isLive = job?.status === 'queued' || job?.status === 'assigned' || job?.status === 'running';
   const { messages: streamMessages, isStreaming } = useWorkerJobStream(
-    tenantId, projectId, jobId, isLive
+    tenantId,
+    projectId,
+    jobId,
+    isLive,
+    () => {
+      queryClient.invalidateQueries({
+        queryKey: ['tenants', tenantId, 'projects', projectId, 'worker-jobs', jobId],
+      });
+    },
   );
 
   const answerMutation = useAnswerQuestion(tenantId!, projectId!, jobId!);
@@ -49,10 +59,12 @@ export default function DetailPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-              <span className="text-slate-400 dark:text-slate-500 mr-2">
-                {job.entity_type === 'change_request' ? 'CR' : 'Bug'}:
-              </span>
-              {job.entity_title || 'Job'}
+              {job.entity_type && (
+                <span className="text-slate-400 dark:text-slate-500 mr-2">
+                  {job.entity_type === 'change_request' ? 'CR' : job.entity_type === 'bug' ? 'Bug' : 'Doc'}:
+                </span>
+              )}
+              {job.job_type === 'sync' && !job.entity_title ? 'Project Sync' : job.entity_title || 'Job'}
             </h1>
             <div className="mt-2 flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
               <JobStatusBadge status={job.status} />
@@ -90,6 +102,39 @@ export default function DetailPage() {
           onAnswer={(content) => answerMutation.mutate(content)}
           isSubmitting={answerMutation.isPending}
         />
+      )}
+
+      {/* Files Changed */}
+      {!isLive && job.changed_files && job.changed_files.length > 0 && (
+        <div className="mt-6">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            Files Changed ({job.changed_files.length})
+          </h2>
+          <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
+            <table className="w-full text-sm">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                {job.changed_files.map((file) => (
+                  <tr key={file.path} className="flex items-center gap-3 px-4 py-2 font-mono hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <td className="w-20 flex-shrink-0">
+                      <span
+                        className={
+                          file.status === 'new'
+                            ? 'rounded px-1.5 py-0.5 text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400'
+                            : file.status === 'deleted'
+                            ? 'rounded px-1.5 py-0.5 text-xs font-semibold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
+                            : 'rounded px-1.5 py-0.5 text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
+                        }
+                      >
+                        {file.status === 'new' ? 'new' : file.status === 'deleted' ? 'del' : 'mod'}
+                      </span>
+                    </td>
+                    <td className="flex-1 text-slate-700 dark:text-slate-300">{file.path}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );

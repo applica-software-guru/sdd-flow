@@ -1,8 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import { useToast } from '../context/ToastContext';
-import type { Worker, WorkerJob, WorkerJobDetail, WorkerJobMessage, PaginatedResponse } from '../types';
+import type { Worker, WorkerJob, WorkerJobDetail, WorkerJobMessage, PaginatedResponse, AgentModel } from '../types';
 
 // --- Workers ---
 
@@ -66,16 +66,21 @@ export function useWorkerJob(
   });
 }
 
+export interface CreateWorkerJobPayload {
+  entity_type?: 'change_request' | 'bug' | 'document';
+  entity_id?: string;
+  job_type?: 'apply' | 'enrich' | 'sync';
+  agent?: string;
+  model?: string;
+  prompt?: string;
+  worker_id?: string;
+}
+
 export function useCreateWorkerJob(tenantId: string, projectId: string) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
   return useMutation({
-    mutationFn: async (payload: {
-      entity_type: 'change_request' | 'bug';
-      entity_id: string;
-      job_type?: 'apply' | 'enrich';
-      agent?: string;
-    }) => {
+    mutationFn: async (payload: CreateWorkerJobPayload) => {
       const { data } = await api.post(
         `/tenants/${tenantId}/projects/${projectId}/worker-jobs`,
         payload
@@ -90,6 +95,36 @@ export function useCreateWorkerJob(tenantId: string, projectId: string) {
     },
     onError: () => {
       addToast('Failed to dispatch job', 'error');
+    },
+  });
+}
+
+export function useAgentModels(tenantId: string | undefined, projectId: string | undefined) {
+  return useQuery<Record<string, AgentModel[]>>({
+    queryKey: ['tenants', tenantId, 'projects', projectId, 'agent-models'],
+    queryFn: async () => {
+      const { data } = await api.get(
+        `/tenants/${tenantId}/projects/${projectId}/worker-jobs/agent-models`
+      );
+      return data;
+    },
+    enabled: !!tenantId && !!projectId,
+    staleTime: Infinity, // static config, never stale
+  });
+}
+
+export function usePreviewJobPrompt(tenantId: string, projectId: string) {
+  return useMutation({
+    mutationFn: async (payload: {
+      entity_type?: string;
+      entity_id?: string;
+      job_type: string;
+    }) => {
+      const { data } = await api.post(
+        `/tenants/${tenantId}/projects/${projectId}/worker-jobs/preview`,
+        payload
+      );
+      return data as { prompt: string };
     },
   });
 }
@@ -142,7 +177,8 @@ export function useWorkerJobStream(
   tenantId: string | undefined,
   projectId: string | undefined,
   jobId: string | undefined,
-  enabled: boolean = true
+  enabled: boolean = true,
+  onDone?: () => void,
 ) {
   const [messages, setMessages] = useState<WorkerJobMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(true);
@@ -176,6 +212,7 @@ export function useWorkerJobStream(
       }
       setIsStreaming(false);
       eventSource.close();
+      onDone?.();
     });
 
     eventSource.onerror = () => {

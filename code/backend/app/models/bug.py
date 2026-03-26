@@ -42,7 +42,7 @@ class Bug(UUIDMixin, TimestampMixin, Base):
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[BugStatus] = mapped_column(
-        Enum(BugStatus, name="bug_status_enum"), default=BugStatus.open, nullable=False
+        Enum(BugStatus, name="bug_status_enum"), default=BugStatus.draft, nullable=False
     )
     severity: Mapped[BugSeverity] = mapped_column(
         Enum(BugSeverity, name="bug_severity_enum"), nullable=False

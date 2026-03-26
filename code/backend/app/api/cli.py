@@ -321,7 +321,7 @@ async def push_bugs(
                 path=item.path,
                 title=item.title,
                 body=item.body,
-                status=item.status or BugStatus.open,
+                status=item.status or BugStatus.draft,
                 severity=item.severity,
                 author_id=ctx.user_id,
             )

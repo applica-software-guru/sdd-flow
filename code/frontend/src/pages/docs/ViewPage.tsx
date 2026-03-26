@@ -1,10 +1,12 @@
 import { useState, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDoc, useUpdateDoc, useDeleteDoc } from '../../hooks/useDocs';
+import { useWorkers } from '../../hooks/useWorkers';
 import StatusBadge from '../../components/StatusBadge';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
 import MarkdownEditor from '../../components/MarkdownEditor';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import JobOptionsDialog from '../../components/JobOptionsDialog';
 
 export default function ViewPage() {
   const { tenantId, projectId, docId } = useParams();
@@ -12,12 +14,16 @@ export default function ViewPage() {
   const { data: doc, isLoading } = useDoc(tenantId, projectId, docId);
   const updateDoc = useUpdateDoc(tenantId!, projectId!, docId!);
   const deleteDoc = useDeleteDoc(tenantId!, projectId!, docId!);
+  const { data: workers } = useWorkers(tenantId, projectId);
 
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editStatus, setEditStatus] = useState('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEnrichDialog, setShowEnrichDialog] = useState(false);
+
+  const hasOnlineWorker = workers?.some((w) => w.is_online) ?? false;
 
   if (isLoading) {
     return (
@@ -72,6 +78,17 @@ export default function ViewPage() {
         <div className="flex items-center gap-2">
           {!editing && (
             <>
+              {doc.status !== 'deleted' && hasOnlineWorker && (
+                <button
+                  onClick={() => setShowEnrichDialog(true)}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+                  </svg>
+                  Enrich on Worker
+                </button>
+              )}
               <button
                 onClick={startEditing}
                 className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
@@ -180,6 +197,21 @@ export default function ViewPage() {
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteDialog(false)}
       />
+
+      {showEnrichDialog && (
+        <JobOptionsDialog
+          tenantId={tenantId!}
+          projectId={projectId!}
+          jobType="enrich"
+          entityType="document"
+          entityId={doc.id}
+          onSuccess={(jobId) => {
+            setShowEnrichDialog(false);
+            navigate(`/tenants/${tenantId}/projects/${projectId}/workers/${jobId}`);
+          }}
+          onCancel={() => setShowEnrichDialog(false)}
+        />
+      )}
     </div>
   );
 }
