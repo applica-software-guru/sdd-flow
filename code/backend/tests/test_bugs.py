@@ -33,7 +33,7 @@ async def test_create_bug(client: AsyncClient, test_tenant, test_project, test_u
     assert resp.status_code == 201
     data = resp.json()
     assert data["title"] == bug_payload["title"]
-    assert data["status"] == "open"
+    assert data["status"] == "draft"
     assert data["severity"] == "major"
     assert data["author_id"] == str(test_user.id)
 
