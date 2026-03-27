@@ -10,11 +10,12 @@ version: "1.2"
 
 ## Overview
 
-Remote Workers allow machines running the SDD CLI to register with SDD Flow and receive jobs dispatched from the web UI. Three job types are supported:
+Remote Workers allow machines running the SDD CLI to register with SDD Flow and receive jobs dispatched from the web UI. Four job types are supported:
 
 - **Enrich** — for draft entities (CR, Bug, or Document): the agent enriches the specification. On success the entity transitions `draft → pending` (CR), `draft → open` (Bug), or `draft → new` (Document).
 - **Apply** — for approved CRs or open/in-progress Bugs: the agent implements the change or fixes the bug. On success the entity transitions to `applied` (CR) or `resolved` (Bug).
 - **Sync** — project-level operation: the agent runs `sdd pull` → `sdd sync` → implements all pending items → `sdd push`. No specific entity required.
+- **Custom** — project-level operation with a fully user-defined prompt. No entity required, no server-generated prompt. The user writes the entire instruction from scratch.
 
 Output streams in real-time to the web UI and users can answer agent questions interactively from the browser.
 
@@ -65,8 +66,9 @@ Job dispatch buttons appear on entity pages when at least one worker is online:
 | **Apply on Worker** (indigo) | `apply` | CR | `approved` |
 | **Apply on Worker** (indigo) | `apply` | Bug | `open` or `in_progress` |
 | **Sync on Worker** (purple) | `sync` | Project | any |
+| **Custom Job** (slate) | `custom` | Project | any |
 
-"Sync on Worker" appears on the Workers list page and on the project Dashboard.
+"Sync on Worker" and "Custom Job" appear on the Workers list page. "Sync on Worker" also appears on the project Dashboard.
 
 - Jobs enter a queue with status `queued`
 - Workers pick up jobs via long polling — first available worker wins (atomic assignment)
@@ -106,6 +108,8 @@ Job dispatch buttons appear on entity pages when at least one worker is online:
 6. Commit changes
 7. Run `sdd push`
 
+**Custom job prompt**: The user writes the entire prompt from scratch in the Job Options Dialog. The prompt textarea is editable by default and empty. The Job Options Dialog subtitle reminds the user that "the worker will execute it as-is." Dispatching without a prompt is blocked (button disabled, inline error shown).
+
 **Auto-transitions on exit code 0:**
 
 | Job Type | Entity | From → To |
@@ -116,6 +120,7 @@ Job dispatch buttons appear on entity pages when at least one worker is online:
 | `apply` | CR | `approved → applied` |
 | `apply` | Bug | `open`/`in_progress → resolved` |
 | `sync` | — | (transitions happen via CLI commands) |
+| `custom` | — | (no automatic transitions) |
 
 ### Comments in Prompt
 
@@ -156,7 +161,8 @@ Notifications appear in the NotificationBell. Clicking a notification navigates 
 - Project-level page listing all worker jobs with status filters
 - Shows worker status cards: name, status badge, agent, branch
 - A "Sync on Worker" button dispatches a project-level sync job
-- Each job row shows entity type/title (or "Project Sync" for sync jobs), worker name, status badge, and timestamp
+- A "Custom Job" button opens the Job Options Dialog in custom mode (empty, editable prompt)
+- Each job row shows entity type/title, "Project Sync" for sync jobs, "Custom Job" for custom jobs, worker name, status badge, and timestamp
 
 ### Dashboard Integration
 

@@ -64,7 +64,9 @@ export default function DetailPage() {
                   {job.entity_type === 'change_request' ? 'CR' : job.entity_type === 'bug' ? 'Bug' : 'Doc'}:
                 </span>
               )}
-              {job.job_type === 'sync' && !job.entity_title ? 'Project Sync' : job.entity_title || 'Job'}
+              {job.job_type === 'sync' ? (job.entity_title || 'Project Sync')
+                : job.job_type === 'custom' ? 'Custom Job'
+                : job.entity_title || 'Job'}
             </h1>
             <div className="mt-2 flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
               <JobStatusBadge status={job.status} />
