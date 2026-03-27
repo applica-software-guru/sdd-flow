@@ -85,6 +85,7 @@ export interface ChangeRequest {
 export type BugSeverity = 'critical' | 'major' | 'minor' | 'trivial';
 
 export type BugStatus =
+  | 'draft'
   | 'open'
   | 'in_progress'
   | 'resolved'
