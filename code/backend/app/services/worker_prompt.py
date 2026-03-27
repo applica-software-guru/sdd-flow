@@ -55,7 +55,20 @@ async def generate_worker_prompt(
     # ── build job: project-level, no entity ──────────────────────────────────
     if job_type == "build" or (entity_type is None and entity_id is None):
         return (
-            f"Run `sdd pull`, then run the `sdd` skill, then run `sdd push`.\n"
+            "You are running a full SDD build for this project.\n\n"
+            "## Workflow\n\n"
+            "1. **Pull** — Run `sdd pull` to fetch the latest documentation, change requests, "
+            "and bugs from the remote server.\n\n"
+            "2. **Build** — Run the `sdd` skill. It handles the full development loop:\n"
+            "   - Check for open bugs (`sdd bug open`) and fix them, then `sdd mark-bug-resolved`\n"
+            "   - Check for pending change requests (`sdd cr pending`), apply them to the docs, "
+            "then `sdd mark-cr-applied`\n"
+            "   - Run `sdd sync` to see which documentation files need to be implemented in code\n"
+            "   - Read the listed docs and implement the required changes inside `code/`\n"
+            "   - Run `sdd mark-synced` then **commit immediately** "
+            "(`git add -A && git commit -m \"sdd sync: ...\"`) — mandatory\n\n"
+            "3. **Push** — Run `sdd push` to publish the updated code, documentation, "
+            "and status transitions back to the remote.\n"
             f"{_REPORT_SECTION}"
         )
 
@@ -136,9 +149,16 @@ async def generate_worker_prompt(
             f"{_REPORT_SECTION}"
         )
     else:
+        if entity_type == "change_request":
+            pull_flag = "--crs-only"
+            kind_label = "Change Request draft"
+        else:  # bug
+            pull_flag = "--bugs-only"
+            kind_label = "Bug draft"
+
         prompt = (
-            f"sdd pull --crs-only\n\n"
-            f"Enrich the following Change Request draft. Find the corresponding local file "
+            f"sdd pull {pull_flag}\n\n"
+            f"Enrich the following {kind_label}. Find the corresponding local file "
             f"and rewrite its content with the enriched version — add technical details, "
             f"acceptance criteria, edge cases, and implementation hints.\n"
             f"Then run `sdd mark-drafts-enriched <file>` on that specific file only, "
