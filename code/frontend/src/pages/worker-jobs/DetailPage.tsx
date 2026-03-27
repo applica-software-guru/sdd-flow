@@ -64,7 +64,7 @@ export default function DetailPage() {
                   {job.entity_type === 'change_request' ? 'CR' : job.entity_type === 'bug' ? 'Bug' : 'Doc'}:
                 </span>
               )}
-              {job.job_type === 'sync' ? (job.entity_title || 'Project Sync')
+              {job.job_type === 'build' ? (job.entity_title || 'Project Build')
                 : job.job_type === 'custom' ? 'Custom Job'
                 : job.entity_title || 'Job'}
             </h1>
