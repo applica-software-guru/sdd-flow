@@ -1,12 +1,15 @@
 import { useState, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useChangeRequest, useTransitionCR } from '../../hooks/useChangeRequests';
+import { useChangeRequest, useTransitionCR, useUpdateCR } from '../../hooks/useChangeRequests';
 import { useComments, useAddComment } from '../../hooks/useComments';
 import { useWorkers } from '../../hooks/useWorkers';
 import StatusBadge from '../../components/StatusBadge';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
+import MarkdownEditor from '../../components/MarkdownEditor';
 import JobOptionsDialog from '../../components/JobOptionsDialog';
 import type { CRStatus, JobType } from '../../types';
+
+const EDITABLE_STATUSES: CRStatus[] = ['draft', 'pending', 'rejected'];
 
 const TRANSITIONS: Record<string, CRStatus[]> = {
   draft: ['pending', 'rejected'],
@@ -22,11 +25,15 @@ export default function DetailPage() {
   const { data: comments } = useComments(tenantId, projectId, 'change-requests', crId);
   const transitionCR = useTransitionCR(tenantId!, projectId!, crId!);
   const addComment = useAddComment(tenantId!, projectId!, 'change-requests', crId!);
+  const updateCR = useUpdateCR(tenantId!, projectId!, crId!);
   const { data: workers } = useWorkers(tenantId, projectId);
   const navigate = useNavigate();
   const [commentBody, setCommentBody] = useState('');
   const [jobDialog, setJobDialog] = useState<{ jobType: JobType } | null>(null);
   const hasOnlineWorker = workers?.some((w) => w.is_online) ?? false;
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [editBody, setEditBody] = useState('');
 
   if (isLoading) {
     return (
@@ -50,12 +57,26 @@ export default function DetailPage() {
     transitionCR.mutate({ status });
   };
 
+  const startEditing = () => {
+    setEditTitle(cr.title);
+    setEditBody(cr.body);
+    setEditing(true);
+  };
+
+  const handleSave = async (e: FormEvent) => {
+    e.preventDefault();
+    await updateCR.mutateAsync({ title: editTitle, body: editBody });
+    setEditing(false);
+  };
+
   const handleComment = async (e: FormEvent) => {
     e.preventDefault();
     if (!commentBody.trim()) return;
     await addComment.mutateAsync({ body: commentBody });
     setCommentBody('');
   };
+
+  const canEdit = EDITABLE_STATUSES.includes(cr.status as CRStatus);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -72,24 +93,70 @@ export default function DetailPage() {
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <div className="border-b border-slate-200 px-6 py-5 dark:border-slate-700">
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              <span className="mr-2 font-mono text-base font-normal text-slate-400 dark:text-slate-500">
-                #{cr.formatted_number}
-              </span>
-              {cr.title}
-            </h1>
-            <StatusBadge status={cr.status} />
-          </div>
-          <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-            <span>Created {new Date(cr.created_at).toLocaleDateString()}</span>
-          </div>
-        </div>
+        {editing ? (
+          <form onSubmit={handleSave} className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Title</label>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Body</label>
+              <MarkdownEditor value={editBody} onChange={setEditBody} height={500} />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setEditing(false)}
+                className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={updateCR.isPending}
+                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {updateCR.isPending ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <div className="border-b border-slate-200 px-6 py-5 dark:border-slate-700">
+              <div className="flex items-start justify-between gap-4">
+                <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                  <span className="mr-2 font-mono text-base font-normal text-slate-400 dark:text-slate-500">
+                    #{cr.formatted_number}
+                  </span>
+                  {cr.title}
+                </h1>
+                <div className="flex items-center gap-2">
+                  {canEdit && (
+                    <button
+                      onClick={startEditing}
+                      className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  <StatusBadge status={cr.status} />
+                </div>
+              </div>
+              <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                <span>Created {new Date(cr.created_at).toLocaleDateString()}</span>
+              </div>
+            </div>
 
-        <div className="px-6 py-5">
-          <MarkdownRenderer content={cr.body} />
-        </div>
+            <div className="px-6 py-5">
+              <MarkdownRenderer content={cr.body} />
+            </div>
+          </>
+        )}
 
         {/* Status transitions */}
         {availableTransitions.length > 0 && (
