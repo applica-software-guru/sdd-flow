@@ -19,7 +19,7 @@ const TRANSITIONS: Record<string, BugStatus[]> = {
   closed: ['open'],
 };
 
-const NON_EDITABLE_STATUSES: BugStatus[] = ['closed'];
+const NON_EDITABLE_STATUSES: BugStatus[] = ['closed', 'wont_fix'];
 
 export default function DetailPage() {
   const { tenantId, projectId, bugId } = useParams();
