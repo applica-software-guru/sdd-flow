@@ -9,7 +9,7 @@ import MarkdownEditor from '../../components/MarkdownEditor';
 import JobOptionsDialog from '../../components/JobOptionsDialog';
 import type { CRStatus, JobType } from '../../types';
 
-const EDITABLE_STATUSES: CRStatus[] = ['draft', 'pending', 'rejected'];
+const EDITABLE_STATUSES: CRStatus[] = ['draft', 'pending'];
 
 const TRANSITIONS: Record<string, CRStatus[]> = {
   draft: ['pending', 'rejected'],
