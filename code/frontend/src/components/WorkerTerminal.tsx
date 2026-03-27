@@ -1,11 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { WorkerJobMessage } from '../types';
-
-const kindStyles: Record<string, string> = {
-  output: 'text-slate-300',
-  question: 'text-amber-400 font-semibold',
-  answer: 'text-green-400',
-};
+import MarkdownRenderer from './MarkdownRenderer';
 
 interface WorkerTerminalProps {
   messages: WorkerJobMessage[];
@@ -20,19 +15,35 @@ export default function WorkerTerminal({ messages, isStreaming }: WorkerTerminal
   }, [messages.length]);
 
   return (
-    <div className="rounded-lg bg-slate-900 p-4 font-mono text-sm overflow-auto max-h-[600px] min-h-[200px]">
+    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 overflow-auto max-h-[600px] min-h-[200px]">
       {messages.length === 0 && isStreaming && (
-        <div className="text-slate-500 animate-pulse">Waiting for output...</div>
+        <div className="p-4 text-slate-500 animate-pulse font-mono text-sm">Waiting for output...</div>
       )}
-      {messages.map((msg) => (
-        <div key={msg.id} className={`whitespace-pre-wrap break-words ${kindStyles[msg.kind] || 'text-slate-300'}`}>
-          {msg.kind === 'question' && <span className="text-amber-500 mr-1">[?]</span>}
-          {msg.kind === 'answer' && <span className="text-green-500 mr-1">[A]</span>}
-          {msg.content}
-        </div>
-      ))}
+      {messages.map((msg) => {
+        if (msg.kind === 'output') {
+          return (
+            <div key={msg.id} className="px-5 py-3 border-b border-slate-100 dark:border-slate-800 last:border-b-0">
+              <MarkdownRenderer content={msg.content} />
+            </div>
+          );
+        }
+
+        return (
+          <div
+            key={msg.id}
+            className={`px-4 py-2 font-mono text-sm whitespace-pre-wrap break-words border-b border-slate-100 dark:border-slate-800 last:border-b-0 ${
+              msg.kind === 'question'
+                ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-800 dark:text-amber-300'
+                : 'bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-300'
+            }`}
+          >
+            <span className="font-semibold mr-2">{msg.kind === 'question' ? '[?]' : '[A]'}</span>
+            {msg.content}
+          </div>
+        );
+      })}
       {isStreaming && (
-        <div className="mt-1">
+        <div className="px-4 py-2">
           <span className="inline-block w-2 h-4 bg-slate-400 animate-pulse" />
         </div>
       )}

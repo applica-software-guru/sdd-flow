@@ -1,10 +1,12 @@
 import { useState, FormEvent } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useBug, useTransitionBug } from '../../hooks/useBugs';
 import { useComments, useAddComment } from '../../hooks/useComments';
+import { useWorkers } from '../../hooks/useWorkers';
 import StatusBadge from '../../components/StatusBadge';
 import SeverityBadge from '../../components/SeverityBadge';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
+import JobOptionsDialog from '../../components/JobOptionsDialog';
 import type { BugStatus } from '../../types';
 
 const TRANSITIONS: Record<string, BugStatus[]> = {
@@ -18,11 +20,16 @@ const TRANSITIONS: Record<string, BugStatus[]> = {
 
 export default function DetailPage() {
   const { tenantId, projectId, bugId } = useParams();
+  const navigate = useNavigate();
   const { data: bug, isLoading } = useBug(tenantId, projectId, bugId);
   const { data: comments } = useComments(tenantId, projectId, 'bugs', bugId);
+  const { data: workers } = useWorkers(tenantId, projectId);
   const transitionBug = useTransitionBug(tenantId!, projectId!, bugId!);
   const addComment = useAddComment(tenantId!, projectId!, 'bugs', bugId!);
   const [commentBody, setCommentBody] = useState('');
+  const [showEnrichDialog, setShowEnrichDialog] = useState(false);
+
+  const hasOnlineWorker = workers?.some((w) => w.is_online) ?? false;
 
   if (isLoading) {
     return (
@@ -77,6 +84,17 @@ export default function DetailPage() {
               {bug.title}
             </h1>
             <div className="flex items-center gap-2">
+              {bug.status === 'draft' && hasOnlineWorker && (
+                <button
+                  onClick={() => setShowEnrichDialog(true)}
+                  className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-700"
+                >
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+                  </svg>
+                  Enrich on Worker
+                </button>
+              )}
               <SeverityBadge severity={bug.severity} />
               <StatusBadge status={bug.status} />
             </div>
@@ -166,6 +184,21 @@ export default function DetailPage() {
           </div>
         </form>
       </div>
+
+      {showEnrichDialog && (
+        <JobOptionsDialog
+          tenantId={tenantId!}
+          projectId={projectId!}
+          jobType="enrich"
+          entityType="bug"
+          entityId={bugId!}
+          onSuccess={(jobId) => {
+            setShowEnrichDialog(false);
+            navigate(`/tenants/${tenantId}/projects/${projectId}/workers/${jobId}`);
+          }}
+          onCancel={() => setShowEnrichDialog(false)}
+        />
+      )}
     </div>
   );
 }
