@@ -5,6 +5,7 @@ import HeroSection from '../../components/landing/HeroSection';
 import FeaturesSection from '../../components/landing/FeaturesSection';
 import HowItWorksSection from '../../components/landing/HowItWorksSection';
 import ForTeamsSection from '../../components/landing/ForTeamsSection';
+import RemoteWorkersSection from '../../components/landing/RemoteWorkersSection';
 import OpenSourceSection from '../../components/landing/OpenSourceSection';
 import FooterSection from '../../components/landing/FooterSection';
 
@@ -24,6 +25,7 @@ export default function LandingPage() {
       <FeaturesSection />
       <HowItWorksSection />
       <ForTeamsSection />
+      <RemoteWorkersSection />
       <OpenSourceSection />
       <FooterSection />
     </div>
