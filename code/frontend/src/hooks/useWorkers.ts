@@ -49,6 +49,8 @@ export function useWorkerJobs(
   });
 }
 
+const LIVE_JOB_STATUSES = new Set(['queued', 'assigned', 'running']);
+
 export function useWorkerJob(
   tenantId: string | undefined,
   projectId: string | undefined,
@@ -63,6 +65,8 @@ export function useWorkerJob(
       return data;
     },
     enabled: !!tenantId && !!projectId && !!jobId,
+    refetchInterval: (query) =>
+      query.state.data && LIVE_JOB_STATUSES.has(query.state.data.status) ? 3000 : false,
   });
 }
 
