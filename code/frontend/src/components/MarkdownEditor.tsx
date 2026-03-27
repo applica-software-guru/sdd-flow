@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { useTheme } from '../context/ThemeContext';
-import MarkdownRenderer from './MarkdownRenderer';
 
 export const MARKDOWN_EDITOR_FONT_STACK = 'ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace';
 
@@ -28,14 +27,7 @@ export default function MarkdownEditor({
         value={value}
         onChange={(val) => onChange(val ?? '')}
         height={height}
-        preview="live"
-        components={{
-          preview: (source) => (
-            <div className="px-4 py-3 overflow-auto h-full">
-              <MarkdownRenderer content={source ?? ''} />
-            </div>
-          ),
-        }}
+        preview="edit"
       />
     </div>
   );
