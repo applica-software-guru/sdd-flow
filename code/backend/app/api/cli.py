@@ -115,7 +115,7 @@ async def push_docs(
             existing.title = item.title
             existing.content = item.content
             existing.version += 1
-            existing.status = DocStatus.synced
+            existing.status = item.status or DocStatus.synced
             docs.append(existing)
             updated += 1
         else:
@@ -124,7 +124,7 @@ async def push_docs(
                 path=item.path,
                 title=item.title,
                 content=item.content,
-                status=DocStatus.synced,
+                status=item.status or DocStatus.synced,
                 version=1,
             )
             db.add(doc)
