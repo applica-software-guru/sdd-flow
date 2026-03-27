@@ -37,6 +37,7 @@ class DocBulkItem(BaseModel):
     path: str
     title: str
     content: str
+    status: DocStatus | None = None
 
 
 class DocBulkRequest(BaseModel):
