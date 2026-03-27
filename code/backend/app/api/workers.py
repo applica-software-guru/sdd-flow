@@ -80,7 +80,18 @@ async def _validate_entity(
         return entity.title
 
     elif entity_type == "bug":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bugs cannot be enriched individually; use a build job")
+        result = await db.execute(
+            select(Bug).where(
+                Bug.id == entity_id,
+                Bug.project_id == project_id,
+            )
+        )
+        entity = result.scalar_one_or_none()
+        if entity is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
+        if entity.status != BugStatus.draft:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bug must be in 'draft' status to enrich")
+        return entity.title
 
     elif entity_type == "document":
         result = await db.execute(
