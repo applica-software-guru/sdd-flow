@@ -10,11 +10,10 @@ version: "1.2"
 
 ## Overview
 
-Remote Workers allow machines running the SDD CLI to register with SDD Flow and receive jobs dispatched from the web UI. Four job types are supported:
+Remote Workers allow machines running the SDD CLI to register with SDD Flow and receive jobs dispatched from the web UI. Three job types are supported:
 
 - **Enrich** — for draft entities (CR, Bug, or Document): the agent enriches the specification. On success the entity transitions `draft → pending` (CR), `draft → open` (Bug), or `draft → new` (Document).
-- **Apply** — for approved CRs or open/in-progress Bugs: the agent implements the change or fixes the bug. On success the entity transitions to `applied` (CR) or `resolved` (Bug).
-- **Sync** — project-level operation: the agent runs `sdd pull` → `sdd sync` → implements all pending items → `sdd push`. No specific entity required.
+- **Build** — project-level operation: the agent runs `sdd pull` → `sdd sync` → implements all pending items → `sdd push`. No specific entity required.
 - **Custom** — project-level operation with a fully user-defined prompt. No entity required, no server-generated prompt. The user writes the entire instruction from scratch.
 
 Output streams in real-time to the web UI and users can answer agent questions interactively from the browser.
@@ -63,12 +62,10 @@ Job dispatch buttons appear on entity pages when at least one worker is online:
 | **Enrich on Worker** (amber) | `enrich` | CR | `draft` |
 | **Enrich on Worker** (amber) | `enrich` | Bug | `draft` |
 | **Enrich on Worker** (amber) | `enrich` | Document | `draft` |
-| **Apply on Worker** (indigo) | `apply` | CR | `approved` |
-| **Apply on Worker** (indigo) | `apply` | Bug | `open` or `in_progress` |
-| **Sync on Worker** (purple) | `sync` | Project | any |
+| **Build on Worker** (purple) | `build` | Project | any |
 | **Custom Job** (slate) | `custom` | Project | any |
 
-"Sync on Worker" and "Custom Job" appear on the Workers list page. "Sync on Worker" also appears on the project Dashboard.
+"Build on Worker" and "Custom Job" appear on the Workers list page. "Build on Worker" also appears on the project Dashboard.
 
 - Jobs enter a queue with status `queued`
 - Workers pick up jobs via long polling — first available worker wins (atomic assignment)
@@ -95,18 +92,13 @@ Job dispatch buttons appear on entity pages when at least one worker is online:
 3. Update the local document file with enriched content
 4. Run `sdd push` to publish
 
-**Apply job prompt** instructs the agent to implement the CR or fix the bug:
-1. Implement the change described in the specification (using all project documentation and comments as context)
-3. Commit the changes
-4. Run `sdd push`
-
-**Sync job prompt** (project-level):
+**Build job prompt** (project-level):
 1. Run `sdd pull` to fetch latest specs
-3. Run `sdd sync` to see what is pending
-4. Implement all pending change requests and bug fixes
-5. Run `sdd mark-synced` to mark implemented items
-6. Commit changes
-7. Run `sdd push`
+2. Run `sdd sync` to see what is pending
+3. Implement all pending items
+4. Run `sdd mark-synced` to mark implemented items
+5. Commit changes
+6. Run `sdd push`
 
 **Custom job prompt**: The user writes the entire prompt from scratch in the Job Options Dialog. The prompt textarea is editable by default and empty. The Job Options Dialog subtitle reminds the user that "the worker will execute it as-is." Dispatching without a prompt is blocked (button disabled, inline error shown).
 
@@ -117,14 +109,12 @@ Job dispatch buttons appear on entity pages when at least one worker is online:
 | `enrich` | CR | `draft → pending` |
 | `enrich` | Bug | `draft → open` |
 | `enrich` | Document | `draft → new` |
-| `apply` | CR | `approved → applied` |
-| `apply` | Bug | `open`/`in_progress → resolved` |
-| `sync` | — | (transitions happen via CLI commands) |
+| `build` | — | (transitions happen via CLI commands) |
 | `custom` | — | (no automatic transitions) |
 
 ### Comments in Prompt
 
-For enrich and apply jobs on CRs and Bugs, the server-generated prompt includes all comments posted on the entity, each with the author's display name and timestamp. This ensures the agent has full context about any discussions or clarifications.
+For enrich jobs on CRs and Bugs, the server-generated prompt includes all comments posted on the entity, each with the author's display name and timestamp. This ensures the agent has full context about any discussions or clarifications.
 
 ### Notifications
 

@@ -39,9 +39,9 @@ class WorkerHeartbeatRequest(BaseModel):
 # --- WorkerJob schemas ---
 
 class WorkerJobCreate(BaseModel):
-    entity_type: str | None = None   # None for sync jobs
-    entity_id: uuid.UUID | None = None  # None for sync jobs
-    job_type: JobType = JobType.apply
+    entity_type: str | None = None
+    entity_id: uuid.UUID | None = None
+    job_type: JobType = JobType.build
     agent: str | None = None
     model: str | None = None
     prompt: str | None = None   # Override generated prompt if provided
@@ -51,7 +51,7 @@ class WorkerJobCreate(BaseModel):
 class WorkerJobPreviewRequest(BaseModel):
     entity_type: str | None = None
     entity_id: uuid.UUID | None = None
-    job_type: JobType = JobType.apply
+    job_type: JobType = JobType.build
 
 
 class WorkerJobPreviewResponse(BaseModel):
@@ -71,7 +71,7 @@ class WorkerJobResponse(BaseModel):
     entity_type: str | None = None
     entity_id: uuid.UUID | None = None
     entity_title: str | None = None
-    job_type: JobType = JobType.apply
+    job_type: JobType = JobType.build
     status: JobStatus
     agent: str
     model: str | None = None

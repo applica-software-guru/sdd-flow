@@ -13,7 +13,7 @@ import JobOptionsDialog from '../../components/JobOptionsDialog';
 export default function DashboardPage() {
   const { tenantId, projectId } = useParams();
   const navigate = useNavigate();
-  const [showSyncDialog, setShowSyncDialog] = useState(false);
+  const [showBuildDialog, setShowBuildDialog] = useState(false);
   const { data: project, isLoading } = useProject(tenantId, projectId);
   const { data: crsData } = useChangeRequests(tenantId, projectId, {
     page_size: 5,
@@ -252,13 +252,13 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3">
               {onlineWorkers > 0 && (
                 <button
-                  onClick={() => setShowSyncDialog(true)}
+                  onClick={() => setShowBuildDialog(true)}
                   className="inline-flex items-center gap-1.5 rounded-md bg-purple-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-purple-700"
                 >
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
                   </svg>
-                  Sync on Worker
+                  Build on Worker
                 </button>
               )}
               <Link
@@ -288,8 +288,8 @@ export default function DashboardPage() {
                           {job.entity_type === 'change_request' ? 'CR' : job.entity_type === 'bug' ? 'Bug' : 'Doc'}
                         </span>
                       )}
-                      {job.job_type === 'sync' && !job.entity_title
-                        ? 'Project Sync'
+                      {job.job_type === 'build' && !job.entity_title
+                        ? 'Project Build'
                         : job.entity_title || (job.entity_id ? job.entity_id.slice(0, 8) : 'Sync')}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -304,16 +304,16 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {showSyncDialog && (
+      {showBuildDialog && (
         <JobOptionsDialog
           tenantId={tenantId!}
           projectId={projectId!}
-          jobType="sync"
+          jobType="build"
           onSuccess={(jobId) => {
-            setShowSyncDialog(false);
+            setShowBuildDialog(false);
             navigate(`/tenants/${tenantId}/projects/${projectId}/workers/${jobId}`);
           }}
-          onCancel={() => setShowSyncDialog(false)}
+          onCancel={() => setShowBuildDialog(false)}
         />
       )}
     </div>

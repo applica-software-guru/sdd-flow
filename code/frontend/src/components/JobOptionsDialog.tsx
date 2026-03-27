@@ -13,9 +13,8 @@ interface Props {
 }
 
 const JOB_TYPE_LABELS: Record<JobType, string> = {
-  apply: 'Apply',
   enrich: 'Enrich',
-  sync: 'Sync',
+  build: 'Build',
   custom: 'Custom Job',
 };
 

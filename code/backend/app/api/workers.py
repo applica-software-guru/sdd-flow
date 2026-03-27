@@ -80,7 +80,7 @@ async def _validate_entity(
         return entity.title
 
     elif entity_type == "bug":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bugs cannot be enriched individually; use a sync job")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bugs cannot be enriched individually; use a build job")
 
     elif entity_type == "document":
         result = await db.execute(
@@ -193,14 +193,14 @@ async def preview_worker_job(
     """Generate the prompt for a job without creating it."""
     await _get_project(db, tenant_id, project_id)
 
-    if body.job_type in (JobType.sync, JobType.custom):
+    if body.job_type in (JobType.build, JobType.custom):
         # Project-level jobs — no entity required
         pass
     else:
         if body.entity_type is None or body.entity_id is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="entity_type and entity_id are required for enrich/apply jobs",
+                detail="entity_type and entity_id are required for enrich jobs",
             )
         await _validate_entity(db, project_id, body.entity_type, body.entity_id, body.job_type)
 
@@ -226,7 +226,7 @@ async def create_worker_job(
     entity_title = None
     worker_branch = None
 
-    if body.job_type in (JobType.sync, JobType.custom):
+    if body.job_type in (JobType.build, JobType.custom):
         # Project-level jobs — no entity required
         if body.job_type == JobType.custom and not body.prompt:
             raise HTTPException(
@@ -237,7 +237,7 @@ async def create_worker_job(
         if body.entity_type is None or body.entity_id is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="entity_type and entity_id are required for enrich/apply jobs",
+                detail="entity_type and entity_id are required for enrich jobs",
             )
         entity_title = await _validate_entity(db, project_id, body.entity_type, body.entity_id, body.job_type)
 

@@ -19,9 +19,8 @@ class JobStatus(str, enum.Enum):
 
 
 class JobType(str, enum.Enum):
-    apply = "apply"
     enrich = "enrich"
-    sync = "sync"
+    build = "build"
     custom = "custom"
 
 
@@ -46,7 +45,7 @@ class WorkerJob(UUIDMixin, TimestampMixin, Base):
     )
     job_type: Mapped[JobType] = mapped_column(
         Enum(JobType, name="job_type_enum"),
-        default=JobType.apply,
+        default=JobType.build,
         nullable=False,
     )
     prompt: Mapped[str] = mapped_column(Text, nullable=False)

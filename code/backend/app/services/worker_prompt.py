@@ -47,13 +47,13 @@ async def generate_worker_prompt(
     project_id: uuid.UUID,
     entity_type: str | None,
     entity_id: uuid.UUID | None,
-    job_type: str = "apply",
+    job_type: str = "build",
     branch: str | None = None,
 ) -> str:
     """Generate a full agent prompt for the given job type and entity."""
 
-    # ── sync job: project-level, no entity ───────────────────────────────────
-    if job_type == "sync" or (entity_type is None and entity_id is None):
+    # ── build job: project-level, no entity ──────────────────────────────────
+    if job_type == "build" or (entity_type is None and entity_id is None):
         return (
             f"Run `sdd pull`, then run the `sdd` skill, then run `sdd push`.\n"
             f"{_REPORT_SECTION}"
