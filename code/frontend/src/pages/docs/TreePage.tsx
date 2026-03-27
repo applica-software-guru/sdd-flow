@@ -1,335 +1,245 @@
-import { useMemo, useState, FormEvent } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useMemo } from 'react';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDocs, useCreateDoc } from '../../hooks/useDocs';
+import DocFileTree from '../../components/DocFileTree';
 import StatusBadge from '../../components/StatusBadge';
-import EmptyState from '../../components/EmptyState';
 
-const STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'new', label: 'New' },
-  { value: 'changed', label: 'Changed' },
-  { value: 'synced', label: 'Synced' },
-  { value: 'deleted', label: 'Deleted' },
-];
-
-function getFolderPath(path: string) {
-  const parts = path.split('/').filter(Boolean);
-  if (parts.length <= 1) {
-    return '';
-  }
-
-  return parts.slice(0, -1).join('/');
+function FolderIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="currentColor">
+      <path d="M1.75 1A1.75 1.75 0 000 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0016 13.25v-8.5A1.75 1.75 0 0014.25 3H7.5a.25.25 0 01-.2-.1l-.9-1.2C6.07 1.26 5.55 1 5 1H1.75z" />
+    </svg>
+  );
 }
 
-function getFolderLabel(path: string) {
-  return getFolderPath(path) || 'Root';
+function FileIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 16 16" fill="currentColor">
+      <path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75zm1.75-.25a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 00.25-.25V6h-2.75A1.75 1.75 0 019 4.25V1.5H3.75zm6.75.062V4.25c0 .138.112.25.25.25h2.688a.252.252 0 00-.011-.013L10.5 1.812z" />
+    </svg>
+  );
 }
 
 export default function TreePage() {
   const { tenantId, projectId } = useParams();
-  const [status, setStatus] = useState('');
-  const [search, setSearch] = useState('');
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newPath, setNewPath] = useState('');
-  const [collapsedFolders, setCollapsedFolders] = useState<Record<string, boolean>>({});
-  const { data: docs, isLoading } = useDocs(tenantId, projectId, {
-    status: status || undefined,
-  });
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const currentPath = searchParams.get('path') ?? '';
+
+  const docsBase = `/tenants/${tenantId}/projects/${projectId}/docs`;
+  const docUrl = (docId: string) => `${docsBase}/${docId}`;
+
+  const { data: docs, isLoading } = useDocs(tenantId, projectId, {});
   const createDoc = useCreateDoc(tenantId!, projectId!);
 
-  const handleCreate = async (e: FormEvent) => {
-    e.preventDefault();
-    await createDoc.mutateAsync({
-      title: newTitle,
-      path: newPath,
-      content: '',
-      status: 'new',
-    });
-    setNewTitle('');
-    setNewPath('');
-    setShowCreateForm(false);
+  const handleCreateDoc = async (title: string, path: string) => {
+    const created = await createDoc.mutateAsync({ title, path, content: '', status: 'new' });
+    navigate(docUrl(created.id));
   };
 
-  const filteredDocs = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
+  // Build the contents of the current folder
+  const { subfolders, documents } = useMemo(() => {
+    const allDocs = docs ?? [];
+    const prefix = currentPath ? currentPath + '/' : '';
 
-    return [...(docs || [])]
-      .filter((doc) => {
-        if (!normalizedSearch) {
-          return true;
-        }
+    const folderSet = new Set<string>();
+    const documents = [];
 
-        return [doc.title, doc.path]
-          .filter(Boolean)
-          .some((value) => value.toLowerCase().includes(normalizedSearch));
-      })
-      .sort((a, b) => a.path.localeCompare(b.path));
-  }, [docs, search]);
+    for (const doc of allDocs) {
+      if (!doc.path.startsWith(prefix)) continue;
+      const rest = doc.path.slice(prefix.length);
+      const slashIdx = rest.indexOf('/');
 
-  const groupedDocs = useMemo(() => {
-    const groups = new Map<string, typeof filteredDocs>();
-
-    filteredDocs.forEach((doc) => {
-      const folder = getFolderLabel(doc.path);
-      const existing = groups.get(folder);
-
-      if (existing) {
-        existing.push(doc);
+      if (slashIdx === -1) {
+        // Direct child document
+        documents.push(doc);
       } else {
-        groups.set(folder, [doc]);
+        // Child folder
+        folderSet.add(rest.slice(0, slashIdx));
       }
-    });
+    }
 
-    return Array.from(groups.entries())
-      .sort(([left], [right]) => {
-        if (left === 'Root') {
-          return -1;
-        }
-        if (right === 'Root') {
-          return 1;
-        }
-        return left.localeCompare(right);
-      })
-      .map(([folder, items]) => ({ folder, items }));
-  }, [filteredDocs]);
+    const subfolders = Array.from(folderSet).sort();
+    documents.sort((a, b) => a.path.localeCompare(b.path));
 
-  const toggleFolder = (folder: string) => {
-    setCollapsedFolders((current) => ({
-      ...current,
-      [folder]: !current[folder],
-    }));
+    return { subfolders, documents };
+  }, [docs, currentPath]);
+
+  // Breadcrumb parts
+  const breadcrumbs = useMemo(() => {
+    if (!currentPath) return [];
+    return currentPath.split('/').filter(Boolean);
+  }, [currentPath]);
+
+  const navigateToFolder = (path: string) => {
+    if (path === '') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ path });
+    }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-      </div>
-    );
-  }
+  const goUp = () => {
+    const parts = currentPath.split('/').filter(Boolean);
+    parts.pop();
+    navigateToFolder(parts.join('/'));
+  };
 
   return (
-    <div className="mx-auto max-w-5xl">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Documentation</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Project documentation and guides
-          </p>
+    <div className="flex h-[calc(100vh-8rem)] gap-0 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      {/* ── File tree sidebar ── */}
+      <div className="flex w-56 flex-shrink-0 flex-col border-r border-slate-200 dark:border-slate-700">
+        <div className="flex h-12 flex-shrink-0 items-center border-b border-slate-200 px-3 dark:border-slate-700">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            Files
+          </span>
         </div>
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          New Document
-        </button>
+
+        {isLoading ? (
+          <div className="flex flex-1 items-center justify-center">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+          </div>
+        ) : (
+          <DocFileTree
+            docs={docs ?? []}
+            docUrl={docUrl}
+            onCreateDoc={handleCreateDoc}
+            isCreating={createDoc.isPending}
+            activeFolderPath={currentPath}
+            onFolderClick={navigateToFolder}
+          />
+        )}
       </div>
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by title or path"
-          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 sm:flex-1"
-        />
-        <div className="flex items-center gap-3 sm:flex-shrink-0">
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="sdd-select rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+      {/* ── Content area: folder browser ── */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Breadcrumb bar */}
+        <div className="flex h-12 flex-shrink-0 items-center gap-1 border-b border-slate-200 px-4 dark:border-slate-700">
+          <button
+            onClick={() => navigateToFolder('')}
+            className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
           >
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          {docs && (
-            <span className="text-sm text-slate-500 dark:text-slate-400">
-              {filteredDocs.length} of {docs.length} document{docs.length !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {showCreateForm && (
-        <div className="mb-6 rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-          <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
-            Create New Document
-          </h2>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-                  placeholder="Getting Started"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Path
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={newPath}
-                  onChange={(e) => setNewPath(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-                  placeholder="guides/getting-started"
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowCreateForm(false)}
-                className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={createDoc.isPending}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-              >
-                {createDoc.isPending ? 'Creating...' : 'Create'}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {filteredDocs.length === 0 ? (
-        <EmptyState
-          title={docs?.length ? 'No matching documents' : 'No documents yet'}
-          description={
-            docs?.length
-              ? 'Try a different search term or status filter.'
-              : 'Create your first document to start building your knowledge base'
-          }
-          icon={
-            <svg
-              className="h-12 w-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
-              />
-            </svg>
-          }
-        />
-      ) : (
-        <div className="space-y-4">
-          {groupedDocs.map(({ folder, items }) => {
-            const isCollapsed = !search.trim() && collapsedFolders[folder];
-
+            Docs
+          </button>
+          {breadcrumbs.map((part, i) => {
+            const isLast = i === breadcrumbs.length - 1;
+            const pathUpTo = breadcrumbs.slice(0, i + 1).join('/');
             return (
-              <section
-                key={folder}
-                className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"
-              >
-                <button
-                  type="button"
-                  onClick={() => toggleFolder(folder)}
-                  className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                      {folder}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {items.length} document{items.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                  <svg
-                    className={`h-4 w-4 flex-shrink-0 text-slate-400 transition-transform ${isCollapsed ? '-rotate-90' : 'rotate-0'}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
+              <span key={i} className="flex items-center gap-1">
+                <span className="text-slate-400">/</span>
+                {isLast ? (
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-200">{part}</span>
+                ) : (
+                  <button
+                    onClick={() => navigateToFolder(pathUpTo)}
+                    className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19.5 8.25L12 15.75 4.5 8.25"
-                    />
-                  </svg>
-                </button>
-
-                {!isCollapsed && (
-                  <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                    {items.map((doc) => (
-                      <Link
-                        key={doc.id}
-                        to={`/tenants/${tenantId}/projects/${projectId}/docs/${doc.id}`}
-                        className="flex items-center justify-between px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-700"
-                      >
-                        <div className="min-w-0 flex items-center gap-3">
-                          <svg
-                            className="h-5 w-5 flex-shrink-0 text-slate-400"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            strokeWidth={1.5}
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-                            />
-                          </svg>
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
-                              {doc.title}
-                            </p>
-                            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-                              {doc.path}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="ml-4 flex flex-shrink-0 items-center gap-3">
-                          <StatusBadge status={doc.status} />
-                          <span className="text-xs text-slate-400">
-                            {new Date(doc.updated_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
+                    {part}
+                  </button>
                 )}
-              </section>
+              </span>
             );
           })}
         </div>
-      )}
+
+        {/* Table */}
+        <div className="flex-1 overflow-y-auto">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+            </div>
+          ) : (
+            <table className="w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-700">
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-400">Name</th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-slate-500 dark:text-slate-400">Status</th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold text-slate-500 dark:text-slate-400">Updated</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                {/* Go up row */}
+                {currentPath && (
+                  <tr
+                    className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/30"
+                    onClick={goUp}
+                  >
+                    <td className="px-4 py-2" colSpan={3}>
+                      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                        <FolderIcon className="h-4 w-4 text-amber-400" />
+                        <span className="font-mono">..</span>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+
+                {/* Subfolders */}
+                {subfolders.map((folder) => {
+                  const fullPath = currentPath ? `${currentPath}/${folder}` : folder;
+                  return (
+                    <tr
+                      key={fullPath}
+                      className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/30"
+                      onClick={() => navigateToFolder(fullPath)}
+                    >
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <FolderIcon className="h-4 w-4 flex-shrink-0 text-amber-400" />
+                          <span className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                            {folder}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2" />
+                      <td className="px-4 py-2" />
+                    </tr>
+                  );
+                })}
+
+                {/* Documents */}
+                {documents.map((doc) => {
+                  const filename = doc.path.split('/').pop() ?? doc.path;
+                  return (
+                    <tr
+                      key={doc.id}
+                      className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/30"
+                      onClick={() => navigate(docUrl(doc.id))}
+                    >
+                      <td className="px-4 py-2">
+                        <div className="flex items-center gap-2">
+                          <FileIcon className="h-4 w-4 flex-shrink-0 text-slate-400" />
+                          <span className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                            {doc.title || filename}
+                          </span>
+                          <span className="text-xs text-slate-400">{filename}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-2">
+                        <StatusBadge status={doc.status} />
+                      </td>
+                      <td className="px-4 py-2 text-right text-xs text-slate-400">
+                        {new Date(doc.updated_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {/* Empty state */}
+                {subfolders.length === 0 && documents.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="px-4 py-12 text-center text-sm text-slate-400">
+                      {docs?.length === 0
+                        ? 'No documents yet. Use "+ New document" in the sidebar to get started.'
+                        : 'This folder is empty.'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
