@@ -193,13 +193,19 @@ async def preview_worker_job(
     """Generate the prompt for a job without creating it."""
     await _get_project(db, tenant_id, project_id)
 
-    if body.job_type != JobType.sync:
+    if body.job_type in (JobType.sync, JobType.custom):
+        # Project-level jobs — no entity required
+        pass
+    else:
         if body.entity_type is None or body.entity_id is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="entity_type and entity_id are required for non-sync jobs",
+                detail="entity_type and entity_id are required for enrich/apply jobs",
             )
         await _validate_entity(db, project_id, body.entity_type, body.entity_id, body.job_type)
+
+    if body.job_type == JobType.custom:
+        return WorkerJobPreviewResponse(prompt="")
 
     prompt = await generate_worker_prompt(
         db, project_id, body.entity_type, body.entity_id, job_type=body.job_type.value
@@ -220,9 +226,13 @@ async def create_worker_job(
     entity_title = None
     worker_branch = None
 
-    if body.job_type == JobType.sync:
-        # Sync jobs are project-level — no entity required
-        pass
+    if body.job_type in (JobType.sync, JobType.custom):
+        # Project-level jobs — no entity required
+        if body.job_type == JobType.custom and not body.prompt:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="prompt is required for custom jobs",
+            )
     else:
         if body.entity_type is None or body.entity_id is None:
             raise HTTPException(

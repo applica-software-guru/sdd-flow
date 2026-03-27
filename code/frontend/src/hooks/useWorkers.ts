@@ -69,7 +69,7 @@ export function useWorkerJob(
 export interface CreateWorkerJobPayload {
   entity_type?: 'change_request' | 'bug' | 'document';
   entity_id?: string;
-  job_type?: 'apply' | 'enrich' | 'sync';
+  job_type?: 'apply' | 'enrich' | 'sync' | 'custom';
   agent?: string;
   model?: string;
   prompt?: string;

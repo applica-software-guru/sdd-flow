@@ -205,7 +205,7 @@ export interface Worker {
 }
 
 export type JobStatus = 'queued' | 'assigned' | 'running' | 'completed' | 'failed' | 'cancelled';
-export type JobType = 'enrich' | 'sync';
+export type JobType = 'apply' | 'enrich' | 'sync' | 'custom';
 export type MessageKind = 'output' | 'question' | 'answer';
 
 export interface ChangedFile {

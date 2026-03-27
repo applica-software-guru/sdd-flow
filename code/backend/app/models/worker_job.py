@@ -22,6 +22,7 @@ class JobType(str, enum.Enum):
     apply = "apply"
     enrich = "enrich"
     sync = "sync"
+    custom = "custom"
 
 
 class WorkerJob(UUIDMixin, TimestampMixin, Base):

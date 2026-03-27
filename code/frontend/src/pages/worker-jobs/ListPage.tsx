@@ -23,6 +23,7 @@ export default function ListPage() {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const [showSyncDialog, setShowSyncDialog] = useState(false);
+  const [showCustomDialog, setShowCustomDialog] = useState(false);
 
   const { data: workers } = useWorkers(tenantId, projectId);
   const { data, isLoading } = useWorkerJobs(tenantId, projectId, {
@@ -43,15 +44,26 @@ export default function ListPage() {
           </p>
         </div>
         {onlineWorkers.length > 0 && (
-          <button
-            onClick={() => setShowSyncDialog(true)}
-            className="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-            Sync on Worker
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCustomDialog(true)}
+              className="inline-flex items-center gap-2 rounded-md bg-slate-600 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+              Custom Job
+            </button>
+            <button
+              onClick={() => setShowSyncDialog(true)}
+              className="inline-flex items-center gap-2 rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+              Sync on Worker
+            </button>
+          </div>
         )}
       </div>
 
@@ -128,6 +140,19 @@ export default function ListPage() {
         />
       )}
 
+      {showCustomDialog && (
+        <JobOptionsDialog
+          tenantId={tenantId!}
+          projectId={projectId!}
+          jobType="custom"
+          onSuccess={(jobId) => {
+            setShowCustomDialog(false);
+            navigate(`/tenants/${tenantId}/projects/${projectId}/workers/${jobId}`);
+          }}
+          onCancel={() => setShowCustomDialog(false)}
+        />
+      )}
+
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
@@ -167,9 +192,9 @@ export default function ListPage() {
                             {job.entity_type === 'change_request' ? 'CR' : job.entity_type === 'bug' ? 'Bug' : 'Doc'}
                           </span>
                         )}
-                        {job.job_type === 'sync' && !job.entity_title
-                          ? 'Project Sync'
-                          : job.entity_title || (job.entity_id ? job.entity_id.slice(0, 8) : 'Sync')}
+                        {job.job_type === 'sync' ? (job.entity_title || 'Project Sync')
+                          : job.job_type === 'custom' ? 'Custom Job'
+                          : job.entity_title || (job.entity_id ? job.entity_id.slice(0, 8) : job.job_type)}
                       </Link>
                     </td>
                     <td className="px-6 py-4">
