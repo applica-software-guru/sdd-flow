@@ -1,12 +1,11 @@
 import enum
-import uuid
+from typing import Optional
 from datetime import datetime
+from pymongo import IndexModel
+from pydantic import Field
+from uuid import UUID
 
-from sqlalchemy import ARRAY, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint, func
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.db.base import Base, UUIDMixin, TimestampMixin
+from app.models.base import BaseDocument
 
 
 class CRStatus(str, enum.Enum):
@@ -19,37 +18,22 @@ class CRStatus(str, enum.Enum):
     deleted = "deleted"
 
 
-class ChangeRequest(UUIDMixin, TimestampMixin, Base):
-    __tablename__ = "change_requests"
-    __table_args__ = (
-        UniqueConstraint("project_id", "number", name="uq_cr_project_number"),
-        UniqueConstraint("project_id", "slug", name="uq_cr_project_slug"),
-    )
+class ChangeRequest(BaseDocument):
+    project_id: UUID = Field(alias="projectId")
+    number: int
+    slug: str
+    path: Optional[str] = None
+    title: str
+    body: str
+    status: CRStatus = CRStatus.draft
+    author_id: UUID = Field(alias="authorId")
+    assignee_id: Optional[UUID] = Field(default=None, alias="assigneeId")
+    target_files: list[str] = Field(default_factory=list, alias="targetFiles")
+    closed_at: Optional[datetime] = Field(default=None, alias="closedAt")
 
-    project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
-    )
-    number: Mapped[int] = mapped_column(Integer, nullable=False)
-    slug: Mapped[str] = mapped_column(String(512), nullable=False)
-    path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
-    title: Mapped[str] = mapped_column(String(512), nullable=False)
-    body: Mapped[str] = mapped_column(Text, nullable=False)
-    status: Mapped[CRStatus] = mapped_column(
-        Enum(CRStatus, name="cr_status_enum"), default=CRStatus.draft, nullable=False
-    )
-    author_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
-    assignee_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
-    )
-    target_files: Mapped[list[str] | None] = mapped_column(
-        ARRAY(String), nullable=True
-    )
-    closed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-
-    project: Mapped["Project"] = relationship("Project", back_populates="change_requests")
-    author: Mapped["User"] = relationship("User", foreign_keys=[author_id])
-    assignee: Mapped["User | None"] = relationship("User", foreign_keys=[assignee_id])
+    class Settings:
+        name = "change_requests"
+        indexes = [
+            IndexModel([("projectId", 1), ("number", 1)], unique=True),
+            IndexModel([("projectId", 1), ("slug", 1)], unique=True),
+        ]

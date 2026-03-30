@@ -3,15 +3,13 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
 from app.middleware.auth import get_current_tenant_member, get_current_user, require_role
 from app.models.tenant import Tenant
 from app.models.tenant_invitation import TenantInvitation
 from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
+from app.repositories import TenantRepository, UserRepository
 from app.schemas.tenants import (
     InvitationCreate,
     InvitationListResponse,
@@ -46,50 +44,41 @@ def _compute_invitation_status(invitation: TenantInvitation) -> str:
 async def create_tenant(
     body: TenantCreate,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Tenant).where(Tenant.slug == body.slug))
-    if result.scalar_one_or_none() is not None:
+    tenant_repo = TenantRepository()
+    existing = await tenant_repo.find_by_slug(body.slug)
+    if existing is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Slug already taken")
 
     tenant = Tenant(name=body.name, slug=body.slug, default_role=body.default_role)
-    db.add(tenant)
-    await db.flush()
+    await tenant_repo.save(tenant)
 
     member = TenantMember(
         tenant_id=tenant.id,
         user_id=current_user.id,
         role=MemberRole.owner,
     )
-    db.add(member)
-    await db.flush()
+    await member.insert()
 
-    await log_event(db, tenant.id, current_user.id, "tenant.created", "tenant", tenant.id)
-    await db.refresh(tenant)
+    await log_event(tenant.id, current_user.id, "tenant.created", "tenant", tenant.id)
     return tenant
 
 
 @router.get("", response_model=list[TenantResponse])
 async def list_tenants(
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Tenant)
-        .join(TenantMember, TenantMember.tenant_id == Tenant.id)
-        .where(TenantMember.user_id == current_user.id)
-    )
-    return result.scalars().all()
+    tenant_repo = TenantRepository()
+    return await tenant_repo.find_by_user(current_user.id)
 
 
 @router.get("/{tenant_id}", response_model=TenantResponse)
 async def get_tenant(
     tenant_id: uuid.UUID,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
-    tenant = result.scalar_one_or_none()
+    tenant_repo = TenantRepository()
+    tenant = await tenant_repo.find_by_id(tenant_id)
     if tenant is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")
     return tenant
@@ -100,21 +89,24 @@ async def update_tenant(
     tenant_id: uuid.UUID,
     body: TenantUpdate,
     member: TenantMember = Depends(require_role(MemberRole.owner, MemberRole.admin)),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
-    tenant = result.scalar_one_or_none()
+    tenant_repo = TenantRepository()
+    tenant = await tenant_repo.find_by_id(tenant_id)
     if tenant is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")
 
+    updates = {}
     if body.name is not None:
-        tenant.name = body.name
+        updates[Tenant.name] = body.name
     if body.default_role is not None:
-        tenant.default_role = body.default_role
-    await db.flush()
+        updates[Tenant.default_role] = body.default_role
 
-    await log_event(db, tenant.id, member.user_id, "tenant.updated", "tenant", tenant.id)
-    await db.refresh(tenant)
+    if updates:
+        await tenant.set(updates)
+
+    await log_event(tenant.id, member.user_id, "tenant.updated", "tenant", tenant.id)
+    # Reload after update
+    tenant = await tenant_repo.find_by_id(tenant_id)
     return tenant
 
 
@@ -122,14 +114,9 @@ async def update_tenant(
 async def list_members(
     tenant_id: uuid.UUID,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(TenantMember, User)
-        .join(User, TenantMember.user_id == User.id)
-        .where(TenantMember.tenant_id == tenant_id)
-    )
-    rows = result.all()
+    tenant_repo = TenantRepository()
+    rows = await tenant_repo.find_members_with_users(tenant_id)
     return [
         MemberResponse(
             id=m.id,
@@ -148,21 +135,23 @@ async def invite_member(
     tenant_id: uuid.UUID,
     body: InvitationCreate,
     member: TenantMember = Depends(require_role(MemberRole.owner, MemberRole.admin)),
-    db: AsyncSession = Depends(get_db),
 ):
-    tenant_result = await db.execute(select(Tenant).where(Tenant.id == tenant_id))
-    tenant = tenant_result.scalar_one_or_none()
+    tenant_repo = TenantRepository()
+    tenant = await tenant_repo.find_by_id(tenant_id)
     if tenant is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")
 
     # Check if already a member
-    result = await db.execute(
-        select(TenantMember)
-        .join(User, TenantMember.user_id == User.id)
-        .where(TenantMember.tenant_id == tenant_id, User.email == body.email)
+    existing_member = await TenantMember.find_one(
+        {"tenantId": tenant_id}
     )
-    if result.scalar_one_or_none() is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User is already a member")
+    # More precise check: find member by user email
+    user_repo = UserRepository()
+    existing_user = await user_repo.find_by_email(body.email)
+    if existing_user is not None:
+        member_check = await tenant_repo.find_member(tenant_id, existing_user.id)
+        if member_check is not None:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User is already a member")
 
     invitation = TenantInvitation(
         tenant_id=tenant_id,
@@ -172,16 +161,14 @@ async def invite_member(
         token=secrets.token_urlsafe(32),
         expires_at=datetime.now(timezone.utc) + timedelta(days=7),
     )
-    db.add(invitation)
-    await db.flush()
+    await invitation.insert()
 
     await log_event(
-        db, tenant_id, member.user_id, "invitation.created", "invitation", invitation.id,
+        tenant_id, member.user_id, "invitation.created", "invitation", invitation.id,
         details={"email": body.email, "role": body.role.value},
     )
 
-    inviter_result = await db.execute(select(User).where(User.id == member.user_id))
-    inviter = inviter_result.scalar_one_or_none()
+    inviter = await user_repo.find_by_id(member.user_id)
     inviter_name = inviter.display_name if inviter is not None else "A team member"
 
     await send_tenant_invitation_email(
@@ -192,7 +179,6 @@ async def invite_member(
         token=invitation.token,
     )
 
-    await db.refresh(invitation)
     return invitation
 
 
@@ -200,14 +186,11 @@ async def invite_member(
 async def list_invitations(
     tenant_id: uuid.UUID,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(TenantInvitation)
-        .where(TenantInvitation.tenant_id == tenant_id)
-        .order_by(TenantInvitation.created_at.desc())
-    )
-    invitations = result.scalars().all()
+    tenant_repo = TenantRepository()
+    invitations = await tenant_repo.find_invitations(tenant_id)
+    # Sort by created_at desc
+    invitations = sorted(invitations, key=lambda i: i.created_at, reverse=True)
 
     return [
         InvitationListResponse(
@@ -228,12 +211,9 @@ async def list_invitations(
 async def verify_invitation(
     token: str,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(TenantInvitation).where(TenantInvitation.token == token)
-    )
-    invitation = result.scalar_one_or_none()
+    tenant_repo = TenantRepository()
+    invitation = await tenant_repo.find_invitation_by_token(token)
     if invitation is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation not found")
 
@@ -249,8 +229,7 @@ async def verify_invitation(
     if expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation expired")
 
-    tenant_result = await db.execute(select(Tenant).where(Tenant.id == invitation.tenant_id))
-    tenant = tenant_result.scalar_one_or_none()
+    tenant = await tenant_repo.find_by_id(invitation.tenant_id)
 
     return {
         "email": invitation.email,
@@ -264,12 +243,9 @@ async def verify_invitation(
 async def accept_invitation(
     token: str,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(TenantInvitation).where(TenantInvitation.token == token)
-    )
-    invitation = result.scalar_one_or_none()
+    tenant_repo = TenantRepository()
+    invitation = await tenant_repo.find_invitation_by_token(token)
     if invitation is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation not found")
 
@@ -279,17 +255,15 @@ async def accept_invitation(
     if invitation.accepted_at is not None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation already accepted")
 
-    if invitation.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
+    expires_at = invitation.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation expired")
 
     # Check not already member
-    result = await db.execute(
-        select(TenantMember).where(
-            TenantMember.tenant_id == invitation.tenant_id,
-            TenantMember.user_id == current_user.id,
-        )
-    )
-    if result.scalar_one_or_none() is not None:
+    existing = await tenant_repo.find_member(invitation.tenant_id, current_user.id)
+    if existing is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Already a member")
 
     member = TenantMember(
@@ -298,12 +272,12 @@ async def accept_invitation(
         role=invitation.role,
         invited_by=invitation.invited_by,
     )
-    db.add(member)
-    invitation.accepted_at = datetime.now(timezone.utc)
-    await db.flush()
+    await member.insert()
+
+    await invitation.set({TenantInvitation.accepted_at: datetime.now(timezone.utc)})
 
     await log_event(
-        db, invitation.tenant_id, current_user.id, "member.joined", "tenant_member", member.id,
+        invitation.tenant_id, current_user.id, "member.joined", "tenant_member", member.id,
     )
     return MemberResponse(
         id=member.id,
@@ -320,25 +294,18 @@ async def remove_member(
     tenant_id: uuid.UUID,
     user_id: uuid.UUID,
     member: TenantMember = Depends(require_role(MemberRole.owner, MemberRole.admin)),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(TenantMember).where(
-            TenantMember.tenant_id == tenant_id,
-            TenantMember.user_id == user_id,
-        )
-    )
-    target = result.scalar_one_or_none()
+    tenant_repo = TenantRepository()
+    target = await tenant_repo.find_member(tenant_id, user_id)
     if target is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
 
     if target.role == MemberRole.owner and member.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Cannot remove owner")
 
-    await db.delete(target)
-    await db.flush()
+    await tenant_repo.delete(target)
 
     await log_event(
-        db, tenant_id, member.user_id, "member.removed", "tenant_member", target.id,
+        tenant_id, member.user_id, "member.removed", "tenant_member", target.id,
         details={"removed_user_id": str(user_id)},
     )

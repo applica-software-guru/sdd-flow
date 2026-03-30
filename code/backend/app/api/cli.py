@@ -1,16 +1,17 @@
 import uuid
 from datetime import datetime, timezone
 
+from app.utils.bson import uuid_to_bin
+from bson.binary import Binary, UuidRepresentation
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
 from app.middleware.auth import ApiKeyContext, get_api_key_context, get_api_key_project
 from app.models.bug import Bug, BugSeverity, BugStatus
 from app.models.change_request import CRStatus, ChangeRequest
 from app.models.document_file import DocStatus, DocumentFile
 from app.models.project import Project
+from app.models.base import utcnow
+from app.repositories import BugRepository, ChangeRequestRepository, DocumentFileRepository
 from app.schemas.bugs import BugBulkRequest, BugBulkResponse, BugDeleteRequest, BugDeleteResponse, BugEnrichRequest, BugResponse
 from app.schemas.change_requests import CRBulkRequest, CRBulkResponse, CRDeleteRequest, CRDeleteResponse, CREnrichRequest, CRResponse
 from app.schemas.docs import DocBulkRequest, DocBulkResponse, DocDeleteRequest, DocDeleteResponse, DocEnrichRequest, DocResponse
@@ -21,54 +22,48 @@ from app.services.slug import assign_number_and_slug
 router = APIRouter(prefix="/cli", tags=["cli"])
 
 
+
+
 @router.get("/pending-crs", response_model=list[CRResponse])
 async def pending_crs(
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(ChangeRequest).where(
-            ChangeRequest.project_id == project.id,
-            ChangeRequest.status.in_([CRStatus.draft, CRStatus.pending, CRStatus.approved]),
-        ).order_by(ChangeRequest.created_at.desc())
-    )
-    return result.scalars().all()
+    crs = await ChangeRequest.find(
+        {
+            "projectId": project.id,
+            "status": {"$in": [CRStatus.draft.value, CRStatus.pending.value, CRStatus.approved.value]},
+        }
+    ).sort([("createdAt", -1)]).to_list()
+    return crs
 
 
 @router.get("/open-bugs", response_model=list[BugResponse])
 async def open_bugs(
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Bug).where(
-            Bug.project_id == project.id,
-            Bug.status.in_([BugStatus.draft, BugStatus.open, BugStatus.in_progress]),
-        ).order_by(Bug.created_at.desc())
-    )
-    return result.scalars().all()
+    bugs = await Bug.find(
+        {
+            "projectId": project.id,
+            "status": {"$in": [BugStatus.draft.value, BugStatus.open.value, BugStatus.in_progress.value]},
+        }
+    ).sort([("createdAt", -1)]).to_list()
+    return bugs
 
 
 @router.post("/crs/{cr_id}/applied", response_model=CRResponse)
 async def mark_cr_applied(
     cr_id: uuid.UUID,
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(ChangeRequest).where(
-            ChangeRequest.id == cr_id,
-            ChangeRequest.project_id == project.id,
-        )
-    )
-    cr = result.scalar_one_or_none()
-    if cr is None:
+    cr = await ChangeRequest.get(cr_id)
+    if cr is None or cr.project_id != project.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Change request not found")
 
-    cr.status = CRStatus.applied
-    cr.closed_at = datetime.now(timezone.utc)
-    await db.flush()
-    await db.refresh(cr)
+    await cr.set({
+        ChangeRequest.status: CRStatus.applied,
+        ChangeRequest.closed_at: utcnow(),
+    })
+    cr = await ChangeRequest.get(cr_id)
     return cr
 
 
@@ -76,19 +71,16 @@ async def mark_cr_applied(
 async def mark_bug_resolved(
     bug_id: uuid.UUID,
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Bug).where(Bug.id == bug_id, Bug.project_id == project.id)
-    )
-    bug = result.scalar_one_or_none()
-    if bug is None:
+    bug = await Bug.get(bug_id)
+    if bug is None or bug.project_id != project.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
 
-    bug.status = BugStatus.resolved
-    bug.closed_at = datetime.now(timezone.utc)
-    await db.flush()
-    await db.refresh(bug)
+    await bug.set({
+        Bug.status: BugStatus.resolved,
+        Bug.closed_at: utcnow(),
+    })
+    bug = await Bug.get(bug_id)
     return bug
 
 
@@ -96,27 +88,28 @@ async def mark_bug_resolved(
 async def push_docs(
     body: DocBulkRequest,
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
+    doc_repo = DocumentFileRepository()
     created = 0
     updated = 0
     docs = []
 
+    # Batch fetch existing docs by path
+    paths = [item.path for item in body.documents]
+    existing_map = await doc_repo.find_by_paths(project.id, paths)
+
     for item in body.documents:
-        result = await db.execute(
-            select(DocumentFile).where(
-                DocumentFile.project_id == project.id,
-                DocumentFile.path == item.path,
-            )
-        )
-        existing = result.scalar_one_or_none()
+        existing = existing_map.get(item.path)
 
         if existing is not None:
-            existing.title = item.title
-            existing.content = item.content
-            existing.version += 1
-            existing.status = item.status or DocStatus.synced
-            docs.append(existing)
+            await existing.set({
+                DocumentFile.title: item.title,
+                DocumentFile.content: item.content,
+                DocumentFile.version: existing.version + 1,
+                DocumentFile.status: item.status or DocStatus.synced,
+            })
+            refreshed = await doc_repo.find_by_id(existing.id)
+            docs.append(refreshed)
             updated += 1
         else:
             doc = DocumentFile(
@@ -127,13 +120,10 @@ async def push_docs(
                 status=item.status or DocStatus.synced,
                 version=1,
             )
-            db.add(doc)
+            await doc.insert()
             docs.append(doc)
             created += 1
 
-    await db.flush()
-    for doc in docs:
-        await db.refresh(doc)
     return DocBulkResponse(
         created=created,
         updated=updated,
@@ -144,15 +134,14 @@ async def push_docs(
 @router.get("/pull-docs", response_model=list[DocResponse])
 async def pull_docs(
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(DocumentFile).where(
-            DocumentFile.project_id == project.id,
-            DocumentFile.status != DocStatus.deleted,
-        ).order_by(DocumentFile.path)
-    )
-    return result.scalars().all()
+    docs = await DocumentFile.find(
+        {
+            "projectId": project.id,
+            "status": {"$ne": DocStatus.deleted.value},
+        }
+    ).sort([("path", 1)]).to_list()
+    return docs
 
 
 @router.post("/docs/{doc_id}/enriched", response_model=DocResponse)
@@ -160,23 +149,17 @@ async def mark_doc_enriched(
     doc_id: uuid.UUID,
     body: DocEnrichRequest,
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(DocumentFile).where(
-            DocumentFile.id == doc_id,
-            DocumentFile.project_id == project.id,
-        )
-    )
-    doc = result.scalar_one_or_none()
-    if doc is None:
+    doc = await DocumentFile.get(doc_id)
+    if doc is None or doc.project_id != project.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
-    doc.content = body.content
-    doc.status = DocStatus.new
-    doc.version += 1
-    await db.flush()
-    await db.refresh(doc)
+    await doc.set({
+        DocumentFile.content: body.content,
+        DocumentFile.status: DocStatus.new,
+        DocumentFile.version: doc.version + 1,
+    })
+    doc = await DocumentFile.get(doc_id)
     return doc
 
 
@@ -185,22 +168,16 @@ async def mark_cr_enriched(
     cr_id: uuid.UUID,
     body: CREnrichRequest,
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(ChangeRequest).where(
-            ChangeRequest.id == cr_id,
-            ChangeRequest.project_id == project.id,
-        )
-    )
-    cr = result.scalar_one_or_none()
-    if cr is None:
+    cr = await ChangeRequest.get(cr_id)
+    if cr is None or cr.project_id != project.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Change request not found")
 
-    cr.body = body.body
-    cr.status = CRStatus.pending
-    await db.flush()
-    await db.refresh(cr)
+    await cr.set({
+        ChangeRequest.body: body.body,
+        ChangeRequest.status: CRStatus.pending,
+    })
+    cr = await ChangeRequest.get(cr_id)
     return cr
 
 
@@ -209,19 +186,16 @@ async def mark_bug_enriched(
     bug_id: uuid.UUID,
     body: BugEnrichRequest,
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Bug).where(Bug.id == bug_id, Bug.project_id == project.id)
-    )
-    bug = result.scalar_one_or_none()
-    if bug is None:
+    bug = await Bug.get(bug_id)
+    if bug is None or bug.project_id != project.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
 
-    bug.body = body.body
-    bug.status = BugStatus.open
-    await db.flush()
-    await db.refresh(bug)
+    await bug.set({
+        Bug.body: body.body,
+        Bug.status: BugStatus.open,
+    })
+    bug = await Bug.get(bug_id)
     return bug
 
 
@@ -229,51 +203,57 @@ async def mark_bug_enriched(
 async def push_crs(
     body: CRBulkRequest,
     ctx: ApiKeyContext = Depends(get_api_key_context),
-    db: AsyncSession = Depends(get_db),
 ):
+    cr_repo = ChangeRequestRepository()
     created = 0
     updated = 0
     crs = []
 
+    # Batch fetch existing CRs by id
+    ids_to_fetch = [item.id for item in body.change_requests if item.id is not None]
+    existing_by_id: dict = {}
+    if ids_to_fetch:
+        id_bins = [uuid_to_bin(i) for i in ids_to_fetch]
+        fetched = await ChangeRequest.find(
+            {"_id": {"$in": id_bins}, "projectId": ctx.project.id}
+        ).to_list()
+        existing_by_id = {cr.id: cr for cr in fetched}
+
     for item in body.change_requests:
-        existing = None
-        if item.id is not None:
-            result = await db.execute(
-                select(ChangeRequest).where(
-                    ChangeRequest.id == item.id,
-                    ChangeRequest.project_id == ctx.project.id,
-                )
-            )
-            existing = result.scalar_one_or_none()
+        existing = existing_by_id.get(item.id) if item.id else None
 
         if existing is not None:
-            existing.path = item.path
-            existing.title = item.title
-            existing.body = item.body
-            existing.status = item.status or existing.status
-            crs.append(existing)
+            updates: dict = {}
+            if item.path is not None:
+                updates[ChangeRequest.path] = item.path
+            if item.title is not None:
+                updates[ChangeRequest.title] = item.title
+            if item.body is not None:
+                updates[ChangeRequest.body] = item.body
+            if item.status is not None:
+                updates[ChangeRequest.status] = item.status
+            if updates:
+                await existing.set(updates)
+            refreshed = await cr_repo.find_by_id(existing.id)
+            crs.append(refreshed)
             updated += 1
         else:
-            number, slug = await assign_number_and_slug(
-                db, ChangeRequest, ctx.project.id, item.title, item.path
-            )
             cr = ChangeRequest(
                 project_id=ctx.project.id,
-                number=number,
-                slug=slug,
+                number=0,
+                slug="",
                 path=item.path,
                 title=item.title,
                 body=item.body,
                 status=item.status or CRStatus.pending,
                 author_id=ctx.user_id,
             )
-            db.add(cr)
+            await assign_number_and_slug(
+                cr, ctx.project.id, item.title, item.path, repo=cr_repo
+            )
             crs.append(cr)
             created += 1
 
-    await db.flush()
-    for cr in crs:
-        await db.refresh(cr)
     return CRBulkResponse(
         created=created,
         updated=updated,
@@ -285,39 +265,47 @@ async def push_crs(
 async def push_bugs(
     body: BugBulkRequest,
     ctx: ApiKeyContext = Depends(get_api_key_context),
-    db: AsyncSession = Depends(get_db),
 ):
+    bug_repo = BugRepository()
     created = 0
     updated = 0
     bugs = []
 
+    # Batch fetch existing bugs by id
+    ids_to_fetch = [item.id for item in body.bugs if item.id is not None]
+    existing_by_id: dict = {}
+    if ids_to_fetch:
+        id_bins = [uuid_to_bin(i) for i in ids_to_fetch]
+        fetched = await Bug.find(
+            {"_id": {"$in": id_bins}, "projectId": ctx.project.id}
+        ).to_list()
+        existing_by_id = {b.id: b for b in fetched}
+
     for item in body.bugs:
-        existing = None
-        if item.id is not None:
-            result = await db.execute(
-                select(Bug).where(
-                    Bug.id == item.id,
-                    Bug.project_id == ctx.project.id,
-                )
-            )
-            existing = result.scalar_one_or_none()
+        existing = existing_by_id.get(item.id) if item.id else None
 
         if existing is not None:
-            existing.path = item.path
-            existing.title = item.title
-            existing.body = item.body
-            existing.severity = item.severity
-            existing.status = item.status or existing.status
-            bugs.append(existing)
+            updates: dict = {}
+            if item.path is not None:
+                updates[Bug.path] = item.path
+            if item.title is not None:
+                updates[Bug.title] = item.title
+            if item.body is not None:
+                updates[Bug.body] = item.body
+            if item.severity is not None:
+                updates[Bug.severity] = item.severity
+            if item.status is not None:
+                updates[Bug.status] = item.status
+            if updates:
+                await existing.set(updates)
+            refreshed = await bug_repo.find_by_id(existing.id)
+            bugs.append(refreshed)
             updated += 1
         else:
-            number, slug = await assign_number_and_slug(
-                db, Bug, ctx.project.id, item.title, item.path
-            )
             bug = Bug(
                 project_id=ctx.project.id,
-                number=number,
-                slug=slug,
+                number=0,
+                slug="",
                 path=item.path,
                 title=item.title,
                 body=item.body,
@@ -325,13 +313,12 @@ async def push_bugs(
                 severity=item.severity,
                 author_id=ctx.user_id,
             )
-            db.add(bug)
+            await assign_number_and_slug(
+                bug, ctx.project.id, item.title, item.path, repo=bug_repo
+            )
             bugs.append(bug)
             created += 1
 
-    await db.flush()
-    for bug in bugs:
-        await db.refresh(bug)
     return BugBulkResponse(
         created=created,
         updated=updated,
@@ -343,26 +330,21 @@ async def push_bugs(
 async def delete_docs(
     body: DocDeleteRequest,
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
+    doc_repo = DocumentFileRepository()
     deleted = 0
     deleted_paths = []
 
+    # Batch fetch existing docs by path
+    existing_map = await doc_repo.find_by_paths(project.id, body.paths)
+
     for path in body.paths:
-        result = await db.execute(
-            select(DocumentFile).where(
-                DocumentFile.project_id == project.id,
-                DocumentFile.path == path,
-                DocumentFile.status != DocStatus.deleted,
-            )
-        )
-        doc = result.scalar_one_or_none()
-        if doc is not None:
-            doc.status = DocStatus.deleted
+        doc = existing_map.get(path)
+        if doc is not None and doc.status != DocStatus.deleted:
+            await doc.set({DocumentFile.status: DocStatus.deleted})
             deleted += 1
             deleted_paths.append(path)
 
-    await db.flush()
     return DocDeleteResponse(deleted=deleted, paths=deleted_paths)
 
 
@@ -370,27 +352,26 @@ async def delete_docs(
 async def delete_crs(
     body: CRDeleteRequest,
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
     deleted = 0
     deleted_paths = []
 
     for path in body.paths:
-        result = await db.execute(
-            select(ChangeRequest).where(
-                ChangeRequest.project_id == project.id,
-                ChangeRequest.path == path,
-                ChangeRequest.status != CRStatus.deleted,
-            )
+        cr = await ChangeRequest.find_one(
+            {
+                "projectId": project.id,
+                "path": path,
+                "status": {"$ne": CRStatus.deleted.value},
+            }
         )
-        cr = result.scalar_one_or_none()
         if cr is not None:
-            cr.status = CRStatus.deleted
-            cr.closed_at = datetime.now(timezone.utc)
+            await cr.set({
+                ChangeRequest.status: CRStatus.deleted,
+                ChangeRequest.closed_at: utcnow(),
+            })
             deleted += 1
             deleted_paths.append(path)
 
-    await db.flush()
     return CRDeleteResponse(deleted=deleted, paths=deleted_paths)
 
 
@@ -398,27 +379,26 @@ async def delete_crs(
 async def delete_bugs(
     body: BugDeleteRequest,
     project: Project = Depends(get_api_key_project),
-    db: AsyncSession = Depends(get_db),
 ):
     deleted = 0
     deleted_paths = []
 
     for path in body.paths:
-        result = await db.execute(
-            select(Bug).where(
-                Bug.project_id == project.id,
-                Bug.path == path,
-                Bug.status != BugStatus.deleted,
-            )
+        bug = await Bug.find_one(
+            {
+                "projectId": project.id,
+                "path": path,
+                "status": {"$ne": BugStatus.deleted.value},
+            }
         )
-        bug = result.scalar_one_or_none()
         if bug is not None:
-            bug.status = BugStatus.deleted
-            bug.closed_at = datetime.now(timezone.utc)
+            await bug.set({
+                Bug.status: BugStatus.deleted,
+                Bug.closed_at: utcnow(),
+            })
             deleted += 1
             deleted_paths.append(path)
 
-    await db.flush()
     return BugDeleteResponse(deleted=deleted, paths=deleted_paths)
 
 
@@ -426,7 +406,6 @@ async def delete_bugs(
 async def cli_reset_project(
     body: ProjectResetRequest,
     ctx: ApiKeyContext = Depends(get_api_key_context),
-    db: AsyncSession = Depends(get_db),
 ):
     if body.confirm_slug != ctx.project.slug:
         raise HTTPException(
@@ -434,7 +413,7 @@ async def cli_reset_project(
             detail=f"Slug mismatch: expected '{ctx.project.slug}'",
         )
 
-    counts = await reset_project_data(db, ctx.project, ctx.project.tenant_id, ctx.user_id)
+    counts = await reset_project_data(ctx.project, ctx.project.tenant_id, ctx.user_id)
     return ProjectResetResponse(
         message=f"Project '{ctx.project.name}' has been reset",
         **counts,

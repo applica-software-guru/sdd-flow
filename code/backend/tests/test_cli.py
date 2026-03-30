@@ -7,6 +7,8 @@ import pytest
 from httpx import AsyncClient
 
 from app.models.api_key import ApiKey
+from app.models.project import Project
+from app.models.user import User
 
 
 # ---------------------------------------------------------------------------
@@ -18,7 +20,7 @@ def _unique_key(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex}"
 
 
-async def _make_api_key(db_session, test_project, test_user, raw_key: str) -> ApiKey:
+async def _make_api_key(test_project: Project, test_user: User, raw_key: str) -> ApiKey:
     api_key = ApiKey(
         project_id=test_project.id,
         name="CLI Test Key",
@@ -26,8 +28,7 @@ async def _make_api_key(db_session, test_project, test_user, raw_key: str) -> Ap
         key_hash=hashlib.sha256(raw_key.encode()).hexdigest(),
         created_by=test_user.id,
     )
-    db_session.add(api_key)
-    await db_session.commit()
+    await api_key.insert()
     return api_key
 
 
@@ -38,12 +39,11 @@ async def _make_api_key(db_session, test_project, test_user, raw_key: str) -> Ap
 @pytest.mark.asyncio
 async def test_push_docs_returns_fully_serialized_documents(
     client: AsyncClient,
-    db_session,
-    test_project,
-    test_user,
+    test_project: Project,
+    test_user: User,
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     response = await client.post(
         "/api/v1/cli/push-docs",
@@ -81,10 +81,10 @@ async def test_push_docs_returns_fully_serialized_documents(
 
 @pytest.mark.asyncio
 async def test_push_crs_creates_with_number_and_slug(
-    client: AsyncClient, db_session, test_project, test_user
+    client: AsyncClient, test_project: Project, test_user: User
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     resp = await client.post(
         "/api/v1/cli/push-crs",
@@ -107,10 +107,10 @@ async def test_push_crs_creates_with_number_and_slug(
 
 @pytest.mark.asyncio
 async def test_push_crs_restores_number_from_numeric_path(
-    client: AsyncClient, db_session, test_project, test_user
+    client: AsyncClient, test_project: Project, test_user: User
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     resp = await client.post(
         "/api/v1/cli/push-crs",
@@ -134,10 +134,10 @@ async def test_push_crs_restores_number_from_numeric_path(
 
 @pytest.mark.asyncio
 async def test_push_crs_derives_slug_from_path_remainder(
-    client: AsyncClient, db_session, test_project, test_user
+    client: AsyncClient, test_project: Project, test_user: User
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     resp = await client.post(
         "/api/v1/cli/push-crs",
@@ -160,10 +160,10 @@ async def test_push_crs_derives_slug_from_path_remainder(
 
 @pytest.mark.asyncio
 async def test_push_crs_update_does_not_change_slug_or_number(
-    client: AsyncClient, db_session, test_project, test_user
+    client: AsyncClient, test_project: Project, test_user: User
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     # Create
     create_resp = await client.post(
@@ -209,10 +209,10 @@ async def test_push_crs_update_does_not_change_slug_or_number(
 
 @pytest.mark.asyncio
 async def test_push_bugs_creates_with_number_and_slug(
-    client: AsyncClient, db_session, test_project, test_user
+    client: AsyncClient, test_project: Project, test_user: User
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     resp = await client.post(
         "/api/v1/cli/push-bugs",
@@ -233,10 +233,10 @@ async def test_push_bugs_creates_with_number_and_slug(
 
 @pytest.mark.asyncio
 async def test_push_bugs_restores_number_from_numeric_path(
-    client: AsyncClient, db_session, test_project, test_user
+    client: AsyncClient, test_project: Project, test_user: User
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     resp = await client.post(
         "/api/v1/cli/push-bugs",
@@ -265,10 +265,10 @@ async def test_push_bugs_restores_number_from_numeric_path(
 
 @pytest.mark.asyncio
 async def test_pending_crs_include_number_and_slug(
-    client: AsyncClient, db_session, test_project, test_user
+    client: AsyncClient, test_project: Project, test_user: User
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     await client.post(
         "/api/v1/cli/push-crs",
@@ -295,10 +295,10 @@ async def test_pending_crs_include_number_and_slug(
 
 @pytest.mark.asyncio
 async def test_open_bugs_include_number_and_slug(
-    client: AsyncClient, db_session, test_project, test_user
+    client: AsyncClient, test_project: Project, test_user: User
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     await client.post(
         "/api/v1/cli/push-bugs",
@@ -329,10 +329,10 @@ async def test_open_bugs_include_number_and_slug(
 
 @pytest.mark.asyncio
 async def test_mark_cr_applied_includes_number_and_slug(
-    client: AsyncClient, db_session, test_project, test_user
+    client: AsyncClient, test_project: Project, test_user: User
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     push_resp = await client.post(
         "/api/v1/cli/push-crs",
@@ -359,10 +359,10 @@ async def test_mark_cr_applied_includes_number_and_slug(
 
 @pytest.mark.asyncio
 async def test_mark_bug_resolved_includes_number_and_slug(
-    client: AsyncClient, db_session, test_project, test_user
+    client: AsyncClient, test_project: Project, test_user: User
 ):
     raw_key = _unique_key("key")
-    await _make_api_key(db_session, test_project, test_user, raw_key)
+    await _make_api_key(test_project, test_user, raw_key)
 
     push_resp = await client.post(
         "/api/v1/cli/push-bugs",

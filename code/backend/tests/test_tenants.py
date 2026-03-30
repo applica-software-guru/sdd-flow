@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.main import app
 from app.middleware.auth import get_current_tenant_member, get_current_user
@@ -171,7 +170,6 @@ async def test_invite_member_requires_owner_or_admin(
 @pytest.mark.asyncio
 async def test_accept_invitation_success(
     client: AsyncClient,
-    db_session: AsyncSession,
     test_tenant: Tenant,
     unique_id: str,
 ):
@@ -181,35 +179,38 @@ async def test_accept_invitation_success(
         password_hash="fakehash",
         email_verified=True,
     )
-    db_session.add(invitee)
-    await db_session.commit()
+    await invitee.insert()
 
-    invite_resp = await client.post(
-        f"/api/v1/tenants/{test_tenant.id}/invitations",
-        json={"email": invitee.email, "role": "member"},
-    )
-    assert invite_resp.status_code == 201
-    token = invite_resp.json()["token"]
-
-    async def override_get_current_user():
-        return invitee
-
-    app.dependency_overrides[get_current_user] = override_get_current_user
     try:
-        accept_resp = await client.post(f"/api/v1/tenants/invitations/{token}/accept")
-    finally:
-        app.dependency_overrides.pop(get_current_user, None)
+        invite_resp = await client.post(
+            f"/api/v1/tenants/{test_tenant.id}/invitations",
+            json={"email": invitee.email, "role": "member"},
+        )
+        assert invite_resp.status_code == 201
+        token = invite_resp.json()["token"]
 
-    assert accept_resp.status_code == 200
-    data = accept_resp.json()
-    assert data["email"] == invitee.email
-    assert data["role"] == "member"
+        async def override_get_current_user():
+            return invitee
+
+        app.dependency_overrides[get_current_user] = override_get_current_user
+        try:
+            accept_resp = await client.post(f"/api/v1/tenants/invitations/{token}/accept")
+        finally:
+            app.dependency_overrides.pop(get_current_user, None)
+
+        assert accept_resp.status_code == 200
+        data = accept_resp.json()
+        assert data["email"] == invitee.email
+        assert data["role"] == "member"
+    finally:
+        await TenantMember.find({"tenantId": str(test_tenant.id), "userId": str(invitee.id)}).delete()
+        await TenantInvitation.find({"tenantId": str(test_tenant.id), "email": invitee.email}).delete()
+        await invitee.delete()
 
 
 @pytest.mark.asyncio
 async def test_accept_invitation_expired(
     client: AsyncClient,
-    db_session: AsyncSession,
     test_tenant: Tenant,
     test_user: User,
 ):
@@ -221,18 +222,19 @@ async def test_accept_invitation_expired(
         token=f"expired-{uuid.uuid4().hex}",
         expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
     )
-    db_session.add(expired_invitation)
-    await db_session.commit()
+    await expired_invitation.insert()
 
-    resp = await client.post(f"/api/v1/tenants/invitations/{expired_invitation.token}/accept")
-    assert resp.status_code == 400
-    assert resp.json()["detail"] == "Invitation expired"
+    try:
+        resp = await client.post(f"/api/v1/tenants/invitations/{expired_invitation.token}/accept")
+        assert resp.status_code == 400
+        assert resp.json()["detail"] == "Invitation expired"
+    finally:
+        await expired_invitation.delete()
 
 
 @pytest.mark.asyncio
 async def test_accept_invitation_wrong_email(
     client: AsyncClient,
-    db_session: AsyncSession,
     test_tenant: Tenant,
     test_user: User,
     unique_id: str,
@@ -243,8 +245,7 @@ async def test_accept_invitation_wrong_email(
         password_hash="fakehash",
         email_verified=True,
     )
-    db_session.add(different_user)
-    await db_session.commit()
+    await different_user.insert()
 
     invitation = TenantInvitation(
         tenant_id=test_tenant.id,
@@ -254,12 +255,15 @@ async def test_accept_invitation_wrong_email(
         token=f"wrong-email-{uuid.uuid4().hex}",
         expires_at=datetime.now(timezone.utc) + timedelta(days=1),
     )
-    db_session.add(invitation)
-    await db_session.commit()
+    await invitation.insert()
 
-    resp = await client.post(f"/api/v1/tenants/invitations/{invitation.token}/accept")
-    assert resp.status_code == 403
-    assert resp.json()["detail"] == "Invitation is for a different email"
+    try:
+        resp = await client.post(f"/api/v1/tenants/invitations/{invitation.token}/accept")
+        assert resp.status_code == 403
+        assert resp.json()["detail"] == "Invitation is for a different email"
+    finally:
+        await invitation.delete()
+        await different_user.delete()
 
 
 @pytest.mark.asyncio
@@ -314,7 +318,6 @@ async def test_list_invitations_shows_pending_status(
 @pytest.mark.asyncio
 async def test_list_invitations_shows_accepted_and_expired_status(
     client: AsyncClient,
-    db_session: AsyncSession,
     test_tenant: Tenant,
     test_user: User,
 ):
@@ -335,18 +338,21 @@ async def test_list_invitations_shows_accepted_and_expired_status(
         token=f"expired-{uuid.uuid4().hex}",
         expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
     )
-    db_session.add(accepted_invitation)
-    db_session.add(expired_invitation)
-    await db_session.commit()
+    await accepted_invitation.insert()
+    await expired_invitation.insert()
 
-    list_resp = await client.get(f"/api/v1/tenants/{test_tenant.id}/invitations")
-    assert list_resp.status_code == 200
-    data = list_resp.json()
+    try:
+        list_resp = await client.get(f"/api/v1/tenants/{test_tenant.id}/invitations")
+        assert list_resp.status_code == 200
+        data = list_resp.json()
 
-    accepted = next((item for item in data if item["id"] == str(accepted_invitation.id)), None)
-    expired = next((item for item in data if item["id"] == str(expired_invitation.id)), None)
+        accepted = next((item for item in data if item["id"] == str(accepted_invitation.id)), None)
+        expired = next((item for item in data if item["id"] == str(expired_invitation.id)), None)
 
-    assert accepted is not None
-    assert accepted["status"] == "accepted"
-    assert expired is not None
-    assert expired["status"] == "expired"
+        assert accepted is not None
+        assert accepted["status"] == "accepted"
+        assert expired is not None
+        assert expired["status"] == "expired"
+    finally:
+        await accepted_invitation.delete()
+        await expired_invitation.delete()

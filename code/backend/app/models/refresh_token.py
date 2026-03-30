@@ -1,25 +1,19 @@
-import uuid
 from datetime import datetime
+from pymongo import IndexModel
+from pydantic import Field
+from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, String, func
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.db.base import Base, UUIDMixin
+from app.models.base import BaseDocument
 
 
-class RefreshToken(UUIDMixin, Base):
-    __tablename__ = "refresh_tokens"
+class RefreshToken(BaseDocument):
+    user_id: UUID = Field(alias="userId")
+    token_hash: str = Field(alias="tokenHash")
+    expires_at: datetime = Field(alias="expiresAt")
 
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
-    token_hash: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-    expires_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-
-    user: Mapped["User"] = relationship("User", back_populates="refresh_tokens")
+    class Settings:
+        name = "refresh_tokens"
+        indexes = [
+            IndexModel("tokenHash", unique=True),
+            IndexModel("expiresAt", expireAfterSeconds=0),
+        ]

@@ -5,12 +5,12 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from jose import jwt
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
+from app.models.base import utcnow
+from app.repositories import UserRepository, AuthRepository
 
 
 def hash_password(password: str) -> str:
@@ -22,24 +22,30 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 
 async def create_user(
-    db: AsyncSession, email: str, password: str, display_name: str
+    email: str,
+    password: str,
+    display_name: str,
+    user_repo: UserRepository = None,
 ) -> User:
+    if user_repo is None:
+        user_repo = UserRepository()
     user = User(
         email=email,
         password_hash=hash_password(password),
         display_name=display_name,
         email_verified=False,
     )
-    db.add(user)
-    await db.flush()
-    return user
+    return await user_repo.save(user)
 
 
 async def authenticate_user(
-    db: AsyncSession, email: str, password: str
+    email: str,
+    password: str,
+    user_repo: UserRepository = None,
 ) -> User | None:
-    result = await db.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
+    if user_repo is None:
+        user_repo = UserRepository()
+    user = await user_repo.find_by_email(email)
     if user is None or user.password_hash is None:
         return None
     if not verify_password(password, user.password_hash):
@@ -60,8 +66,11 @@ def _create_token(user_id: uuid.UUID, token_type: str, expires_delta: timedelta)
 
 
 async def create_tokens(
-    db: AsyncSession, user_id: uuid.UUID
+    user_id: uuid.UUID,
+    auth_repo: AuthRepository = None,
 ) -> tuple[str, str]:
+    if auth_repo is None:
+        auth_repo = AuthRepository()
     access_token = _create_token(
         user_id, "access", timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
     )
@@ -72,27 +81,27 @@ async def create_tokens(
     rt = RefreshToken(
         user_id=user_id,
         token_hash=token_hash,
-        expires_at=datetime.now(timezone.utc)
-        + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
+        expires_at=utcnow() + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS),
     )
-    db.add(rt)
-    await db.flush()
+    await auth_repo.create_refresh_token(rt)
     return access_token, refresh_token_str
 
 
 async def refresh_access_token(
-    db: AsyncSession, refresh_token: str
+    refresh_token: str,
+    auth_repo: AuthRepository = None,
 ) -> str | None:
+    if auth_repo is None:
+        auth_repo = AuthRepository()
     token_hash = hashlib.sha256(refresh_token.encode()).hexdigest()
-    result = await db.execute(
-        select(RefreshToken).where(RefreshToken.token_hash == token_hash)
-    )
-    rt = result.scalar_one_or_none()
+    rt = await auth_repo.find_refresh_token(token_hash)
     if rt is None:
         return None
-    if rt.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
-        await db.delete(rt)
-        await db.flush()
+    expires_at = rt.expires_at
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        await auth_repo.delete_refresh_token(token_hash)
         return None
     access_token = _create_token(
         rt.user_id, "access", timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -101,28 +110,28 @@ async def refresh_access_token(
 
 
 async def get_or_create_google_user(
-    db: AsyncSession, google_user_info: dict
+    google_user_info: dict,
+    user_repo: UserRepository = None,
 ) -> User:
+    if user_repo is None:
+        user_repo = UserRepository()
     google_id = google_user_info["id"]
     email = google_user_info["email"]
     display_name = google_user_info.get("name", email)
     avatar_url = google_user_info.get("picture")
 
-    result = await db.execute(select(User).where(User.google_id == google_id))
-    user = result.scalar_one_or_none()
+    user = await user_repo.find_by_google_id(google_id)
     if user is not None:
         return user
 
     # Check if user exists by email
-    result = await db.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
+    user = await user_repo.find_by_email(email)
     if user is not None:
         user.google_id = google_id
         if avatar_url:
             user.avatar_url = avatar_url
         user.email_verified = True
-        await db.flush()
-        return user
+        return await user_repo.save(user)
 
     user = User(
         email=email,
@@ -131,6 +140,4 @@ async def get_or_create_google_user(
         avatar_url=avatar_url,
         email_verified=True,
     )
-    db.add(user)
-    await db.flush()
-    return user
+    return await user_repo.save(user)

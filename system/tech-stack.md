@@ -2,8 +2,8 @@
 title: "Tech Stack"
 status: synced
 author: ""
-last-modified: "2026-03-17T00:00:00.000Z"
-version: "1.1"
+last-modified: "2026-03-29T00:00:00.000Z"
+version: "1.2"
 ---
 
 # Tech Stack
@@ -16,8 +16,9 @@ version: "1.1"
 | FastAPI          | Web framework                    | latest  |
 | uvicorn          | ASGI server                      | latest  |
 | uv               | Package manager                  | latest  |
-| SQLAlchemy       | ORM (async mode)                 | 2.x     |
-| Alembic          | Database migrations              | latest  |
+| PyMongo (async)  | Official async MongoDB driver    | 4.10+   |
+| Beanie           | Async ODM for MongoDB (Pydantic-native) | 2.1+  |
+| slowapi          | Rate limiting for FastAPI        | 0.1.9+  |
 | Pydantic         | Request/response validation      | 2.x     |
 | python-jose      | JWT encoding/decoding            | latest  |
 | passlib[bcrypt]  | Password hashing                 | latest  |
@@ -40,7 +41,7 @@ version: "1.1"
 
 | Technology               | Purpose                                          |
 | ------------------------ | ------------------------------------------------ |
-| PostgreSQL               | Database (15+)                                   |
+| MongoDB                  | Database (7.0+)                                  |
 | Docker                   | Containerization                                 |
 | Docker Compose           | Multi-service orchestration                      |
 | nginx                    | Static file serving (frontend in production)     |
@@ -55,6 +56,5 @@ version: "1.1"
 | ------- | ----------------------------------------------------- |
 | uv      | Python dependency management and virtual environments |
 | npm     | Frontend dependency management                        |
-| Alembic | Database schema migrations                            |
 | pytest  | Backend testing                                       |
 | Vitest  | Frontend testing                                      |

@@ -5,8 +5,6 @@ import uuid
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.bug import Bug, BugSeverity, BugStatus
 from app.models.change_request import ChangeRequest, CRStatus
@@ -134,9 +132,7 @@ async def test_archive_and_restore_project(
 # ---------------------------------------------------------------------------
 
 @pytest_asyncio.fixture
-async def project_with_data(
-    db_session: AsyncSession, test_project: Project, test_user: User
-):
+async def project_with_data(test_project: Project, test_user: User):
     """Populate a project with docs, CRs, and bugs for reset tests."""
     doc = DocumentFile(
         project_id=test_project.id,
@@ -167,8 +163,9 @@ async def project_with_data(
         number=1,
         slug="login-crash",
     )
-    db_session.add_all([doc, cr, bug])
-    await db_session.commit()
+    await doc.insert()
+    await cr.insert()
+    await bug.insert()
     return test_project
 
 
@@ -177,7 +174,6 @@ async def test_reset_project(
     client: AsyncClient,
     test_tenant: Tenant,
     project_with_data: Project,
-    db_session: AsyncSession,
 ):
     project = project_with_data
     resp = await client.post(
@@ -191,16 +187,12 @@ async def test_reset_project(
     assert data["deleted_bugs"] == 1
 
     # Verify entities are gone
-    docs = await db_session.execute(
-        select(DocumentFile).where(DocumentFile.project_id == project.id)
-    )
-    assert docs.scalars().all() == []
+    docs = await DocumentFile.find({"projectId": str(project.id)}).to_list()
+    assert docs == []
 
     # Verify project still exists
-    proj = await db_session.execute(
-        select(Project).where(Project.id == project.id)
-    )
-    assert proj.scalar_one_or_none() is not None
+    proj = await Project.get(project.id)
+    assert proj is not None
 
 
 @pytest.mark.asyncio

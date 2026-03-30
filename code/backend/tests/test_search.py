@@ -3,8 +3,8 @@
 import uuid
 
 import pytest
+import pytest_asyncio
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.audit_log_entry import AuditLogEntry
 from app.models.bug import Bug
@@ -23,8 +23,8 @@ def _url(tenant: Tenant) -> str:
 # Fixtures: seed searchable data
 # ---------------------------------------------------------------------------
 
-@pytest.fixture
-async def search_data(db_session: AsyncSession, test_tenant: Tenant, test_project: Project, test_user: User):
+@pytest_asyncio.fixture
+async def search_data(test_tenant: Tenant, test_project: Project, test_user: User):
     """Create one of each entity type with known searchable content."""
     doc = DocumentFile(
         project_id=test_project.id,
@@ -58,12 +58,33 @@ async def search_data(db_session: AsyncSession, test_tenant: Tenant, test_projec
         user_id=test_user.id,
         event_type="cr.created.foobar",
         entity_type="change_request",
-        entity_id=cr.id if cr.id else uuid.uuid4(),
+        entity_id=uuid.uuid4(),
         details={"action": "created", "keyword": "foobar"},
     )
-    db_session.add_all([doc, cr, bug, audit])
-    await db_session.commit()
-    return {"doc": doc, "cr": cr, "bug": bug, "audit": audit}
+    await doc.insert()
+    await cr.insert()
+    await bug.insert()
+    await audit.insert()
+
+    yield {"doc": doc, "cr": cr, "bug": bug, "audit": audit}
+
+    # Cleanup
+    try:
+        await doc.delete()
+    except Exception:
+        pass
+    try:
+        await cr.delete()
+    except Exception:
+        pass
+    try:
+        await bug.delete()
+    except Exception:
+        pass
+    try:
+        await audit.delete()
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------

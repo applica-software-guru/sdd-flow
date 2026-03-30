@@ -1,34 +1,23 @@
-import uuid
+from typing import Optional
 from datetime import datetime
+from pymongo import IndexModel
+from pydantic import Field
+from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, String, func
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.db.base import Base, UUIDMixin
+from app.models.base import BaseDocument
 
 
-class ApiKey(UUIDMixin, Base):
-    __tablename__ = "api_keys"
+class ApiKey(BaseDocument):
+    project_id: UUID = Field(alias="projectId")
+    name: str
+    key_prefix: str = Field(alias="keyPrefix")
+    key_hash: str = Field(alias="keyHash")
+    created_by: UUID = Field(alias="createdBy")
+    last_used_at: Optional[datetime] = Field(default=None, alias="lastUsedAt")
+    revoked_at: Optional[datetime] = Field(default=None, alias="revokedAt")
 
-    project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
-    )
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    key_prefix: Mapped[str] = mapped_column(String(12), nullable=False)
-    key_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    created_by: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
-    last_used_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    revoked_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-
-    project: Mapped["Project"] = relationship("Project", back_populates="api_keys")
-    creator: Mapped["User"] = relationship("User", foreign_keys=[created_by])
+    class Settings:
+        name = "api_keys"
+        indexes = [
+            IndexModel("keyHash", unique=True),
+        ]
