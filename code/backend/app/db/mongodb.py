@@ -21,7 +21,7 @@ from app.models.worker_job import WorkerJob
 from app.models.worker_job_message import WorkerJobMessage
 
 
-async def init_db(mongodb_url: str):
+async def init_db(mongodb_url: str, default_db: str = "sdd"):
     client = AsyncMongoClient(
         mongodb_url,
         tz_aware=True,
@@ -30,7 +30,10 @@ async def init_db(mongodb_url: str):
         serverSelectionTimeoutMS=5000,
         connectTimeoutMS=3000,
     )
-    db = client.get_default_database()
+    try:
+        db = client.get_default_database()
+    except Exception:
+        db = client[default_db]
     await init_beanie(
         database=db,
         document_models=[
