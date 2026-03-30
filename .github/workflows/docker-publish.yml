@@ -46,7 +46,7 @@ jobs:
 
       - name: Validate required backend runtime keys
         run: |
-          for key in DATABASE_URL JWT_SECRET FRONTEND_URL; do
+          for key in MONGODB_URL JWT_SECRET FRONTEND_URL; do
             grep -q "^${key}=" code/backend/.env.example
           done
 
