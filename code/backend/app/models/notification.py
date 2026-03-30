@@ -1,31 +1,23 @@
-import uuid
+from typing import Optional
 from datetime import datetime
+from pymongo import IndexModel
+from pydantic import Field
+from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, String, func
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.db.base import Base, UUIDMixin
+from app.models.base import ImmutableDocument
 
 
-class Notification(UUIDMixin, Base):
-    __tablename__ = "notifications"
+class Notification(ImmutableDocument):
+    user_id: UUID = Field(alias="userId")
+    tenant_id: UUID = Field(alias="tenantId")
+    event_type: str = Field(alias="eventType")
+    entity_type: str = Field(alias="entityType")
+    entity_id: UUID = Field(alias="entityId")
+    title: str
+    read_at: Optional[datetime] = Field(default=None, alias="readAt")
 
-    user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
-    tenant_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("tenants.id", ondelete="CASCADE"), nullable=False
-    )
-    event_type: Mapped[str] = mapped_column(String(255), nullable=False)
-    entity_type: Mapped[str] = mapped_column(String(255), nullable=False)
-    entity_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    title: Mapped[str] = mapped_column(String(512), nullable=False)
-    read_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
-    )
-
-    user: Mapped["User"] = relationship("User", back_populates="notifications")
+    class Settings:
+        name = "notifications"
+        indexes = [
+            IndexModel([("userId", 1), ("readAt", 1)]),
+        ]

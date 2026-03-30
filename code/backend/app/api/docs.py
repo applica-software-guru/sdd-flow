@@ -1,14 +1,11 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
 from app.middleware.auth import get_current_tenant_member
 from app.models.document_file import DocStatus, DocumentFile
-from app.models.project import Project
 from app.models.tenant_member import TenantMember
+from app.repositories import DocumentFileRepository, ProjectRepository
 from app.schemas.docs import DocBulkRequest, DocBulkResponse, DocCreate, DocResponse, DocUpdate
 from app.services.audit import log_event
 
@@ -18,12 +15,10 @@ router = APIRouter(
 )
 
 
-async def _get_project(db: AsyncSession, tenant_id: uuid.UUID, project_id: uuid.UUID) -> Project:
-    result = await db.execute(
-        select(Project).where(Project.id == project_id, Project.tenant_id == tenant_id)
-    )
-    project = result.scalar_one_or_none()
-    if project is None:
+async def _get_project(tenant_id: uuid.UUID, project_id: uuid.UUID):
+    project_repo = ProjectRepository()
+    project = await project_repo.find_by_id(project_id)
+    if project is None or project.tenant_id != tenant_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
     return project
 
@@ -34,18 +29,16 @@ async def list_docs(
     project_id: uuid.UUID,
     status_filter: DocStatus | None = Query(None, alias="status"),
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    query = select(DocumentFile).where(DocumentFile.project_id == project_id)
+    await _get_project(tenant_id, project_id)
 
     if status_filter is not None:
-        query = query.where(DocumentFile.status == status_filter)
+        query: dict = {"projectId": project_id, "status": status_filter.value}
     else:
-        query = query.where(DocumentFile.status != DocStatus.deleted)
+        query = {"projectId": project_id, "status": {"$ne": DocStatus.deleted.value}}
 
-    result = await db.execute(query.order_by(DocumentFile.path))
-    return result.scalars().all()
+    docs = await DocumentFile.find(query).sort([("path", 1)]).to_list()
+    return docs
 
 
 @router.get("/{doc_id}", response_model=DocResponse)
@@ -54,14 +47,11 @@ async def get_doc(
     project_id: uuid.UUID,
     doc_id: uuid.UUID,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(DocumentFile).where(DocumentFile.id == doc_id, DocumentFile.project_id == project_id)
-    )
-    doc = result.scalar_one_or_none()
-    if doc is None:
+    await _get_project(tenant_id, project_id)
+    doc_repo = DocumentFileRepository()
+    doc = await doc_repo.find_by_id(doc_id)
+    if doc is None or doc.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
     return doc
 
@@ -72,16 +62,12 @@ async def create_doc(
     project_id: uuid.UUID,
     body: DocCreate,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
+    await _get_project(tenant_id, project_id)
+    doc_repo = DocumentFileRepository()
 
-    result = await db.execute(
-        select(DocumentFile).where(
-            DocumentFile.project_id == project_id, DocumentFile.path == body.path
-        )
-    )
-    if result.scalar_one_or_none() is not None:
+    existing = await doc_repo.find_by_path(project_id, body.path)
+    if existing is not None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Document path already exists")
 
     doc = DocumentFile(
@@ -93,11 +79,9 @@ async def create_doc(
         version=1,
         last_modified_by=member.user_id,
     )
-    db.add(doc)
-    await db.flush()
+    await doc.insert()
 
-    await log_event(db, tenant_id, member.user_id, "doc.created", "document", doc.id)
-    await db.refresh(doc)
+    await log_event(tenant_id, member.user_id, "doc.created", "document", doc.id)
     return doc
 
 
@@ -108,29 +92,27 @@ async def update_doc(
     doc_id: uuid.UUID,
     body: DocUpdate,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(DocumentFile).where(DocumentFile.id == doc_id, DocumentFile.project_id == project_id)
-    )
-    doc = result.scalar_one_or_none()
-    if doc is None:
+    await _get_project(tenant_id, project_id)
+    doc_repo = DocumentFileRepository()
+    doc = await doc_repo.find_by_id(doc_id)
+    if doc is None or doc.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
+    updates: dict = {DocumentFile.last_modified_by: member.user_id}
     if body.title is not None:
-        doc.title = body.title
+        updates[DocumentFile.title] = body.title
     if body.content is not None:
-        doc.content = body.content
-        doc.version += 1
-        doc.status = DocStatus.changed
+        updates[DocumentFile.content] = body.content
+        updates[DocumentFile.version] = doc.version + 1
+        updates[DocumentFile.status] = DocStatus.changed
     if body.status is not None:
-        doc.status = body.status
-    doc.last_modified_by = member.user_id
-    await db.flush()
+        updates[DocumentFile.status] = body.status
 
-    await log_event(db, tenant_id, member.user_id, "doc.updated", "document", doc.id)
-    await db.refresh(doc)
+    await doc.set(updates)
+
+    await log_event(tenant_id, member.user_id, "doc.updated", "document", doc.id)
+    doc = await doc_repo.find_by_id(doc_id)
     return doc
 
 
@@ -140,20 +122,16 @@ async def delete_doc(
     project_id: uuid.UUID,
     doc_id: uuid.UUID,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(DocumentFile).where(DocumentFile.id == doc_id, DocumentFile.project_id == project_id)
-    )
-    doc = result.scalar_one_or_none()
-    if doc is None:
+    await _get_project(tenant_id, project_id)
+    doc_repo = DocumentFileRepository()
+    doc = await doc_repo.find_by_id(doc_id)
+    if doc is None or doc.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
 
-    doc.status = DocStatus.deleted
-    await db.flush()
+    await doc.set({DocumentFile.status: DocStatus.deleted})
 
-    await log_event(db, tenant_id, member.user_id, "doc.deleted", "document", doc.id)
+    await log_event(tenant_id, member.user_id, "doc.deleted", "document", doc.id)
 
 
 @router.post("/bulk", response_model=DocBulkResponse)
@@ -162,29 +140,32 @@ async def bulk_upsert(
     project_id: uuid.UUID,
     body: DocBulkRequest,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
+    await _get_project(tenant_id, project_id)
+    doc_repo = DocumentFileRepository()
 
     created = 0
     updated = 0
     docs = []
 
+    # Batch fetch existing docs by path
+    paths = [item.path for item in body.documents]
+    existing_map = await doc_repo.find_by_paths(project_id, paths)
+
     for item in body.documents:
-        result = await db.execute(
-            select(DocumentFile).where(
-                DocumentFile.project_id == project_id, DocumentFile.path == item.path
-            )
-        )
-        existing = result.scalar_one_or_none()
+        existing = existing_map.get(item.path)
 
         if existing is not None:
-            existing.title = item.title
-            existing.content = item.content
-            existing.version += 1
-            existing.status = DocStatus.changed
-            existing.last_modified_by = member.user_id
-            docs.append(existing)
+            await existing.set({
+                DocumentFile.title: item.title,
+                DocumentFile.content: item.content,
+                DocumentFile.version: existing.version + 1,
+                DocumentFile.status: DocStatus.changed,
+                DocumentFile.last_modified_by: member.user_id,
+            })
+            # Re-fetch to get updated state
+            refreshed = await doc_repo.find_by_id(existing.id)
+            docs.append(refreshed)
             updated += 1
         else:
             doc = DocumentFile(
@@ -196,17 +177,12 @@ async def bulk_upsert(
                 version=1,
                 last_modified_by=member.user_id,
             )
-            db.add(doc)
+            await doc.insert()
             docs.append(doc)
             created += 1
 
-    await db.flush()
-
-    for d in docs:
-        await db.refresh(d)
-
     await log_event(
-        db, tenant_id, member.user_id, "doc.bulk_upsert", "document", None,
+        tenant_id, member.user_id, "doc.bulk_upsert", "document", None,
         details={"created": created, "updated": updated},
     )
     return DocBulkResponse(

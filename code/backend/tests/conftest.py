@@ -2,7 +2,7 @@
 Shared fixtures for the test suite.
 
 Strategy:
-- Each test gets its own AsyncSession that commits normally.
+- Each test gets a fresh MongoDB connection via Beanie.
 - Fixtures create data with unique slugs/emails so tests don't collide.
 - Override ``get_current_user`` and ``get_current_tenant_member`` so that
   tests can call authenticated endpoints without real JWT tokens.
@@ -14,35 +14,26 @@ from collections.abc import AsyncGenerator
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import delete
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
 from app.config import settings
-from app.db.session import get_db
 from app.main import app
 from app.middleware.auth import get_current_user, get_current_tenant_member
 from app.models.user import User
 from app.models.tenant import Tenant, DefaultRole
 from app.models.tenant_member import TenantMember, MemberRole
 from app.models.project import Project
+from app.db.mongodb import init_db
 
 
 # ---------------------------------------------------------------------------
-# Engine / session factory
+# MongoDB init (session-scoped)
 # ---------------------------------------------------------------------------
 
-@pytest_asyncio.fixture(scope="session")
-async def _engine():
-    eng = create_async_engine(settings.DATABASE_URL, echo=False, future=True)
-    yield eng
-    await eng.dispose()
-
-
-@pytest_asyncio.fixture
-async def db_session(_engine) -> AsyncGenerator[AsyncSession, None]:
-    factory = async_sessionmaker(_engine, class_=AsyncSession, expire_on_commit=False)
-    async with factory() as session:
-        yield session
+@pytest_asyncio.fixture(scope="session", autouse=True)
+async def _mongodb():
+    client = await init_db(settings.MONGODB_URL)
+    yield
+    await client.close()
 
 
 # ---------------------------------------------------------------------------
@@ -59,22 +50,20 @@ def unique_id() -> str:
 # ---------------------------------------------------------------------------
 
 @pytest_asyncio.fixture
-async def test_user(db_session: AsyncSession, unique_id: str) -> AsyncGenerator[User, None]:
+async def test_user(unique_id: str) -> AsyncGenerator[User, None]:
     user = User(
         email=f"test-{unique_id}@example.com",
         display_name=f"Test User {unique_id}",
         password_hash="fakehash",
         email_verified=True,
     )
-    db_session.add(user)
-    await db_session.commit()
+    await user.insert()
     yield user
     # Cleanup
     try:
-        await db_session.execute(delete(User).where(User.id == user.id))
-        await db_session.commit()
+        await user.delete()
     except Exception:
-        await db_session.rollback()
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -82,41 +71,37 @@ async def test_user(db_session: AsyncSession, unique_id: str) -> AsyncGenerator[
 # ---------------------------------------------------------------------------
 
 @pytest_asyncio.fixture
-async def test_tenant(db_session: AsyncSession, test_user: User, unique_id: str) -> AsyncGenerator[Tenant, None]:
+async def test_tenant(test_user: User, unique_id: str) -> AsyncGenerator[Tenant, None]:
     tenant = Tenant(
         name=f"Test Tenant {unique_id}",
         slug=f"test-tenant-{unique_id}",
         default_role=DefaultRole.member,
     )
-    db_session.add(tenant)
-    await db_session.commit()
+    await tenant.insert()
 
     member = TenantMember(
         tenant_id=tenant.id,
         user_id=test_user.id,
         role=MemberRole.owner,
     )
-    db_session.add(member)
-    await db_session.commit()
+    await member.insert()
+
     yield tenant
-    # Cleanup: members should cascade
+
+    # Cleanup
     try:
-        await db_session.execute(delete(Tenant).where(Tenant.id == tenant.id))
-        await db_session.commit()
+        await TenantMember.find({"tenantId": tenant.id}).delete()
+        await tenant.delete()
     except Exception:
-        await db_session.rollback()
+        pass
 
 
 @pytest_asyncio.fixture
-async def test_member(db_session: AsyncSession, test_tenant: Tenant, test_user: User) -> TenantMember:
-    from sqlalchemy import select
-    result = await db_session.execute(
-        select(TenantMember).where(
-            TenantMember.tenant_id == test_tenant.id,
-            TenantMember.user_id == test_user.id,
-        )
+async def test_member(test_tenant: Tenant, test_user: User) -> TenantMember:
+    member = await TenantMember.find_one(
+        {"tenantId": test_tenant.id, "userId": test_user.id}
     )
-    return result.scalar_one()
+    return member
 
 
 # ---------------------------------------------------------------------------
@@ -124,15 +109,14 @@ async def test_member(db_session: AsyncSession, test_tenant: Tenant, test_user: 
 # ---------------------------------------------------------------------------
 
 @pytest_asyncio.fixture
-async def test_project(db_session: AsyncSession, test_tenant: Tenant, unique_id: str) -> Project:
+async def test_project(test_tenant: Tenant, unique_id: str) -> Project:
     project = Project(
         tenant_id=test_tenant.id,
         name=f"Test Project {unique_id}",
         slug=f"test-proj-{unique_id}",
         description="A test project",
     )
-    db_session.add(project)
-    await db_session.commit()
+    await project.insert()
     return project
 
 
@@ -142,7 +126,6 @@ async def test_project(db_session: AsyncSession, test_tenant: Tenant, unique_id:
 
 @pytest_asyncio.fixture
 async def client(
-    db_session: AsyncSession,
     test_user: User,
     test_tenant: Tenant,
     test_member: TenantMember,
@@ -156,10 +139,6 @@ async def client(
     ):
         return test_member
 
-    async def override_get_db():
-        yield db_session
-
-    app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user] = override_get_current_user
     app.dependency_overrides[get_current_tenant_member] = override_get_current_tenant_member
 

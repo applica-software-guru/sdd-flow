@@ -3,16 +3,12 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
-from app.middleware.auth import get_current_tenant_member, get_current_user
+from app.middleware.auth import get_current_tenant_member
 from app.models.change_request import CRStatus, ChangeRequest
 from app.models.comment import Comment, EntityType
-from app.models.project import Project
 from app.models.tenant_member import TenantMember
-from app.models.user import User
+from app.repositories import ChangeRequestRepository, CommentRepository, ProjectRepository
 from app.schemas.change_requests import CRCreate, CRListResponse, CRResponse, CRTransition, CRUpdate
 from app.schemas.comments import CommentCreate, CommentResponse
 from app.services.audit import log_event
@@ -25,12 +21,10 @@ router = APIRouter(
 )
 
 
-async def _get_project(db: AsyncSession, tenant_id: uuid.UUID, project_id: uuid.UUID) -> Project:
-    result = await db.execute(
-        select(Project).where(Project.id == project_id, Project.tenant_id == tenant_id)
-    )
-    project = result.scalar_one_or_none()
-    if project is None:
+async def _get_project(tenant_id: uuid.UUID, project_id: uuid.UUID):
+    project_repo = ProjectRepository()
+    project = await project_repo.find_by_id(project_id)
+    if project is None or project.tenant_id != tenant_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
     return project
 
@@ -41,31 +35,28 @@ async def create_cr(
     project_id: uuid.UUID,
     body: CRCreate,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    number, slug = await assign_number_and_slug(db, ChangeRequest, project_id, body.title)
+    await _get_project(tenant_id, project_id)
+    cr_repo = ChangeRequestRepository()
     cr = ChangeRequest(
         project_id=project_id,
-        number=number,
-        slug=slug,
+        number=0,
+        slug="",
         title=body.title,
         body=body.body,
         author_id=member.user_id,
         assignee_id=body.assignee_id,
-        target_files=body.target_files,
+        target_files=body.target_files or [],
     )
-    db.add(cr)
-    await db.flush()
+    await assign_number_and_slug(cr, project_id, body.title, repo=cr_repo)
 
-    await log_event(db, tenant_id, member.user_id, "cr.created", "change_request", cr.id)
+    await log_event(tenant_id, member.user_id, "cr.created", "change_request", cr.id)
 
     if body.assignee_id and body.assignee_id != member.user_id:
         await create_notification(
-            db, body.assignee_id, tenant_id, "cr.assigned",
+            body.assignee_id, tenant_id, "cr.assigned",
             "change_request", cr.id, f"You were assigned to CR: {cr.title}",
         )
-    await db.refresh(cr)
     return cr
 
 
@@ -77,23 +68,17 @@ async def list_crs(
     page_size: int = Query(20, ge=1, le=100),
     status_filter: CRStatus | None = Query(None, alias="status"),
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    query = select(ChangeRequest).where(ChangeRequest.project_id == project_id)
-    count_query = select(func.count()).select_from(ChangeRequest).where(ChangeRequest.project_id == project_id)
+    await _get_project(tenant_id, project_id)
 
-    if status_filter is not None:
-        query = query.where(ChangeRequest.status == status_filter)
-        count_query = count_query.where(ChangeRequest.status == status_filter)
+    if status_filter is None:
+        query: dict = {"projectId": project_id, "status": {"$ne": CRStatus.deleted.value}}
     else:
-        query = query.where(ChangeRequest.status != CRStatus.deleted)
-        count_query = count_query.where(ChangeRequest.status != CRStatus.deleted)
+        query = {"projectId": project_id, "status": status_filter.value}
 
-    total = (await db.execute(count_query)).scalar() or 0
-    query = query.order_by(ChangeRequest.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    result = await db.execute(query)
-    items = result.scalars().all()
+    total = await ChangeRequest.find(query).count()
+    skip = (page - 1) * page_size
+    items = await ChangeRequest.find(query).sort([("createdAt", -1)]).skip(skip).limit(page_size).to_list()
 
     return CRListResponse(
         items=[CRResponse.model_validate(i) for i in items],
@@ -110,14 +95,11 @@ async def get_cr(
     project_id: uuid.UUID,
     cr_id: uuid.UUID,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(ChangeRequest).where(ChangeRequest.id == cr_id, ChangeRequest.project_id == project_id)
-    )
-    cr = result.scalar_one_or_none()
-    if cr is None:
+    await _get_project(tenant_id, project_id)
+    cr_repo = ChangeRequestRepository()
+    cr = await cr_repo.find_by_id(cr_id)
+    if cr is None or cr.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Change request not found")
     return cr
 
@@ -129,28 +111,28 @@ async def update_cr(
     cr_id: uuid.UUID,
     body: CRUpdate,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(ChangeRequest).where(ChangeRequest.id == cr_id, ChangeRequest.project_id == project_id)
-    )
-    cr = result.scalar_one_or_none()
-    if cr is None:
+    await _get_project(tenant_id, project_id)
+    cr_repo = ChangeRequestRepository()
+    cr = await cr_repo.find_by_id(cr_id)
+    if cr is None or cr.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Change request not found")
 
+    updates = {}
     if body.title is not None:
-        cr.title = body.title
+        updates[ChangeRequest.title] = body.title
     if body.body is not None:
-        cr.body = body.body
+        updates[ChangeRequest.body] = body.body
     if body.assignee_id is not None:
-        cr.assignee_id = body.assignee_id
+        updates[ChangeRequest.assignee_id] = body.assignee_id
     if body.target_files is not None:
-        cr.target_files = body.target_files
-    await db.flush()
+        updates[ChangeRequest.target_files] = body.target_files
 
-    await log_event(db, tenant_id, member.user_id, "cr.updated", "change_request", cr.id)
-    await db.refresh(cr)
+    if updates:
+        await cr.set(updates)
+
+    await log_event(tenant_id, member.user_id, "cr.updated", "change_request", cr.id)
+    cr = await cr_repo.find_by_id(cr_id)
     return cr
 
 
@@ -161,32 +143,32 @@ async def transition_cr(
     cr_id: uuid.UUID,
     body: CRTransition,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(ChangeRequest).where(ChangeRequest.id == cr_id, ChangeRequest.project_id == project_id)
-    )
-    cr = result.scalar_one_or_none()
-    if cr is None:
+    await _get_project(tenant_id, project_id)
+    cr_repo = ChangeRequestRepository()
+    cr = await cr_repo.find_by_id(cr_id)
+    if cr is None or cr.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Change request not found")
 
-    cr.status = body.status
+    if cr.status in (CRStatus.deleted, CRStatus.closed):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot transition a {cr.status.value} item")
+
+    updates: dict = {ChangeRequest.status: body.status}
     if body.status in (CRStatus.closed, CRStatus.applied, CRStatus.rejected):
-        cr.closed_at = datetime.now(timezone.utc)
-    await db.flush()
+        updates[ChangeRequest.closed_at] = datetime.now(timezone.utc)
+    await cr.set(updates)
 
     await log_event(
-        db, tenant_id, member.user_id, "cr.transitioned", "change_request", cr.id,
+        tenant_id, member.user_id, "cr.transitioned", "change_request", cr.id,
         details={"new_status": body.status.value},
     )
 
     if cr.author_id != member.user_id:
         await create_notification(
-            db, cr.author_id, tenant_id, "cr.transitioned",
+            cr.author_id, tenant_id, "cr.transitioned",
             "change_request", cr.id, f"CR '{cr.title}' moved to {body.status.value}",
         )
-    await db.refresh(cr)
+    cr = await cr_repo.find_by_id(cr_id)
     return cr
 
 
@@ -196,15 +178,10 @@ async def list_comments(
     project_id: uuid.UUID,
     cr_id: uuid.UUID,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(Comment)
-        .where(Comment.entity_type == EntityType.change_request, Comment.entity_id == cr_id)
-        .order_by(Comment.created_at.asc())
-    )
-    return result.scalars().all()
+    await _get_project(tenant_id, project_id)
+    comment_repo = CommentRepository()
+    return await comment_repo.find_by_entity(EntityType.change_request.value, cr_id)
 
 
 @router.post("/{cr_id}/comments", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
@@ -214,14 +191,11 @@ async def add_comment(
     cr_id: uuid.UUID,
     body: CommentCreate,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(ChangeRequest).where(ChangeRequest.id == cr_id, ChangeRequest.project_id == project_id)
-    )
-    cr = result.scalar_one_or_none()
-    if cr is None:
+    await _get_project(tenant_id, project_id)
+    cr_repo = ChangeRequestRepository()
+    cr = await cr_repo.find_by_id(cr_id)
+    if cr is None or cr.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Change request not found")
 
     comment = Comment(
@@ -230,13 +204,11 @@ async def add_comment(
         author_id=member.user_id,
         body=body.body,
     )
-    db.add(comment)
-    await db.flush()
+    await comment.insert()
 
     if cr.author_id != member.user_id:
         await create_notification(
-            db, cr.author_id, tenant_id, "comment.added",
+            cr.author_id, tenant_id, "comment.added",
             "change_request", cr.id, f"New comment on CR: {cr.title}",
         )
-    await db.refresh(comment)
     return comment

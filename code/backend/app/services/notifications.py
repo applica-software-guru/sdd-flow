@@ -1,19 +1,20 @@
 import uuid
 
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.models.notification import Notification
+from app.repositories import NotificationRepository
 
 
 async def create_notification(
-    db: AsyncSession,
     user_id: uuid.UUID,
     tenant_id: uuid.UUID,
     event_type: str,
     entity_type: str,
     entity_id: uuid.UUID,
     title: str,
+    notification_repo: NotificationRepository = None,
 ) -> Notification:
+    if notification_repo is None:
+        notification_repo = NotificationRepository()
     notification = Notification(
         user_id=user_id,
         tenant_id=tenant_id,
@@ -22,6 +23,4 @@ async def create_notification(
         entity_id=entity_id,
         title=title,
     )
-    db.add(notification)
-    await db.flush()
-    return notification
+    return await notification_repo.create(notification)

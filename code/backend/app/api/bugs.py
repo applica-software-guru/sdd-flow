@@ -3,15 +3,12 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
 from app.middleware.auth import get_current_tenant_member
 from app.models.bug import Bug, BugStatus
 from app.models.comment import Comment, EntityType
-from app.models.project import Project
 from app.models.tenant_member import TenantMember
+from app.repositories import BugRepository, CommentRepository, ProjectRepository
 from app.schemas.bugs import BugCreate, BugListResponse, BugResponse, BugTransition, BugUpdate
 from app.schemas.comments import CommentCreate, CommentResponse
 from app.services.audit import log_event
@@ -24,12 +21,10 @@ router = APIRouter(
 )
 
 
-async def _get_project(db: AsyncSession, tenant_id: uuid.UUID, project_id: uuid.UUID) -> Project:
-    result = await db.execute(
-        select(Project).where(Project.id == project_id, Project.tenant_id == tenant_id)
-    )
-    project = result.scalar_one_or_none()
-    if project is None:
+async def _get_project(tenant_id: uuid.UUID, project_id: uuid.UUID):
+    project_repo = ProjectRepository()
+    project = await project_repo.find_by_id(project_id)
+    if project is None or project.tenant_id != tenant_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
     return project
 
@@ -40,31 +35,28 @@ async def create_bug(
     project_id: uuid.UUID,
     body: BugCreate,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    number, slug = await assign_number_and_slug(db, Bug, project_id, body.title)
+    await _get_project(tenant_id, project_id)
+    bug_repo = BugRepository()
     bug = Bug(
         project_id=project_id,
-        number=number,
-        slug=slug,
+        number=0,
+        slug="",
         title=body.title,
         body=body.body,
         severity=body.severity,
         author_id=member.user_id,
         assignee_id=body.assignee_id,
     )
-    db.add(bug)
-    await db.flush()
+    await assign_number_and_slug(bug, project_id, body.title, repo=bug_repo)
 
-    await log_event(db, tenant_id, member.user_id, "bug.created", "bug", bug.id)
+    await log_event(tenant_id, member.user_id, "bug.created", "bug", bug.id)
 
     if body.assignee_id and body.assignee_id != member.user_id:
         await create_notification(
-            db, body.assignee_id, tenant_id, "bug.assigned",
+            body.assignee_id, tenant_id, "bug.assigned",
             "bug", bug.id, f"You were assigned to bug: {bug.title}",
         )
-    await db.refresh(bug)
     return bug
 
 
@@ -76,23 +68,17 @@ async def list_bugs(
     page_size: int = Query(20, ge=1, le=100),
     status_filter: BugStatus | None = Query(None, alias="status"),
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    query = select(Bug).where(Bug.project_id == project_id)
-    count_query = select(func.count()).select_from(Bug).where(Bug.project_id == project_id)
+    await _get_project(tenant_id, project_id)
 
-    if status_filter is not None:
-        query = query.where(Bug.status == status_filter)
-        count_query = count_query.where(Bug.status == status_filter)
+    if status_filter is None:
+        query: dict = {"projectId": project_id, "status": {"$ne": BugStatus.deleted.value}}
     else:
-        query = query.where(Bug.status != BugStatus.deleted)
-        count_query = count_query.where(Bug.status != BugStatus.deleted)
+        query = {"projectId": project_id, "status": status_filter.value}
 
-    total = (await db.execute(count_query)).scalar() or 0
-    query = query.order_by(Bug.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    result = await db.execute(query)
-    items = result.scalars().all()
+    total = await Bug.find(query).count()
+    skip = (page - 1) * page_size
+    items = await Bug.find(query).sort([("createdAt", -1)]).skip(skip).limit(page_size).to_list()
 
     return BugListResponse(
         items=[BugResponse.model_validate(i) for i in items],
@@ -109,14 +95,11 @@ async def get_bug(
     project_id: uuid.UUID,
     bug_id: uuid.UUID,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(Bug).where(Bug.id == bug_id, Bug.project_id == project_id)
-    )
-    bug = result.scalar_one_or_none()
-    if bug is None:
+    await _get_project(tenant_id, project_id)
+    bug_repo = BugRepository()
+    bug = await bug_repo.find_by_id(bug_id)
+    if bug is None or bug.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
     return bug
 
@@ -128,28 +111,28 @@ async def update_bug(
     bug_id: uuid.UUID,
     body: BugUpdate,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(Bug).where(Bug.id == bug_id, Bug.project_id == project_id)
-    )
-    bug = result.scalar_one_or_none()
-    if bug is None:
+    await _get_project(tenant_id, project_id)
+    bug_repo = BugRepository()
+    bug = await bug_repo.find_by_id(bug_id)
+    if bug is None or bug.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
 
+    updates = {}
     if body.title is not None:
-        bug.title = body.title
+        updates[Bug.title] = body.title
     if body.body is not None:
-        bug.body = body.body
+        updates[Bug.body] = body.body
     if body.severity is not None:
-        bug.severity = body.severity
+        updates[Bug.severity] = body.severity
     if body.assignee_id is not None:
-        bug.assignee_id = body.assignee_id
-    await db.flush()
+        updates[Bug.assignee_id] = body.assignee_id
 
-    await log_event(db, tenant_id, member.user_id, "bug.updated", "bug", bug.id)
-    await db.refresh(bug)
+    if updates:
+        await bug.set(updates)
+
+    await log_event(tenant_id, member.user_id, "bug.updated", "bug", bug.id)
+    bug = await bug_repo.find_by_id(bug_id)
     return bug
 
 
@@ -160,32 +143,32 @@ async def transition_bug(
     bug_id: uuid.UUID,
     body: BugTransition,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(Bug).where(Bug.id == bug_id, Bug.project_id == project_id)
-    )
-    bug = result.scalar_one_or_none()
-    if bug is None:
+    await _get_project(tenant_id, project_id)
+    bug_repo = BugRepository()
+    bug = await bug_repo.find_by_id(bug_id)
+    if bug is None or bug.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
 
-    bug.status = body.status
+    if bug.status in (BugStatus.deleted, BugStatus.closed):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot transition a {bug.status.value} item")
+
+    updates: dict = {Bug.status: body.status}
     if body.status in (BugStatus.closed, BugStatus.resolved, BugStatus.wont_fix):
-        bug.closed_at = datetime.now(timezone.utc)
-    await db.flush()
+        updates[Bug.closed_at] = datetime.now(timezone.utc)
+    await bug.set(updates)
 
     await log_event(
-        db, tenant_id, member.user_id, "bug.transitioned", "bug", bug.id,
+        tenant_id, member.user_id, "bug.transitioned", "bug", bug.id,
         details={"new_status": body.status.value},
     )
 
     if bug.author_id != member.user_id:
         await create_notification(
-            db, bug.author_id, tenant_id, "bug.transitioned",
+            bug.author_id, tenant_id, "bug.transitioned",
             "bug", bug.id, f"Bug '{bug.title}' moved to {body.status.value}",
         )
-    await db.refresh(bug)
+    bug = await bug_repo.find_by_id(bug_id)
     return bug
 
 
@@ -195,15 +178,10 @@ async def list_comments(
     project_id: uuid.UUID,
     bug_id: uuid.UUID,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(Comment)
-        .where(Comment.entity_type == EntityType.bug, Comment.entity_id == bug_id)
-        .order_by(Comment.created_at.asc())
-    )
-    return result.scalars().all()
+    await _get_project(tenant_id, project_id)
+    comment_repo = CommentRepository()
+    return await comment_repo.find_by_entity(EntityType.bug.value, bug_id)
 
 
 @router.post("/{bug_id}/comments", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
@@ -213,14 +191,11 @@ async def add_comment(
     bug_id: uuid.UUID,
     body: CommentCreate,
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    await _get_project(db, tenant_id, project_id)
-    result = await db.execute(
-        select(Bug).where(Bug.id == bug_id, Bug.project_id == project_id)
-    )
-    bug = result.scalar_one_or_none()
-    if bug is None:
+    await _get_project(tenant_id, project_id)
+    bug_repo = BugRepository()
+    bug = await bug_repo.find_by_id(bug_id)
+    if bug is None or bug.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
 
     comment = Comment(
@@ -229,13 +204,11 @@ async def add_comment(
         author_id=member.user_id,
         body=body.body,
     )
-    db.add(comment)
-    await db.flush()
+    await comment.insert()
 
     if bug.author_id != member.user_id:
         await create_notification(
-            db, bug.author_id, tenant_id, "comment.added",
+            bug.author_id, tenant_id, "comment.added",
             "bug", bug.id, f"New comment on bug: {bug.title}",
         )
-    await db.refresh(comment)
     return comment

@@ -2,15 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
-
-from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import timedelta
 
 from app.config import settings
 from app.models.password_reset_token import PasswordResetToken
-from app.models.refresh_token import RefreshToken
-from app.models.user import User
+from app.models.base import utcnow
+from app.repositories import AuthRepository, UserRepository
 from app.services.auth import hash_password
 from app.services.email_templates import render_template
 from app.services.mailer import send_email
@@ -20,23 +17,28 @@ def _hash_token(raw_token: str) -> str:
     return hashlib.sha256(raw_token.encode()).hexdigest()
 
 
-async def request_password_reset(db: AsyncSession, email: str) -> None:
-    result = await db.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
+async def request_password_reset(
+    email: str,
+    auth_repo: AuthRepository = None,
+    user_repo: UserRepository = None,
+) -> None:
+    if auth_repo is None:
+        auth_repo = AuthRepository()
+    if user_repo is None:
+        user_repo = UserRepository()
+
+    user = await user_repo.find_by_email(email)
     if user is None or user.password_hash is None:
         return
-
-    await db.execute(delete(PasswordResetToken).where(PasswordResetToken.user_id == user.id))
 
     raw_token = secrets.token_urlsafe(32)
     reset_token = PasswordResetToken(
         user_id=user.id,
         token_hash=_hash_token(raw_token),
-        expires_at=datetime.now(timezone.utc)
-        + timedelta(minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES),
+        expires_at=utcnow() + timedelta(minutes=settings.PASSWORD_RESET_TOKEN_EXPIRE_MINUTES),
     )
-    db.add(reset_token)
-    await db.flush()
+    # Atomic upsert: replace any existing token for this user
+    await auth_repo.replace_password_reset_token(user.id, reset_token)
 
     reset_url = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password/{raw_token}"
     context = {
@@ -57,33 +59,46 @@ async def request_password_reset(db: AsyncSession, email: str) -> None:
     )
 
 
-async def reset_password(db: AsyncSession, token: str, new_password: str) -> bool:
+async def reset_password(
+    token: str,
+    new_password: str,
+    auth_repo: AuthRepository = None,
+    user_repo: UserRepository = None,
+) -> bool:
+    if auth_repo is None:
+        auth_repo = AuthRepository()
+    if user_repo is None:
+        user_repo = UserRepository()
+
     token_hash = _hash_token(token)
-    result = await db.execute(
-        select(PasswordResetToken).where(PasswordResetToken.token_hash == token_hash)
-    )
-    reset_token = result.scalar_one_or_none()
-    if reset_token is None:
+    # Atomic find-and-delete: returns the doc only if it exists and hasn't expired
+    reset_doc = await auth_repo.find_and_delete_valid_reset_token(token_hash)
+    if reset_doc is None:
         return False
 
-    if reset_token.used_at is not None:
+    user_id = reset_doc.get("userId")
+    if user_id is None:
         return False
 
-    expires_at = reset_token.expires_at
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-    if expires_at < datetime.now(timezone.utc):
+    import uuid
+    from bson.binary import Binary, UuidRepresentation
+    try:
+        if isinstance(user_id, Binary):
+            uid = user_id.as_uuid(uuid_representation=UuidRepresentation.STANDARD)
+        else:
+            uid = uuid.UUID(str(user_id))
+    except (ValueError, AttributeError):
         return False
 
-    user_result = await db.execute(select(User).where(User.id == reset_token.user_id))
-    user = user_result.scalar_one_or_none()
+    user = await user_repo.find_by_id(uid)
     if user is None:
         return False
 
     user.password_hash = hash_password(new_password)
     user.email_verified = True
-    reset_token.used_at = datetime.now(timezone.utc)
+    await user_repo.save(user)
 
-    await db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id))
-    await db.flush()
+    # Revoke all refresh tokens for security (SEC-001)
+    await auth_repo.revoke_all_refresh_tokens(uid)
+
     return True

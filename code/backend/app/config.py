@@ -1,9 +1,12 @@
 from pydantic_settings import BaseSettings
 from pydantic import field_validator, model_validator
 
+_WEAK_SECRETS = {"change-me-in-production", "secret", "changeme", "supersecret"}
+
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/sddflow"
+    MONGODB_URL: str = "mongodb://localhost:27017/sddflow"
+    TESTING: bool = False
     JWT_SECRET: str = "change-me-in-production"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -26,6 +29,15 @@ class Settings(BaseSettings):
     MAIL_SMTP_USE_TLS: bool = True
     BREVO_API_KEY: str = ""
 
+    @field_validator("JWT_SECRET")
+    @classmethod
+    def validate_jwt_secret(cls, value: str) -> str:
+        if len(value) < 32:
+            raise ValueError("JWT_SECRET must be at least 32 characters")
+        if value in _WEAK_SECRETS:
+            raise ValueError("JWT_SECRET is too weak")
+        return value
+
     @field_validator("AUTH_COOKIE_SAMESITE")
     @classmethod
     def validate_cookie_samesite(cls, value: str) -> str:
@@ -44,7 +56,6 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def derive_frontend_url_from_domain(self):
-        # Keep backwards compatibility: FRONTEND_URL takes precedence.
         if not self.FRONTEND_URL and self.APP_DOMAIN:
             self.FRONTEND_URL = f"https://{self.APP_DOMAIN}"
         if self.AUTH_COOKIE_SAMESITE == "none" and not self.AUTH_COOKIE_SECURE:

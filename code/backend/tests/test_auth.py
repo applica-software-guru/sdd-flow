@@ -5,10 +5,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
 from app.main import app
 from app.models.password_reset_token import PasswordResetToken
 from app.models.refresh_token import RefreshToken
@@ -20,20 +17,12 @@ from app.services.auth import hash_password, verify_password
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _override_db(session: AsyncSession):
-    async def _get():
-        yield session
-    return _get
-
-
 @pytest.fixture
-async def auth_client(db_session: AsyncSession):
-    """Client with only db overridden -- no auth override (we test login/register)."""
-    app.dependency_overrides[get_db] = _override_db(db_session)
+async def auth_client():
+    """Client with no auth overrides — used for login/register tests."""
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
         yield ac
-    app.dependency_overrides.pop(get_db, None)
 
 
 # ---------------------------------------------------------------------------
@@ -57,23 +46,25 @@ async def test_register_success(auth_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_register_duplicate_email(db_session: AsyncSession, auth_client: AsyncClient):
-    email = f"dup-{uuid.uuid4().hex[:8]}@example.com"
+async def test_register_duplicate_email(auth_client: AsyncClient, unique_id: str):
+    email = f"dup-{unique_id}@example.com"
     user = User(
         email=email,
         display_name="Existing",
         password_hash=hash_password("pass"),
         email_verified=False,
     )
-    db_session.add(user)
-    await db_session.flush()
+    await user.insert()
 
-    resp = await auth_client.post("/api/v1/auth/register", json={
-        "email": email,
-        "password": "AnotherP@ss1",
-        "display_name": "Dup User",
-    })
-    assert resp.status_code == 409
+    try:
+        resp = await auth_client.post("/api/v1/auth/register", json={
+            "email": email,
+            "password": "AnotherP@ss1",
+            "display_name": "Dup User",
+        })
+        assert resp.status_code == 409
+    finally:
+        await user.delete()
 
 
 @pytest.mark.asyncio
@@ -91,43 +82,47 @@ async def test_register_invalid_email(auth_client: AsyncClient):
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_login_success(db_session: AsyncSession, auth_client: AsyncClient):
-    email = f"login-{uuid.uuid4().hex[:8]}@example.com"
+async def test_login_success(auth_client: AsyncClient, unique_id: str):
+    email = f"login-{unique_id}@example.com"
     user = User(
         email=email,
         display_name="Login User",
         password_hash=hash_password("MyPassword1!"),
         email_verified=False,
     )
-    db_session.add(user)
-    await db_session.flush()
+    await user.insert()
 
-    resp = await auth_client.post("/api/v1/auth/login", json={
-        "email": email,
-        "password": "MyPassword1!",
-    })
-    assert resp.status_code == 200
-    assert resp.json()["email"] == email
-    assert "access_token" in resp.cookies
+    try:
+        resp = await auth_client.post("/api/v1/auth/login", json={
+            "email": email,
+            "password": "MyPassword1!",
+        })
+        assert resp.status_code == 200
+        assert resp.json()["email"] == email
+        assert "access_token" in resp.cookies
+    finally:
+        await user.delete()
 
 
 @pytest.mark.asyncio
-async def test_login_wrong_password(db_session: AsyncSession, auth_client: AsyncClient):
-    email = f"wrongpw-{uuid.uuid4().hex[:8]}@example.com"
+async def test_login_wrong_password(auth_client: AsyncClient, unique_id: str):
+    email = f"wrongpw-{unique_id}@example.com"
     user = User(
         email=email,
         display_name="WP User",
         password_hash=hash_password("CorrectPassword1"),
         email_verified=False,
     )
-    db_session.add(user)
-    await db_session.flush()
+    await user.insert()
 
-    resp = await auth_client.post("/api/v1/auth/login", json={
-        "email": email,
-        "password": "WrongPassword",
-    })
-    assert resp.status_code == 401
+    try:
+        resp = await auth_client.post("/api/v1/auth/login", json={
+            "email": email,
+            "password": "WrongPassword",
+        })
+        assert resp.status_code == 401
+    finally:
+        await user.delete()
 
 
 @pytest.mark.asyncio
@@ -168,19 +163,18 @@ async def test_me_unauthenticated():
 
 @pytest.mark.asyncio
 async def test_forgot_password_creates_token_and_dispatches_email(
-    db_session: AsyncSession,
     auth_client: AsyncClient,
+    unique_id: str,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    email = f"forgot-{uuid.uuid4().hex[:8]}@example.com"
+    email = f"forgot-{unique_id}@example.com"
     user = User(
         email=email,
         display_name="Forgot User",
         password_hash=hash_password("OldPassword1!"),
         email_verified=True,
     )
-    db_session.add(user)
-    await db_session.flush()
+    await user.insert()
 
     calls = {"count": 0}
 
@@ -192,17 +186,17 @@ async def test_forgot_password_creates_token_and_dispatches_email(
 
     monkeypatch.setattr("app.services.password_reset.send_email", fake_send_email)
 
-    resp = await auth_client.post("/api/v1/auth/forgot-password", json={"email": email})
-    assert resp.status_code == 200
-    assert "If an account" in resp.json()["detail"]
-    assert calls["count"] == 1
+    try:
+        resp = await auth_client.post("/api/v1/auth/forgot-password", json={"email": email})
+        assert resp.status_code == 200
+        assert "If an account" in resp.json()["detail"]
+        assert calls["count"] == 1
 
-    token_result = await db_session.execute(
-        select(PasswordResetToken).where(PasswordResetToken.user_id == user.id)
-    )
-    reset_token = token_result.scalar_one_or_none()
-    assert reset_token is not None
-    assert reset_token.used_at is None
+        reset_token = await PasswordResetToken.find_one({"userId": user.id})
+        assert reset_token is not None
+    finally:
+        await PasswordResetToken.find({"userId": str(user.id)}).delete()
+        await user.delete()
 
 
 @pytest.mark.asyncio
@@ -217,20 +211,19 @@ async def test_forgot_password_unknown_email_returns_generic_message(auth_client
 
 @pytest.mark.asyncio
 async def test_reset_password_success(
-    db_session: AsyncSession,
     auth_client: AsyncClient,
+    unique_id: str,
 ):
     from app.services.password_reset import _hash_token
 
-    email = f"reset-{uuid.uuid4().hex[:8]}@example.com"
+    email = f"reset-{unique_id}@example.com"
     user = User(
         email=email,
         display_name="Reset User",
         password_hash=hash_password("OldPassword1!"),
         email_verified=False,
     )
-    db_session.add(user)
-    await db_session.flush()
+    await user.insert()
 
     raw_token = f"raw-{uuid.uuid4().hex}"
     reset_token = PasswordResetToken(
@@ -238,38 +231,41 @@ async def test_reset_password_success(
         token_hash=_hash_token(raw_token),
         expires_at=datetime.now(timezone.utc) + timedelta(minutes=20),
     )
-    db_session.add(reset_token)
+    await reset_token.insert()
 
     refresh = RefreshToken(
         user_id=user.id,
         token_hash=f"refresh-{uuid.uuid4().hex}",
         expires_at=datetime.now(timezone.utc) + timedelta(days=1),
     )
-    db_session.add(refresh)
-    await db_session.flush()
+    await refresh.insert()
 
-    resp = await auth_client.post(
-        "/api/v1/auth/reset-password",
-        json={"token": raw_token, "new_password": "NewPassword1!"},
-    )
-    assert resp.status_code == 200
+    try:
+        resp = await auth_client.post(
+            "/api/v1/auth/reset-password",
+            json={"token": raw_token, "new_password": "NewPassword1!"},
+        )
+        assert resp.status_code == 200
 
-    await db_session.refresh(user)
-    assert user.password_hash is not None
-    assert verify_password("NewPassword1!", user.password_hash)
-    assert not verify_password("OldPassword1!", user.password_hash)
-    assert user.email_verified is True
+        # Reload user from DB
+        updated_user = await User.get(user.id)
+        assert updated_user is not None
+        assert updated_user.password_hash is not None
+        assert verify_password("NewPassword1!", updated_user.password_hash)
+        assert not verify_password("OldPassword1!", updated_user.password_hash)
+        assert updated_user.email_verified is True
 
-    token_result = await db_session.execute(
-        select(PasswordResetToken).where(PasswordResetToken.id == reset_token.id)
-    )
-    updated_token = token_result.scalar_one()
-    assert updated_token.used_at is not None
+        # Token should have been deleted (atomic find-and-delete)
+        used_token = await PasswordResetToken.get(reset_token.id)
+        assert used_token is None
 
-    refresh_result = await db_session.execute(
-        select(RefreshToken).where(RefreshToken.user_id == user.id)
-    )
-    assert refresh_result.scalars().first() is None
+        # All refresh tokens should be revoked
+        remaining = await RefreshToken.find({"userId": str(user.id)}).to_list()
+        assert remaining == []
+    finally:
+        await PasswordResetToken.find({"userId": str(user.id)}).delete()
+        await RefreshToken.find({"userId": str(user.id)}).delete()
+        await user.delete()
 
 
 @pytest.mark.asyncio

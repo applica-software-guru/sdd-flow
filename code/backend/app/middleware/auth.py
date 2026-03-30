@@ -1,24 +1,19 @@
+import hashlib
 import uuid
-from datetime import datetime, timezone
 from typing import Callable
 
 from fastapi import Cookie, Depends, Header, HTTPException, Path, status
 from jose import JWTError, jwt
-from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.db.session import get_db
 from app.models.api_key import ApiKey
 from app.models.project import Project
 from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
-
-import hashlib
+from app.models.base import utcnow
 
 
 async def get_current_user(
-    db: AsyncSession = Depends(get_db),
     access_token: str | None = Cookie(default=None),
 ) -> User:
     if not access_token:
@@ -42,8 +37,7 @@ async def get_current_user(
             detail="Invalid token",
         )
 
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
+    user = await User.get(str(user_id))
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -55,15 +49,10 @@ async def get_current_user(
 async def get_current_tenant_member(
     tenant_id: uuid.UUID = Path(...),
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
 ) -> TenantMember:
-    result = await db.execute(
-        select(TenantMember).where(
-            TenantMember.tenant_id == tenant_id,
-            TenantMember.user_id == current_user.id,
-        )
+    member = await TenantMember.find_one(
+        {"tenantId": tenant_id, "userId": current_user.id}
     )
-    member = result.scalar_one_or_none()
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -94,7 +83,6 @@ class ApiKeyContext:
 
 
 async def get_api_key_context(
-    db: AsyncSession = Depends(get_db),
     authorization: str | None = Header(default=None),
 ) -> ApiKeyContext:
     """Like get_api_key_project but also returns the user who created the key."""
@@ -106,27 +94,17 @@ async def get_api_key_context(
     raw_key = authorization[7:]
     key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
 
-    result = await db.execute(
-        select(ApiKey).where(
-            ApiKey.key_hash == key_hash,
-            ApiKey.revoked_at.is_(None),
-        )
-    )
-    api_key = result.scalar_one_or_none()
+    api_key = await ApiKey.find_one({"keyHash": key_hash, "revokedAt": None})
     if api_key is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or revoked API key",
         )
 
-    await db.execute(
-        update(ApiKey)
-        .where(ApiKey.id == api_key.id)
-        .values(last_used_at=datetime.now(timezone.utc))
-    )
+    # Update last_used_at via Beanie partial update
+    await api_key.set({ApiKey.last_used_at: utcnow()})
 
-    result = await db.execute(select(Project).where(Project.id == api_key.project_id))
-    project = result.scalar_one_or_none()
+    project = await Project.get(api_key.project_id)
     if project is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -136,7 +114,6 @@ async def get_api_key_context(
 
 
 async def get_api_key_project(
-    db: AsyncSession = Depends(get_db),
     authorization: str | None = Header(default=None),
 ) -> Project:
     if not authorization or not authorization.startswith("Bearer "):
@@ -147,28 +124,17 @@ async def get_api_key_project(
     raw_key = authorization[7:]
     key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
 
-    result = await db.execute(
-        select(ApiKey).where(
-            ApiKey.key_hash == key_hash,
-            ApiKey.revoked_at.is_(None),
-        )
-    )
-    api_key = result.scalar_one_or_none()
+    api_key = await ApiKey.find_one({"keyHash": key_hash, "revokedAt": None})
     if api_key is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or revoked API key",
         )
 
-    # Update last_used_at
-    await db.execute(
-        update(ApiKey)
-        .where(ApiKey.id == api_key.id)
-        .values(last_used_at=datetime.now(timezone.utc))
-    )
+    # Update last_used_at via Beanie partial update
+    await api_key.set({ApiKey.last_used_at: utcnow()})
 
-    result = await db.execute(select(Project).where(Project.id == api_key.project_id))
-    project = result.scalar_one_or_none()
+    project = await Project.get(api_key.project_id)
     if project is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

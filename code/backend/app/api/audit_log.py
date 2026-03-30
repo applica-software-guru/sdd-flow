@@ -1,16 +1,14 @@
 import math
 import uuid
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.session import get_db
 from app.middleware.auth import get_current_tenant_member
 from app.models.audit_log_entry import AuditLogEntry
 from app.models.tenant_member import TenantMember
-from datetime import datetime
+from app.repositories import AuditRepository
 
 
 class AuditLogResponse(BaseModel):
@@ -44,19 +42,22 @@ async def list_audit_log(
     page_size: int = Query(50, ge=1, le=200),
     event_type: str | None = Query(None),
     member: TenantMember = Depends(get_current_tenant_member),
-    db: AsyncSession = Depends(get_db),
 ):
-    query = select(AuditLogEntry).where(AuditLogEntry.tenant_id == tenant_id)
-    count_query = select(func.count()).select_from(AuditLogEntry).where(AuditLogEntry.tenant_id == tenant_id)
-
     if event_type is not None:
-        query = query.where(AuditLogEntry.event_type == event_type)
-        count_query = count_query.where(AuditLogEntry.event_type == event_type)
+        # Filter by exact event_type
+        query: dict = {"tenantId": tenant_id, "eventType": event_type}
+    else:
+        query = {"tenantId": tenant_id}
 
-    total = (await db.execute(count_query)).scalar() or 0
-    query = query.order_by(AuditLogEntry.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
-    result = await db.execute(query)
-    items = result.scalars().all()
+    total = await AuditLogEntry.find(query).count()
+    skip = (page - 1) * page_size
+    items = (
+        await AuditLogEntry.find(query)
+        .sort([("createdAt", -1)])
+        .skip(skip)
+        .limit(page_size)
+        .to_list()
+    )
 
     return AuditLogListResponse(
         items=[AuditLogResponse.model_validate(i) for i in items],

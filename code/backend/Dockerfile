@@ -17,8 +17,6 @@ WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/app /app/app
-COPY --from=builder /app/alembic /app/alembic
-COPY --from=builder /app/alembic.ini /app/alembic.ini
 COPY --from=builder /app/entrypoint.sh /app/entrypoint.sh
 
 ENV PATH="/app/.venv/bin:$PATH"

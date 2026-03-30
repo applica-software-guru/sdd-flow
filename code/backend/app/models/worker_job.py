@@ -1,12 +1,11 @@
 import enum
-import uuid
+from typing import Optional
 from datetime import datetime
+from pymongo import IndexModel
+from pydantic import Field
+from uuid import UUID
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Integer, String, Text, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.db.base import Base, UUIDMixin, TimestampMixin
+from app.models.base import BaseDocument
 
 
 class JobStatus(str, enum.Enum):
@@ -19,53 +18,31 @@ class JobStatus(str, enum.Enum):
 
 
 class JobType(str, enum.Enum):
+    apply = "apply"
     enrich = "enrich"
+    sync = "sync"
     build = "build"
     custom = "custom"
 
 
-class WorkerJob(UUIDMixin, TimestampMixin, Base):
-    __tablename__ = "worker_jobs"
-    __table_args__ = (
-        Index("ix_worker_jobs_project_status", "project_id", "status"),
-    )
+class WorkerJob(BaseDocument):
+    project_id: UUID = Field(alias="projectId")
+    worker_id: Optional[UUID] = Field(default=None, alias="workerId")
+    entity_type: Optional[str] = Field(default=None, alias="entityType")
+    entity_id: Optional[UUID] = Field(default=None, alias="entityId")
+    job_type: JobType = Field(alias="jobType")
+    status: JobStatus = JobStatus.queued
+    prompt: str = ""
+    agent: str = "claude"
+    model: Optional[str] = None
+    exit_code: Optional[int] = Field(default=None, alias="exitCode")
+    created_by: UUID = Field(alias="createdBy")
+    started_at: Optional[datetime] = Field(default=None, alias="startedAt")
+    completed_at: Optional[datetime] = Field(default=None, alias="completedAt")
+    changed_files: list[str] = Field(default_factory=list, alias="changedFiles")
 
-    project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
-    )
-    worker_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("workers.id", ondelete="SET NULL"), nullable=True
-    )
-    entity_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    entity_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
-    status: Mapped[JobStatus] = mapped_column(
-        Enum(JobStatus, name="job_status_enum"),
-        default=JobStatus.queued,
-        nullable=False,
-    )
-    job_type: Mapped[JobType] = mapped_column(
-        Enum(JobType, name="job_type_enum"),
-        default=JobType.build,
-        nullable=False,
-    )
-    prompt: Mapped[str] = mapped_column(Text, nullable=False)
-    agent: Mapped[str] = mapped_column(String(100), default="claude", nullable=False)
-    model: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    exit_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    created_by: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
-    )
-    started_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    changed_files: Mapped[list | None] = mapped_column(JSONB, nullable=True)
-
-    project: Mapped["Project"] = relationship("Project", back_populates="worker_jobs")
-    worker: Mapped["Worker | None"] = relationship("Worker", back_populates="jobs")
-    creator: Mapped["User"] = relationship("User", foreign_keys=[created_by])
-    messages: Mapped[list["WorkerJobMessage"]] = relationship(
-        "WorkerJobMessage", back_populates="job", order_by="WorkerJobMessage.sequence"
-    )
+    class Settings:
+        name = "worker_jobs"
+        indexes = [
+            IndexModel([("projectId", 1), ("status", 1)]),
+        ]
