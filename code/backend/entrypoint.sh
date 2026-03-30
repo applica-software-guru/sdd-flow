@@ -11,7 +11,7 @@ require_var() {
   fi
 }
 
-require_var DATABASE_URL
+require_var MONGODB_URL
 require_var JWT_SECRET
 
 if [ -z "${FRONTEND_URL:-}" ] && [ -n "${APP_DOMAIN:-}" ]; then
@@ -30,12 +30,6 @@ fi
 if [ -n "$missing" ]; then
   echo "[validate-env] Missing required runtime variables:$missing" >&2
   exit 1
-fi
-
-RUN_DB_MIGRATIONS_ON_START="${RUN_DB_MIGRATIONS_ON_START:-true}"
-if [ "$RUN_DB_MIGRATIONS_ON_START" = "true" ]; then
-  echo "[startup] Applying database migrations..."
-  alembic upgrade head
 fi
 
 PORT_VALUE="${PORT:-8000}"
