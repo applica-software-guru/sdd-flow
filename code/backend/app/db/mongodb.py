@@ -1,3 +1,4 @@
+import certifi
 from beanie import init_beanie
 from pymongo import AsyncMongoClient
 
@@ -22,6 +23,7 @@ from app.models.worker_job_message import WorkerJobMessage
 
 
 async def init_db(mongodb_url: str, default_db: str = "sdd"):
+    tls_kwargs = {"tlsCAFile": certifi.where()} if mongodb_url.startswith("mongodb+srv://") else {}
     client = AsyncMongoClient(
         mongodb_url,
         tz_aware=True,
@@ -29,6 +31,7 @@ async def init_db(mongodb_url: str, default_db: str = "sdd"):
         minPoolSize=5,
         serverSelectionTimeoutMS=5000,
         connectTimeoutMS=3000,
+        **tls_kwargs,
     )
     try:
         db = client.get_default_database()
