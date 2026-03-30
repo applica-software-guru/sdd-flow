@@ -41,6 +41,7 @@ jobs:
       - name: Run tests
         env:
           MONGODB_URL: mongodb://localhost:27017/sddtest
+          JWT_SECRET: ci-test-secret-key-not-used-in-production-32chars
         run: uv run pytest
 
   frontend-tests:
