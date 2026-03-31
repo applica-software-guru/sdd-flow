@@ -207,6 +207,25 @@ async def list_invitations(
     ]
 
 
+@router.delete("/{tenant_id}/invitations/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def cancel_invitation(
+    tenant_id: uuid.UUID,
+    invitation_id: uuid.UUID,
+    member: TenantMember = Depends(require_role(MemberRole.owner, MemberRole.admin)),
+):
+    tenant_repo = TenantRepository()
+    invitation = await tenant_repo.find_invitation_by_id(invitation_id)
+    if invitation is None or invitation.tenant_id != tenant_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invitation not found")
+    if invitation.accepted_at is not None:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invitation already accepted")
+    await invitation.delete()
+    await log_event(
+        tenant_id, member.user_id, "invitation.cancelled", "invitation", invitation_id,
+        details={"email": invitation.email},
+    )
+
+
 @router.get("/invitations/{token}/verify")
 async def verify_invitation(
     token: str,
