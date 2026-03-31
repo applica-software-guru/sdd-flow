@@ -2,8 +2,8 @@
 title: "API Interfaces"
 status: synced
 author: ""
-last-modified: "2026-03-26T12:00:00.000Z"
-version: "1.9"
+last-modified: "2026-03-31T00:00:00.000Z"
+version: "2.0"
 ---
 
 # API Interfaces
@@ -178,6 +178,17 @@ Validation and behavior:
 
 - Returns `409` if invited email already belongs to an existing tenant member
 - Triggers invitation email delivery containing acceptance link generated from `FRONTEND_URL`
+
+### DELETE /tenants/:tenant_id/invitations/:invitation_id
+
+Cancel a pending invitation. Owner or Admin only.
+
+**Response:** `204`
+
+Validation and behavior:
+
+- Returns `404` if the invitation does not exist or belongs to a different tenant
+- Returns `400` if the invitation has already been accepted (use member removal instead)
 
 ### POST /tenants/invitations/:token/accept
 

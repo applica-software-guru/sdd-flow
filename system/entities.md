@@ -2,8 +2,8 @@
 title: "Data Entities"
 status: synced
 author: ""
-last-modified: "2026-03-29T00:00:00.000Z"
-version: "1.6"
+last-modified: "2026-03-31T00:00:00.000Z"
+version: "1.7"
 ---
 
 # Data Entities
@@ -215,7 +215,7 @@ Immutable record of a system event. Inherits `ImmutableDocument` — no `updated
 | id | UUID | Primary key |
 | tenant_id | UUID | Reference → Tenant |
 | user_id | UUID? | Reference → User (null for system events) |
-| event_type | string | e.g. `cr.created`, `bug.status_changed` |
+| event_type | string | e.g. `cr.created`, `bug.status_changed`, `invitation.created`, `invitation.cancelled` |
 | entity_type | string? | e.g. `change_request`, `bug`, `project` |
 | entity_id | UUID? | Reference to the affected entity |
 | details | object | Event-specific data (native MongoDB document) |

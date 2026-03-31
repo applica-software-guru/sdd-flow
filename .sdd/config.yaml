@@ -1,1 +1,4 @@
 description: This project contains a basic platform (backend/frontend) to manage sdd cr/bugs for one or more project. I want to implement a basic UI using ReactJS+vite+tailwind+react-query with everything under hooks and a backend using python, uv and uvicorn to deploy the app.  It should provide basic authentication or oauth (google ) ) and many tenant with many projects
+remote:
+  api-key: sdd_nTFGAOAT5OM6PtRJEO2GSxRrFV6AhU3mMx_bw0VZYDQ
+  url: https://sdd.applica.guru/api/v1

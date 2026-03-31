@@ -2,8 +2,8 @@
 title: "Change Request Management"
 status: synced
 author: ""
-last-modified: "2026-03-24T00:00:00.000Z"
-version: "1.1"
+last-modified: "2026-03-31T00:00:00.000Z"
+version: "1.2"
 ---
 
 # Change Request Management
@@ -42,7 +42,8 @@ draft → approved → applied → closed
 
 - List CRs with filters: status, author, date range
 - Search by title or body text
-- Sort by created date, last modified, status
+- Sort by progressive number descending by default (newest first); also supports created date, last modified, status
+- Date fields display both date and time
 
 ### CR Detail View
 

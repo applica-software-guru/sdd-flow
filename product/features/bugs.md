@@ -2,8 +2,8 @@
 title: "Bug Tracking"
 status: synced
 author: ""
-last-modified: "2026-03-24T00:00:00.000Z"
-version: "1.1"
+last-modified: "2026-03-31T00:00:00.000Z"
+version: "1.2"
 ---
 
 # Bug Tracking
@@ -42,7 +42,8 @@ open → in-progress → resolved → closed
 
 - Filter by status, severity, author, assignee, date range
 - Search by title or body text
-- Sort by severity, created date, last modified
+- Sort by progressive number descending by default (newest first); also supports severity, created date, last modified
+- Date fields display both date and time
 
 ### Bug Detail View
 
