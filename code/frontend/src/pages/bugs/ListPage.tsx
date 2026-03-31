@@ -171,7 +171,7 @@ export default function ListPage() {
                       {'--'}
                     </td>
                     <td className="hidden px-6 py-4 text-sm text-slate-500 lg:table-cell dark:text-slate-400">
-                      {new Date(bug.created_at).toLocaleDateString()}
+                      {new Date(bug.created_at).toLocaleString()}
                     </td>
                   </tr>
                 ))}
