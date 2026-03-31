@@ -2,8 +2,8 @@
 title: "Multi-Tenancy & Organizations"
 status: synced
 author: ""
-last-modified: "2026-03-24T00:00:00.000Z"
-version: "1.1"
+last-modified: "2026-03-31T00:00:00.000Z"
+version: "1.2"
 ---
 
 # Multi-Tenancy & Organizations
@@ -36,6 +36,7 @@ A tenant represents an organization. Each tenant has its own projects, members, 
 - Acceptance flow is completed from a dedicated frontend route
 - Invite can be accepted only by an authenticated user whose email matches the invited email
 - Accepted invites create tenant membership exactly once and are marked as consumed
+- Owner or Admin can cancel a pending invitation at any time before it is accepted; the acceptance link becomes immediately invalid
 
 ### Invitation Error States
 
@@ -44,6 +45,7 @@ A tenant represents an organization. Each tenant has its own projects, members, 
 - Already accepted tokens cannot be reused
 - Token acceptance with a different authenticated email is forbidden
 - Invalid or unknown tokens return not found
+- Attempting to accept a cancelled invitation returns not found
 
 ### Tenant Switching
 
@@ -56,7 +58,7 @@ A tenant represents an organization. Each tenant has its own projects, members, 
 - Name and slug
 - Default role for new members (Member or Viewer)
 - Billing information (SaaS mode only)
-- Invitation management with clear success/error feedback
+- Invitation management: send, cancel pending invitations, with clear success/error feedback
 
 ## Agent Notes
 

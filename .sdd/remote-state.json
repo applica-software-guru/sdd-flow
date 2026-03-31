@@ -1,0 +1,286 @@
+{
+  "documents": {
+    "product/features/api-keys.md": {
+      "remoteId": "3559424a-c07e-44dd-aa44-07db54c9a5bd",
+      "remoteVersion": 1,
+      "localHash": "a8f46a707e90aa099c53b5b7fa2c30c169e5c3ff326af629bb2c09888c5412cf",
+      "lastSynced": "2026-03-30T21:55:52.087Z"
+    },
+    "product/features/audit-log.md": {
+      "remoteId": "1c089888-e818-45ee-8121-edcd8ecdfc49",
+      "remoteVersion": 1,
+      "localHash": "6d2f2f9c6b1b89e4a96d7c88f902adc3bddd040b8d2e7e1f24264e9f049408e0",
+      "lastSynced": "2026-03-30T21:55:52.088Z"
+    },
+    "product/features/auth.md": {
+      "remoteId": "e1f8b354-c406-47bb-a783-950de105b75c",
+      "remoteVersion": 1,
+      "localHash": "0da0b3aa5dc1fdf947782c16cdc6902be1412db3af0ea17c144ad045ea948276",
+      "lastSynced": "2026-03-30T21:55:52.088Z"
+    },
+    "product/features/bugs.md": {
+      "remoteId": "0f24ceeb-e9b6-4d50-aa57-1da73630e388",
+      "remoteVersion": 1,
+      "localHash": "7f4f2b9c087723118314f852f364c361e999eb319a2cf9b9456e813d6881546d",
+      "lastSynced": "2026-03-30T21:55:52.088Z"
+    },
+    "product/features/change-requests.md": {
+      "remoteId": "f21ab635-8b73-49ed-9cd0-42b4c12610a9",
+      "remoteVersion": 1,
+      "localHash": "f33cbd0c264476bfd750b02eeb01b98c1f296cbb669fa2bdbebc2e6bfe1e7731",
+      "lastSynced": "2026-03-30T21:55:52.088Z"
+    },
+    "product/features/dashboard.md": {
+      "remoteId": "a9fd0d3a-49f7-43be-9414-5d5c5ef76e76",
+      "remoteVersion": 1,
+      "localHash": "aabf77924c7a594a61c296c710d5e072e1809ae73cdf63928cf5b86a618d1d49",
+      "lastSynced": "2026-03-30T21:55:52.088Z"
+    },
+    "product/features/docker-images-deployment.md": {
+      "remoteId": "448dc615-c928-42c5-8558-87d7a2ad41b2",
+      "remoteVersion": 1,
+      "localHash": "23efbd50fe9b0185a98ebf65c155523d579b5b302848a70d0f74b6822a5eaafe",
+      "lastSynced": "2026-03-30T21:55:52.088Z"
+    },
+    "product/features/notifications.md": {
+      "remoteId": "9a297012-18a2-40ba-b6c9-d3d5c3c2d30e",
+      "remoteVersion": 1,
+      "localHash": "01111d74f2f14bc4f0e3665d675e367bb51ee6c1d64f90b0a2c99b282681759a",
+      "lastSynced": "2026-03-30T21:55:52.088Z"
+    },
+    "product/features/projects.md": {
+      "remoteId": "99d9a8dd-b3ca-40ec-9ee6-1e1cc502c283",
+      "remoteVersion": 1,
+      "localHash": "df684e160c2b219ca0eb55400bb4e495e0db13e8ea055179992c55e68ee64d5e",
+      "lastSynced": "2026-03-30T21:55:52.089Z"
+    },
+    "product/features/remote-worker.md": {
+      "remoteId": "f0514dff-39a9-4b15-91e1-ecbd1aebae3d",
+      "remoteVersion": 1,
+      "localHash": "2644f39b075032970ad384265fae4654390b7d2e62a9f6d3c06a0b8cf51d5baf",
+      "lastSynced": "2026-03-30T21:55:52.089Z"
+    },
+    "product/features/sdd-docs.md": {
+      "remoteId": "ff0963ab-308a-4d06-8a03-fb3b3411287f",
+      "remoteVersion": 1,
+      "localHash": "5a96777cbdf5822351d7bfa974850942b92a575fadd8925731dc30c89a10b3d0",
+      "lastSynced": "2026-03-30T21:55:52.089Z"
+    },
+    "product/features/search.md": {
+      "remoteId": "06ac40cd-5e15-4628-bdd0-954f3c980f74",
+      "remoteVersion": 1,
+      "localHash": "b26ff9934a946367da5a9de0e84b9e03df0ad1978c0616a4f8984995e3359a04",
+      "lastSynced": "2026-03-30T21:55:52.089Z"
+    },
+    "product/features/tenants.md": {
+      "remoteId": "d7f6ef30-c60c-4a6b-b88a-a8038ef71e8b",
+      "remoteVersion": 2,
+      "localHash": "719db788a4157a3dc9270dab79aa5e5731ed64972c659fb5cc8612f0ed26dcb7",
+      "lastSynced": "2026-03-31T11:04:21.940Z"
+    },
+    "product/features/theme.md": {
+      "remoteId": "0f5634b7-6649-4982-a446-bf6f88f7b360",
+      "remoteVersion": 1,
+      "localHash": "a7218997d1f523e156c08574a3dc8cfd2fd420a2c494ac9c382eb3a37e442d68",
+      "lastSynced": "2026-03-30T21:55:52.089Z"
+    },
+    "product/features/toasts.md": {
+      "remoteId": "cd7e9394-2ba5-47ec-80cd-f0925045bd4c",
+      "remoteVersion": 1,
+      "localHash": "fadd50dfa68df5ec8e5a6e74ffb33f388748719514a14f269cc5f079bb312f4e",
+      "lastSynced": "2026-03-30T21:55:52.089Z"
+    },
+    "product/users.md": {
+      "remoteId": "eacc1d9d-487f-4fae-9d1b-7731f8507a16",
+      "remoteVersion": 1,
+      "localHash": "a529690fda8155dfc894c7286c48e4b35591aee7fa2602e9ed966ad024e4e676",
+      "lastSynced": "2026-03-30T21:55:52.090Z"
+    },
+    "product/vision.md": {
+      "remoteId": "a8064bed-14a0-4dab-9a44-ae3141ef0ce7",
+      "remoteVersion": 1,
+      "localHash": "1006e025be4265039d3e668dd10be863a3aaccd5c91162181d68416055ac3dbb",
+      "lastSynced": "2026-03-30T21:55:52.090Z"
+    },
+    "system/architecture.md": {
+      "remoteId": "d21da59b-a42c-40a7-bdd6-da06536b3759",
+      "remoteVersion": 1,
+      "localHash": "18ff8a5fda5d20c02c4b863b59af639d60a1c2e37924db1e30e427de4dc45380",
+      "lastSynced": "2026-03-30T21:55:52.090Z"
+    },
+    "system/ci-pipeline.md": {
+      "remoteId": "50e72fd7-5f17-432a-b683-ad8be7b1730d",
+      "remoteVersion": 1,
+      "localHash": "751ab7aa1fd5a66da74df1ffe441648332cc79bad69fe7fb1633dab30086ee5e",
+      "lastSynced": "2026-03-30T21:55:52.090Z"
+    },
+    "system/entities.md": {
+      "remoteId": "580cb027-2b26-44ff-9585-52ee1d8162a6",
+      "remoteVersion": 2,
+      "localHash": "3c241d473ed69ed43c5e90faa8bfb3ad3942c2321e171ff5ba51381dfded6623",
+      "lastSynced": "2026-03-31T11:04:21.947Z"
+    },
+    "system/interfaces.md": {
+      "remoteId": "6cae2fee-4f99-4618-87f4-30b909772159",
+      "remoteVersion": 2,
+      "localHash": "a628df31149e1c41efabd9bd95fbdab04f84c9b00ec9f4d61ae8a36696f080a6",
+      "lastSynced": "2026-03-31T11:04:21.947Z"
+    },
+    "system/tech-stack.md": {
+      "remoteId": "f1cbc84d-6d73-44d7-b540-94e4c705dc2f",
+      "remoteVersion": 1,
+      "localHash": "aa50c3b7e84ac0f5c8b69f4089efae1e066db840391a0c56e7e8e7bed09f8ec2",
+      "lastSynced": "2026-03-30T21:55:52.091Z"
+    }
+  },
+  "changeRequests": {
+    "change-requests/CR-001-seed-admin-user.md": {
+      "remoteId": "06425ff2-b909-458c-9b3b-ac8399b0e342",
+      "localHash": "da110b66ea892541e388883f39b1cc037444f7bdf09a3ba0d62646cdcb13ce80",
+      "lastSynced": "2026-03-30T21:55:53.026Z"
+    },
+    "change-requests/CR-002-dark-mode-toggle.md": {
+      "remoteId": "5d7a1b54-e0cb-4714-ae7e-c41bd0784c66",
+      "localHash": "ad566779e492d5fde5edafb35b03486c7cc8c158f166834e078fd689a98cc35c",
+      "lastSynced": "2026-03-30T21:55:53.027Z"
+    },
+    "change-requests/CR-003-mobile-hamburger-menu.md": {
+      "remoteId": "ef4d921f-baea-4987-9fab-a132636b7264",
+      "localHash": "8e523d01a6baddbea85741d53ae8bb1fe1bf1fe2752fbb1254cddfa05c700952",
+      "lastSynced": "2026-03-30T21:55:53.027Z"
+    },
+    "change-requests/CR-004-toast-notifications.md": {
+      "remoteId": "c33ad0d7-ce55-4423-8652-0435788793bf",
+      "localHash": "ca88de1b15057f556e5fcaff08b33e6410cbfee3fa1a3b5c9bb818ce2cf72314",
+      "lastSynced": "2026-03-30T21:55:53.027Z"
+    },
+    "change-requests/CR-005-ci-testing-pipeline.md": {
+      "remoteId": "e7c77188-5e7a-4c4c-aa61-198260d0eda1",
+      "localHash": "1bba0159fb69ebb7bc5444d4e2e8bf5f808c0e720582ee72b83ca97925654c41",
+      "lastSynced": "2026-03-30T21:55:53.027Z"
+    },
+    "change-requests/CR-006-global-search-all-entities.md": {
+      "remoteId": "fca1fb3b-4dae-4f8b-8af1-3ee0c9256422",
+      "localHash": "c65ca96755ec9203ef206ba56626720c071f8964a0b10f3d6070bd9619531134",
+      "lastSynced": "2026-03-30T21:55:53.027Z"
+    },
+    "change-requests/CR-007-draft-state-management.md": {
+      "remoteId": "82b6bdca-765e-447f-aa39-76c9456f7603",
+      "localHash": "db2f1fb2e7dbf0c1a0289089f833a39bcee1e56c10123c5e7cbcc625920540fc",
+      "lastSynced": "2026-03-30T21:55:53.028Z"
+    },
+    "change-requests/CR-008-parametric-docker-image-registry.md": {
+      "remoteId": "1b8daea3-1ff2-4a8c-acfc-a4b9a68ae6fc",
+      "localHash": "f79740008540c1ec2de127de7e5602bb842084e64a2aaf1710f12659b86cf992",
+      "lastSynced": "2026-03-30T21:55:53.028Z"
+    },
+    "change-requests/CR-009-rich-markdown-viewer-for-docs-crs-and-bugs.md": {
+      "remoteId": "dab0c91d-ec5e-4231-a5f0-6edc8e133d72",
+      "localHash": "7583432baaff71b23bc6c180321558913b2e6bd8a8320f2f7542cbced9c8df2c",
+      "lastSynced": "2026-03-30T21:55:53.028Z"
+    },
+    "change-requests/CR-010-fix-cli-push-docs-missinggreenlet-500.md": {
+      "remoteId": "b2b2c2b9-30b4-47f6-86c3-ed948584f5f6",
+      "localHash": "ba01240c8b88ab99c51e2a6bc719346ebfb0cdb2509f89762047f40a9fe9e3a3",
+      "lastSynced": "2026-03-30T21:55:53.028Z"
+    },
+    "change-requests/CR-011-cli-sync-path-and-status-preservation.md": {
+      "remoteId": "59d27a0c-dc3e-4263-bdfc-5e5b7875c93b",
+      "localHash": "b17455cea7c1cc0a81c99250173d06fa5a51f0edc106d68df9353654e8612cb5",
+      "lastSynced": "2026-03-30T21:55:53.028Z"
+    },
+    "change-requests/CR-012-project-reset-api.md": {
+      "remoteId": "5a4991a3-f09c-4f82-b4c2-34f604f47484",
+      "localHash": "b69560ca856fe79be2f679b7b3e0a3deac3a6d3ff85c1389bac75fcd7fbc53ae",
+      "lastSynced": "2026-03-30T21:55:53.028Z"
+    },
+    "change-requests/CR-013-project-context-navigation-clarity.md": {
+      "remoteId": "1ad37961-7c76-475e-97b8-eeb037517383",
+      "localHash": "7af62a4fa6958a655975eae52339ea0c327e79a2ed3bf563b60eb1d582eb4ce8",
+      "lastSynced": "2026-03-30T21:55:53.029Z"
+    },
+    "change-requests/CR-014-bidirectional-delete-sync.md": {
+      "remoteId": "79c286e3-6f62-45d5-9217-0c0615e2c28f",
+      "localHash": "5faa781932784d69004bdd1a2af6eaa7e261f397a47e1d7642b790c9da09e015",
+      "lastSynced": "2026-03-30T21:55:53.029Z"
+    },
+    "change-requests/CR-015-hierarchical-document-navigator.md": {
+      "remoteId": "5410cd92-94cb-4d01-b58c-14033f87a33c",
+      "localHash": "ee7d208acc2f4bca748b1e85668c68432dafbb3daa5207ed6f4a602a9ad6231d",
+      "lastSynced": "2026-03-30T21:55:53.029Z"
+    },
+    "change-requests/CR-016-frontend-pages-folder-organization.md": {
+      "remoteId": "f1d34445-5087-4e0d-bfa4-9abd2dfed339",
+      "localHash": "47b74bcf0ff121369bfc2ab67f639053699e7ee988c687be09c13611e18eb83a",
+      "lastSynced": "2026-03-30T21:55:53.029Z"
+    },
+    "change-requests/CR-017-release-version-alignment-with-public-docker-image.md": {
+      "remoteId": "aed02925-f923-40f7-b51a-aa81b3e61c80",
+      "localHash": "2f470fd0fcc7209c18fb5f2a583107b0f35442c28f275a26430349b8e5fce779",
+      "lastSynced": "2026-03-30T21:55:53.029Z"
+    },
+    "change-requests/CR-018-complete-tenant-invitation-email-flow.md": {
+      "remoteId": "fe22560f-9704-46e8-97d4-633ebbd3297f",
+      "localHash": "97df1ace4de28cf04ed722ffa9abb18ac9c4a34065a5d02c5474dfd74af5c05c",
+      "lastSynced": "2026-03-30T21:55:53.029Z"
+    },
+    "change-requests/CR-019-progressive-and-slug-for-crs-and-bugs.md": {
+      "remoteId": "f616df29-ae7f-4507-8657-5928d86a8576",
+      "localHash": "334f0f7ab9de11b688e4995cd3c123635d3236ee5c4af3b19811cba07428018c",
+      "lastSynced": "2026-03-30T21:55:53.029Z"
+    },
+    "change-requests/CR-020-remote-worker.md": {
+      "remoteId": "3e6e22a1-e822-45a8-bae2-e9a2cde51877",
+      "localHash": "279f7517f4da9666a6fa15af7f67ad8aa9810494d7c2026bb5546b969158addf",
+      "lastSynced": "2026-03-30T21:55:53.030Z"
+    },
+    "change-requests/CR-021-enrich-on-worker.md": {
+      "remoteId": "626881b0-0384-46d6-8172-66e12f9252a2",
+      "localHash": "9ab09a465f846bed3c49c8fd31f074c119de41c4c4ffba3f81df5d3efacabbac",
+      "lastSynced": "2026-03-30T21:55:53.030Z"
+    },
+    "change-requests/CR-022-worker-ux-improvements.md": {
+      "remoteId": "45788a39-f830-4ab7-a8ed-6749008967a4",
+      "localHash": "af01f1243480479e67d9f4564b6f924d114120236bbe2463a0f2259ab39089c7",
+      "lastSynced": "2026-03-30T21:55:53.030Z"
+    },
+    "change-requests/CR-023-mongodb-migration-and-backend-refactoring.md": {
+      "remoteId": "365456ac-aae8-4de6-8099-a28eaedab0ee",
+      "localHash": "7a4bf0928b3bb4101e18136835dd981932d89f2f0aba43cfe480f017db9dce1b",
+      "lastSynced": "2026-03-30T21:55:53.030Z"
+    },
+    "change-requests/CR-024-cancel-pending-invitation.md": {
+      "remoteId": "c1fa8ea0-c86e-4027-b35d-05dde2fc73c5",
+      "localHash": "a317620f685809786ad09268565e86c51be876ea01423015bb1d250755b37863",
+      "lastSynced": "2026-03-31T11:04:22.133Z"
+    }
+  },
+  "bugs": {
+    "bugs/BUG-001-landing-page-redirect-to-login.md": {
+      "remoteId": "6da08c07-e571-4ece-9f18-198a34e49f91",
+      "localHash": "9ca64021979ec392205b73da8d29513129b83246e99ae6cd595da8b8a6c64e6e",
+      "lastSynced": "2026-03-30T21:55:53.182Z"
+    },
+    "bugs/BUG-002-user-menu-long-email-overflows-container.md": {
+      "remoteId": "e65f21bd-c5af-44b1-aec2-694bba169b62",
+      "localHash": "59baab15bad9152c49a6e7b9b2a108b6e2b5c2c1548cb45bf50ad62b92bbc925",
+      "lastSynced": "2026-03-30T21:55:53.183Z"
+    },
+    "bugs/BUG-003-cli-push-all-returns-500-on-push-docs.md": {
+      "remoteId": "64fe754e-3229-4d50-ab8a-55d01c93924c",
+      "localHash": "6f058f69eb2043b283b874975354d914e5c1765e73ef11839976f658a3634d53",
+      "lastSynced": "2026-03-30T21:55:53.183Z"
+    },
+    "bugs/BUG-004-dark-mode-table-divider-too-bright-in-list-pages.md": {
+      "remoteId": "39901647-561f-4013-8dfc-472c9dbc1fee",
+      "localHash": "06b3f8a8e87f06319245558eb9dcf2633e2dcee337522635a8b9e634ba49836c",
+      "lastSynced": "2026-03-30T21:55:53.183Z"
+    },
+    "bugs/BUG-005-audit-log-details-overflow-and-readability.md": {
+      "remoteId": "81cd6eab-fb3f-4c89-ab97-7fc9a492aa9e",
+      "localHash": "901828a12649b93464e4ac027c06cbde3c3c7e166a1ebdf492b3243dc9803261",
+      "lastSynced": "2026-03-30T21:55:53.184Z"
+    }
+  },
+  "lastPush": "2026-03-31T11:04:22.137Z"
+}

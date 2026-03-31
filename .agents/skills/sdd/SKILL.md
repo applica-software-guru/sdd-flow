@@ -49,6 +49,12 @@ git add -A && git commit -m "sdd sync: <brief description of what was implemente
 
 Do NOT skip this step. Every mark-synced must be followed by a git commit.
 
+10. If remote sync is configured (remote section in `.sdd/config.yaml` and API key available), remind the user they can publish updates with:
+
+```
+sdd push
+```
+
 ### Removing a feature
 
 If a documentation file has `status: deleted`, it means that feature should be removed.
@@ -62,7 +68,7 @@ Delete the related code in `code/`, then run `sdd mark-synced <file>` (the doc f
 - `sdd validate` — Check for broken references and issues
 - `sdd mark-synced [files...]` — Mark specific files (or all) as synced
 - `sdd cr list` — List all change requests with their status
-- `sdd cr pending` — Show draft change requests to process
+- `sdd cr pending` — Show pending change requests to process
 - `sdd mark-cr-applied [files...]` — Mark change requests as applied
 - `sdd bug list` — List all bugs with their status
 - `sdd bug open` — Show open bugs to fix
@@ -77,6 +83,7 @@ Delete the related code in `code/`, then run `sdd mark-synced <file>` (the doc f
 5. All generated code goes inside `code/`
 6. Respect all constraints in `## Agent Notes` sections (if present)
 7. Do not edit files inside `.sdd/` manually
+8. If remote is configured, suggest `sdd push` after successful local sync + commit
 
 ## Project structure
 
@@ -94,3 +101,5 @@ For detailed information on specific topics, see:
 - [File format and status lifecycle](references/file-format.md)
 - [Change Requests workflow](references/change-requests.md)
 - [Bug workflow](references/bugs.md)
+- [Remote pull/enrich/push workflow](../sdd-remote/SKILL.md)
+- [UI Component workflow](../sdd-ui/SKILL.md)
