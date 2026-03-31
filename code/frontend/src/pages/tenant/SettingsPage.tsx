@@ -7,6 +7,7 @@ import {
   useTenantInvitations,
   useTenantMembers,
   useInviteMember,
+  useCancelInvitation,
   useRemoveMember,
 } from '../../hooks/useTenants';
 import ConfirmDialog from '../../components/ConfirmDialog';
@@ -19,6 +20,7 @@ export default function SettingsPage() {
   const { data: members, isLoading: membersLoading } = useTenantMembers(tenantId);
   const updateTenant = useUpdateTenant(tenantId!);
   const inviteMember = useInviteMember(tenantId!);
+  const cancelInvitation = useCancelInvitation(tenantId!);
   const removeMember = useRemoveMember(tenantId!);
 
   const [name, setName] = useState('');
@@ -27,6 +29,7 @@ export default function SettingsPage() {
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('member');
+  const [cancellingInvitationId, setCancellingInvitationId] = useState<string | null>(null);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
 
   if (!nameInitialized && tenant) {
@@ -217,11 +220,21 @@ export default function SettingsPage() {
                         Expires: {new Date(invitation.expires_at).toLocaleString()}
                       </p>
                     </div>
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${getStatusLabelClass(invitation.status)}`}
-                    >
-                      {invitation.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${getStatusLabelClass(invitation.status)}`}
+                      >
+                        {invitation.status}
+                      </span>
+                      {invitation.status === 'pending' && (
+                        <button
+                          onClick={() => setCancellingInvitationId(invitation.id)}
+                          className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -280,6 +293,21 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!cancellingInvitationId}
+        title="Cancel invitation"
+        message="The invitation link will stop working immediately."
+        variant="danger"
+        confirmLabel="Cancel invitation"
+        onConfirm={async () => {
+          if (cancellingInvitationId) {
+            await cancelInvitation.mutateAsync(cancellingInvitationId);
+            setCancellingInvitationId(null);
+          }
+        }}
+        onCancel={() => setCancellingInvitationId(null)}
+      />
 
       <ConfirmDialog
         open={!!removingMemberId}

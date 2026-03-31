@@ -158,6 +158,25 @@ export function useAcceptInvitation(token: string) {
   });
 }
 
+export function useCancelInvitation(tenantId: string) {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: async (invitationId: string) => {
+      await api.delete(`/tenants/${tenantId}/invitations/${invitationId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['tenants', tenantId, 'invitations'],
+      });
+      addToast('Invitation cancelled', 'success');
+    },
+    onError: () => {
+      addToast('Failed to cancel invitation', 'error');
+    },
+  });
+}
+
 export function useRemoveMember(tenantId: string) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();

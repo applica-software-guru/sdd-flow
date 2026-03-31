@@ -52,6 +52,9 @@ class TenantRepository(BaseRepository[Tenant]):
     async def find_invitation_by_token(self, token: str) -> Optional[TenantInvitation]:
         return await TenantInvitation.find_one(TenantInvitation.token == token)
 
+    async def find_invitation_by_id(self, invitation_id: UUID) -> Optional[TenantInvitation]:
+        return await TenantInvitation.get(invitation_id)
+
     async def save(self, doc) -> any:
         await doc.save()
         return doc
