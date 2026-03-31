@@ -343,6 +343,11 @@
 
 .md-editor-custom .w-md-editor-toolbar li > button {
   padding: 5px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  height: auto !important;
 }
 
 .md-editor-custom .w-md-editor-toolbar {
