@@ -78,7 +78,7 @@ async def list_crs(
 
     total = await ChangeRequest.find(query).count()
     skip = (page - 1) * page_size
-    items = await ChangeRequest.find(query).sort([("createdAt", -1)]).skip(skip).limit(page_size).to_list()
+    items = await ChangeRequest.find(query).sort([("number", -1)]).skip(skip).limit(page_size).to_list()
 
     return CRListResponse(
         items=[CRResponse.model_validate(i) for i in items],
