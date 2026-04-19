@@ -25,6 +25,7 @@ import WorkerJobsListPage from './pages/worker-jobs/ListPage';
 import WorkerJobDetailPage from './pages/worker-jobs/DetailPage';
 import AuditLogPage from './pages/system/AuditLogPage';
 import LandingPage from './pages/system/LandingPage';
+import PrivacyPolicyPage from './pages/system/PrivacyPolicyPage';
 import NotFoundPage from './pages/system/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -44,6 +45,7 @@ export default function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<LandingPage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
