@@ -70,10 +70,13 @@ export default function FooterSection() {
             </div>
           </div>
 
-          <div className="mt-12 border-t border-slate-800 pt-8 text-center">
+          <div className="mt-12 border-t border-slate-800 pt-8 flex flex-col items-center gap-2 sm:flex-row sm:justify-between">
             <p className="text-sm text-slate-500">
               &copy; {new Date().getFullYear()} SDD Flow. Open source under MIT License.
             </p>
+            <Link to="/privacy" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
+              Privacy Policy
+            </Link>
           </div>
         </div>
       </footer>
