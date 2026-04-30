@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useChangeRequest, useTransitionCR, useUpdateCR } from '../../hooks/useChangeRequests';
 import { useComments, useAddComment } from '../../hooks/useComments';
 import { useWorkers } from '../../hooks/useWorkers';
+import PageContainer from '../../components/PageContainer';
 import StatusBadge from '../../components/StatusBadge';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
 import MarkdownEditor from '../../components/MarkdownEditor';
@@ -79,7 +80,7 @@ export default function DetailPage() {
   const canEdit = EDITABLE_STATUSES.includes(cr.status as CRStatus);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <PageContainer className="space-y-6">
       <div>
         <Link
           to={`/tenants/${tenantId}/projects/${projectId}/crs`}
@@ -266,6 +267,6 @@ export default function DetailPage() {
           </div>
         </form>
       </div>
-    </div>
+    </PageContainer>
   );
 }

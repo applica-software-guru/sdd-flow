@@ -2,8 +2,8 @@
 title: "Architecture Decisions"
 status: synced
 author: ""
-last-modified: "2026-03-29T00:00:00.000Z"
-version: "1.6"
+last-modified: "2026-04-30T00:00:00.000Z"
+version: "1.7"
 ---
 
 # Architecture Decisions
@@ -87,6 +87,9 @@ Repositories are stateless and injected via FastAPI `Depends()`. Since Beanie op
 - **React Query (TanStack Query)** for all server state — no manual fetch/loading/error state
 - **All data fetching lives in `hooks/`** — components never call the API directly
 - **React Router** for client-side routing
+- **`Layout.tsx` is the authenticated app shell** (navbar/sidebar) and renders route content via `<Outlet />`
+- **Consistent content width**: list and detail pages must use the same outer container width (default `max-w-5xl`) to avoid layout jumps during navigation
+- Prefer a single shared wrapper (e.g. `PageContainer`) instead of ad-hoc `mx-auto max-w-*` per page
 
 ### Database: MongoDB 7.0
 

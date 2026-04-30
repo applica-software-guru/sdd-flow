@@ -2,6 +2,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDoc, useUpdateDoc, useDeleteDoc } from '../../hooks/useDocs';
 import { useWorkers } from '../../hooks/useWorkers';
+import PageContainer from '../../components/PageContainer';
 import StatusBadge from '../../components/StatusBadge';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
 import MarkdownEditor from '../../components/MarkdownEditor';
@@ -83,26 +84,26 @@ export default function ViewPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <PageContainer>
         <div className="flex items-center justify-center py-24">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   if (!doc) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <PageContainer>
         <div className="py-16 text-center text-sm text-slate-500 dark:text-slate-400">
           Document not found
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <PageContainer>
       {/* Back link */}
       <div className="mb-4">
         <Link
@@ -246,6 +247,6 @@ export default function ViewPage() {
           onCancel={() => setShowEnrichDialog(false)}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useBugs } from '../../hooks/useBugs';
+import PageContainer from '../../components/PageContainer';
 import StatusBadge from '../../components/StatusBadge';
 import SeverityBadge from '../../components/SeverityBadge';
 import Pagination from '../../components/Pagination';
@@ -38,7 +39,7 @@ export default function ListPage() {
   });
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <PageContainer>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Bugs</h1>
@@ -185,6 +186,6 @@ export default function ListPage() {
           </>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }
