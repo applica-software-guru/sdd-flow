@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCreateCR } from '../../hooks/useChangeRequests';
 import { useTenantMembers } from '../../hooks/useTenants';
 import MarkdownEditor from '../../components/MarkdownEditor';
+import PageContainer from '../../components/PageContainer';
 
 export default function CreatePage() {
   const { tenantId, projectId } = useParams();
@@ -31,8 +32,8 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <div className="mb-6">
+    <PageContainer className="space-y-6">
+      <div>
         <Link
           to={`/tenants/${tenantId}/projects/${projectId}/crs`}
           className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
@@ -42,13 +43,13 @@ export default function CreatePage() {
           </svg>
           Back to CRs
         </Link>
-        <h1 className="mt-4 text-2xl font-bold text-slate-900 dark:text-slate-100">
-          New Change Request
-        </h1>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="mx-auto w-full max-w-2xl">
+        <h1 className="mb-6 text-2xl font-bold text-slate-900 dark:text-slate-100">New Change Request</h1>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          <form onSubmit={handleSubmit} className="space-y-4">
           {createCR.isError && (
             <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
               Failed to create change request. Please try again.
@@ -113,8 +114,9 @@ export default function CreatePage() {
               )}
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
