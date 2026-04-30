@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useBug, useTransitionBug, useUpdateBug } from '../../hooks/useBugs';
 import { useComments, useAddComment } from '../../hooks/useComments';
 import { useWorkers } from '../../hooks/useWorkers';
+import PageContainer from '../../components/PageContainer';
 import StatusBadge from '../../components/StatusBadge';
 import SeverityBadge from '../../components/SeverityBadge';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
@@ -81,7 +82,7 @@ export default function DetailPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <PageContainer className="space-y-6">
       <div>
         <Link
           to={`/tenants/${tenantId}/projects/${projectId}/bugs`}
@@ -263,6 +264,6 @@ export default function DetailPage() {
           onCancel={() => setShowEnrichDialog(false)}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

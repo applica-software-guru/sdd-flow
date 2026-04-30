@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useWorkerJobs, useWorkers } from '../../hooks/useWorkers';
+import PageContainer from '../../components/PageContainer';
 import JobStatusBadge from '../../components/JobStatusBadge';
 import WorkerStatusBadge from '../../components/WorkerStatusBadge';
 import Pagination from '../../components/Pagination';
@@ -35,7 +36,7 @@ export default function ListPage() {
   const onlineWorkers = workers?.filter((w) => w.is_online) ?? [];
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <PageContainer>
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Workers</h1>
@@ -217,6 +218,6 @@ export default function ListPage() {
           </>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }

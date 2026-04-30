@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDocs, useCreateDoc } from '../../hooks/useDocs';
+import PageContainer from '../../components/PageContainer';
 import StatusBadge from '../../components/StatusBadge';
 
 function FolderIcon({ className }: { className?: string }) {
@@ -98,7 +99,7 @@ export default function TreePage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <PageContainer>
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -286,6 +287,6 @@ export default function TreePage() {
           </table>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }

@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWorkerJob, useWorkerJobStream, useAnswerQuestion, useCancelJob } from '../../hooks/useWorkers';
 import JobStatusBadge from '../../components/JobStatusBadge';
+import PageContainer from '../../components/PageContainer';
 import WorkerTerminal from '../../components/WorkerTerminal';
 import WorkerQAPanel from '../../components/WorkerQAPanel';
 
@@ -40,14 +41,14 @@ export default function DetailPage() {
 
   if (!job) {
     return (
-      <div className="mx-auto max-w-3xl text-center py-16">
+      <PageContainer className="py-16 text-center">
         <p className="text-slate-500 dark:text-slate-400">Job not found</p>
-      </div>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <PageContainer>
       {/* Header */}
       <div className="mb-6">
         <Link
@@ -138,6 +139,6 @@ export default function DetailPage() {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
