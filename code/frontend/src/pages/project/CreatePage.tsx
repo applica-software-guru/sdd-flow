@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useCreateProject } from '../../hooks/useProjects';
+import PageContainer from '../../components/PageContainer';
 
 export default function CreatePage() {
   const { tenantId } = useParams<{ tenantId: string }>();
@@ -28,7 +29,7 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="mx-auto max-w-lg">
+    <PageContainer>
       <div className="mb-6">
         <Link
           to={`/tenants/${tenantId}`}
@@ -143,7 +144,7 @@ export default function CreatePage() {
           </div>
         </form>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 
