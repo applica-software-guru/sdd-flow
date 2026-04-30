@@ -9,7 +9,98 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
 BOLD='\033[1m'
+DIM='\033[2m'
 RESET='\033[0m'
+
+ALL_APPS=(backend frontend)
+
+PORT_BACKEND=8000
+PORT_FRONTEND=3002
+
+port_var_for() {
+  local app="$1"
+  echo "PORT_$(echo "$app" | tr '[:lower:]-' '[:upper:]_')"
+}
+
+get_port() {
+  local var
+  var="$(port_var_for "$1")"
+  echo "${!var}"
+}
+
+check_ports() {
+  local apps=("$@")
+  local blocked_ports=()
+  local blocked_apps=()
+  local blocked_pids=()
+  local blocked_cmds=()
+
+  for app in "${apps[@]}"; do
+    local port
+    port="$(get_port "$app")"
+    local pids
+    pids="$(lsof -ti "tcp:$port" -sTCP:LISTEN 2>/dev/null || true)"
+    if [[ -n "$pids" ]]; then
+      local unique_pids
+      unique_pids="$(echo "$pids" | sort -u | tr '\n' ' ')"
+      local cmd_info=""
+      for p in $unique_pids; do
+        local c
+        c="$(ps -p "$p" -o comm= 2>/dev/null || echo "unknown")"
+        if [[ -n "$cmd_info" ]]; then
+          cmd_info="$cmd_info, $c($p)"
+        else
+          cmd_info="$c($p)"
+        fi
+      done
+      blocked_ports+=("$port")
+      blocked_apps+=("$app")
+      blocked_pids+=("$unique_pids")
+      blocked_cmds+=("$cmd_info")
+    fi
+  done
+
+  if [[ ${#blocked_ports[@]} -eq 0 ]]; then
+    return 0
+  fi
+
+  echo ""
+  echo -e "${YELLOW}The following ports are already in use:${RESET}"
+  echo ""
+  printf "  %-12s %-6s %s\n" "SERVICE" "PORT" "PROCESS"
+  printf "  %-12s %-6s %s\n" "-------" "----" "-------"
+  for i in "${!blocked_ports[@]}"; do
+    printf "  %-12s %-6s %s\n" "${blocked_apps[$i]}" "${blocked_ports[$i]}" "${blocked_cmds[$i]}"
+  done
+  echo ""
+  echo -ne "${BOLD}Kill these processes and continue? [y/N] ${RESET}"
+  read -r answer
+  if [[ "$answer" != "y" && "$answer" != "Y" ]]; then
+    echo -e "${RED}Aborted.${RESET}"
+    exit 1
+  fi
+
+  for i in "${!blocked_pids[@]}"; do
+    for pid in ${blocked_pids[$i]}; do
+      kill -9 "$pid" 2>/dev/null || true
+    done
+    echo -e "${GREEN}Freed port ${BOLD}${blocked_ports[$i]}${RESET}"
+  done
+
+  sleep 2
+
+  for i in "${!blocked_ports[@]}"; do
+    local remaining
+    remaining="$(lsof -ti "tcp:${blocked_ports[$i]}" -sTCP:LISTEN 2>/dev/null || true)"
+    if [[ -n "$remaining" ]]; then
+      echo -e "${RED}Port ${blocked_ports[$i]} is still in use — force-killing remaining PIDs${RESET}"
+      echo "$remaining" | xargs kill -9 2>/dev/null || true
+      sleep 1
+    fi
+  done
+
+  echo ""
+}
 
 prefix_logs() {
   local label color
@@ -38,7 +129,7 @@ if [[ "$STOP_ALL" == "true" ]]; then
   echo -e "${BOLD}Stopping sdd-flow services...${RESET}"
   echo ""
 
-  for port in 8000 5173; do
+  for port in 8000 3002; do
     PIDS=$(lsof -ti tcp:"$port" 2>/dev/null || true)
     if [[ -n "$PIDS" ]]; then
       echo -e "  ${RED}✕${RESET} Killing processes on port $port (PIDs: $PIDS)"
@@ -83,11 +174,46 @@ if [[ "$SHOW_STATUS" == "true" ]]; then
   }
 
   check_service "Backend  " 8000 "$BLUE"  "http://localhost:8000/api/v1/health"
-  check_service "Frontend " 5173 "$CYAN"  "http://localhost:5173"
+  check_service "Frontend " 3002 "$CYAN"  "http://localhost:3002"
 
   echo ""
   exit 0
 fi
+
+FNM_DIR="${FNM_DIR:-$HOME/.fnm}"
+FNM_SHELL_PATH="$FNM_DIR/shell"
+NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+NVM_SH="$NVM_DIR/nvm.sh"
+
+setup_node_env() {
+  local dir="${1:-$ROOT}"
+  local use_fnm=false
+
+  if command -v fnm &>/dev/null; then
+    eval "$(fnm env)"
+    local node_version
+    node_version="$(cd "$dir" && fnm list | grep -E '^\s*v' | head -1 | tr -d ' *' || true)"
+    if [[ -z "$node_version" ]]; then
+      (cd "$dir" && fnm install)
+    fi
+    (cd "$dir" && fnm use)
+    use_fnm=true
+  elif [[ -f "$FNM_SHELL_PATH" ]]; then
+    source "$FNM_SHELL_PATH"
+    (cd "$dir" && fnm install)
+    (cd "$dir" && fnm use)
+    use_fnm=true
+  elif [[ -f "$NVM_SH" ]]; then
+    source "$NVM_SH"
+    (cd "$dir" && nvm use)
+  fi
+
+  if [[ "$use_fnm" == "true" ]]; then
+    echo -e "  ${GREEN}✓${RESET} Using FNM for Node.js management"
+  else
+    echo -e "  ${GREEN}✓${RESET} Using NVM for Node.js management"
+  fi
+}
 
 # --- Check prerequisites ---
 if ! command -v uv &>/dev/null; then
@@ -95,8 +221,8 @@ if ! command -v uv &>/dev/null; then
   exit 1
 fi
 
-if ! command -v npm &>/dev/null; then
-  echo -e "${RED}ERROR: npm is not installed.${RESET}"
+if ! (command -v fnm &>/dev/null || [[ -f "$FNM_SHELL_PATH" ]] || command -v nvm &>/dev/null || [[ -f "$NVM_SH" ]]); then
+  echo -e "${RED}ERROR: Neither FNM nor NVM found. Install FNM from https://github.com/Schniz/fnm or NVM from https://github.com/nvm-sh/nvm${RESET}"
   exit 1
 fi
 
@@ -110,12 +236,18 @@ else
   exit 1
 fi
 
+# --- Check ports ---
+check_ports "${ALL_APPS[@]}"
+
 # --- Install backend dependencies ---
 echo -ne "  Installing backend dependencies..."
 (cd "$ROOT/code/backend" && uv sync -q)
 echo -e " ${GREEN}done${RESET}"
 
 # --- Install frontend dependencies ---
+echo -ne "  Configuring Node.js..."
+setup_node_env "$ROOT/code/frontend"
+
 echo -ne "  Installing frontend dependencies..."
 (cd "$ROOT/code/frontend" && npm install --silent)
 echo -e " ${GREEN}done${RESET}"
@@ -126,7 +258,7 @@ echo -e "${BOLD}  sdd-flow Development Environment${RESET}"
 echo -e "${BOLD}═══════════════════════════════════════════════${RESET}"
 echo ""
 echo -e "  ${BLUE}Backend${RESET}   → http://localhost:8000  (FastAPI + uvicorn)"
-echo -e "  ${CYAN}Frontend${RESET}  → http://localhost:5173  (React + Vite)"
+echo -e "  ${CYAN}Frontend${RESET}  → http://localhost:3002  (React + Vite)"
 echo -e "  ${GREEN}API Docs${RESET}  → http://localhost:8000/docs"
 echo ""
 
@@ -156,13 +288,14 @@ done
 # --- Start frontend ---
 (
   cd "$ROOT/code/frontend"
+  setup_node_env "$ROOT/code/frontend"
   npm run dev
 ) 2>&1 | prefix_logs "frontend" "$CYAN" &
 
 sleep 2
 echo ""
 echo -e "${BOLD}═══════════════════════════════════════════════${RESET}"
-echo -e "${GREEN}  Ready! Open ${BOLD}http://localhost:5173${RESET}${GREEN} in your browser${RESET}"
+echo -e "${GREEN}  Ready! Open ${BOLD}http://localhost:3002${RESET}${GREEN} in your browser${RESET}"
 echo -e "${BOLD}═══════════════════════════════════════════════${RESET}"
 echo ""
 echo -e "  Press ${BOLD}Ctrl+C${RESET} to stop all services."
