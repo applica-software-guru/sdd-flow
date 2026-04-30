@@ -1,0 +1,15 @@
+{
+  "name": "SDD Flow",
+  "short_name": "SDD Flow",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#0f172a",
+  "background_color": "#f8fafc",
+  "display": "standalone"
+}
