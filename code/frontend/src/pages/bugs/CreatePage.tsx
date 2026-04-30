@@ -47,7 +47,7 @@ export default function CreatePage() {
         </Link>
       </div>
 
-      <div className="mx-auto w-full max-w-2xl">
+      <div>
         <h1 className="mb-6 text-2xl font-bold text-slate-900 dark:text-slate-100">Report a Bug</h1>
 
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">

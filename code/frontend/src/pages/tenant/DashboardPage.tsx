@@ -2,6 +2,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useTenant, useTenants } from '../../hooks/useTenants';
 import { useProjects } from '../../hooks/useProjects';
 import EmptyState from '../../components/EmptyState';
+import PageContainer from '../../components/PageContainer';
 
 export default function DashboardPage() {
   const { tenantId } = useParams();
@@ -22,7 +23,7 @@ export default function DashboardPage() {
 
     if (!tenants || tenants.length === 0) {
       return (
-        <div className="mx-auto max-w-lg">
+        <PageContainer>
           <EmptyState
             title="No tenants yet"
             description="Create your first tenant to get started"
@@ -48,7 +49,7 @@ export default function DashboardPage() {
               </Link>
             }
           />
-        </div>
+        </PageContainer>
       );
     }
 
@@ -59,7 +60,7 @@ export default function DashboardPage() {
     }
 
     return (
-      <div className="mx-auto max-w-2xl">
+      <PageContainer>
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             Select a Tenant
@@ -102,7 +103,7 @@ export default function DashboardPage() {
             </Link>
           ))}
         </div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -118,7 +119,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <PageContainer>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
@@ -209,6 +210,6 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
