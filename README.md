@@ -22,7 +22,7 @@ docker compose up -d
 
 2. Open the app:
 
-- Frontend: http://localhost:5173
+- Frontend: http://localhost:3002
 - Backend health: http://localhost:8000/health
 
 ## Project Folders
