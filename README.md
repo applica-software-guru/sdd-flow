@@ -13,14 +13,31 @@ It gives teams a single place to work on documentation, changes, and delivery st
 
 ## Quick Start
 
-1. Start the local stack:
+1. Configure backend environment variables:
+
+```bash
+cd code/backend
+cp .env.example .env
+```
+
+Edit `code/backend/.env` and fill in the required values. In particular:
+
+- `JWT_SECRET` must be **at least 32 characters long**. Generate a strong random value, for example:
+
+  ```bash
+  openssl rand -hex 32
+  ```
+
+- `MONGODB_URL`, `FRONTEND_URL`, mail provider keys, and OAuth credentials should be reviewed before starting the stack.
+
+2. Start the local stack:
 
 ```bash
 cd code
 docker compose up -d
 ```
 
-2. Open the app:
+3. Open the app:
 
 - Frontend: http://localhost:3002
 - Backend health: http://localhost:8000/health
