@@ -18,6 +18,7 @@ function PathBreadcrumb({ path, docsBase }: { path: string; docsBase: string }) 
       </Link>
       {parts.map((part, i) => {
         const isLast = i === parts.length - 1;
+        const folderPath = parts.slice(0, i + 1).join('/');
         return (
           <span key={i} className="flex items-center gap-1">
             <svg className="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -26,7 +27,12 @@ function PathBreadcrumb({ path, docsBase }: { path: string; docsBase: string }) 
             {isLast ? (
               <span className="font-medium text-slate-700 dark:text-slate-200">{part}</span>
             ) : (
-              <span>{part}</span>
+              <Link
+                to={`${docsBase}?path=${encodeURIComponent(folderPath)}`}
+                className="hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                {part}
+              </Link>
             )}
           </span>
         );
