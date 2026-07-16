@@ -7,6 +7,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import MermaidBlock from './MermaidBlock';
 
 interface MarkdownRendererProps {
   content: string;
@@ -54,6 +55,10 @@ export default function MarkdownRenderer({ content, basePath, docs, docsRouteBas
     code({ children, className, node: _node, ...props }) {
       const match = /language-([\w-]+)/.exec(className || '');
       const code = String(children).replace(/\n$/, '');
+
+      if (match?.[1] === 'mermaid') {
+        return <MermaidBlock chart={code} />;
+      }
 
       if (match) {
         return (
