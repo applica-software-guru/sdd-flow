@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, useMemo, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useBug, useTransitionBug, useUpdateBug } from '../../hooks/useBugs';
 import { useComments, useAddComment } from '../../hooks/useComments';
@@ -29,7 +29,8 @@ export default function DetailPage() {
   const { data: bug, isLoading } = useBug(tenantId, projectId, bugId);
   const { data: comments } = useComments(tenantId, projectId, 'bugs', bugId);
   const { data: workers } = useWorkers(tenantId, projectId);
-  const { data: docs } = useDocs(tenantId, projectId);
+  const { data: docsData } = useDocs(tenantId, projectId);
+  const docs = useMemo(() => docsData ?? [], [docsData]);
   const docsRouteBase = `/tenants/${tenantId}/projects/${projectId}/docs`;
   const transitionBug = useTransitionBug(tenantId!, projectId!, bugId!);
   const updateBug = useUpdateBug(tenantId!, projectId!, bugId!);

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -25,7 +26,7 @@ function resolveDocPath(basePath: string, href: string): string {
   return resolved.replace(/^\//, '');
 }
 
-export default function MarkdownRenderer({ content, basePath, docs, docsRouteBase }: MarkdownRendererProps) {
+const MarkdownRenderer = memo(function MarkdownRenderer({ content, basePath, docs, docsRouteBase }: MarkdownRendererProps) {
   const { resolvedTheme } = useTheme();
   const syntaxTheme = resolvedTheme === 'dark' ? oneDark : oneLight;
 
@@ -124,4 +125,6 @@ export default function MarkdownRenderer({ content, basePath, docs, docsRouteBas
       </ReactMarkdown>
     </div>
   );
-}
+});
+
+export default MarkdownRenderer;

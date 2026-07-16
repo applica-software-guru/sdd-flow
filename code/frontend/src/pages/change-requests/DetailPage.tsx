@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, useMemo, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useChangeRequest, useTransitionCR, useUpdateCR } from '../../hooks/useChangeRequests';
 import { useComments, useAddComment } from '../../hooks/useComments';
@@ -29,7 +29,8 @@ export default function DetailPage() {
   const addComment = useAddComment(tenantId!, projectId!, 'change-requests', crId!);
   const updateCR = useUpdateCR(tenantId!, projectId!, crId!);
   const { data: workers } = useWorkers(tenantId, projectId);
-  const { data: docs } = useDocs(tenantId, projectId);
+  const { data: docsData } = useDocs(tenantId, projectId);
+  const docs = useMemo(() => docsData ?? [], [docsData]);
   const docsRouteBase = `/tenants/${tenantId}/projects/${projectId}/docs`;
   const navigate = useNavigate();
   const [commentBody, setCommentBody] = useState('');
