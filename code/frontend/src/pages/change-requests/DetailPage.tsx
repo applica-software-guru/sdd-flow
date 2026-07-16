@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useChangeRequest, useTransitionCR, useUpdateCR } from '../../hooks/useChangeRequests';
 import { useComments, useAddComment } from '../../hooks/useComments';
 import { useWorkers } from '../../hooks/useWorkers';
+import { useDocs } from '../../hooks/useDocs';
 import PageContainer from '../../components/PageContainer';
 import StatusBadge from '../../components/StatusBadge';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
@@ -28,6 +29,8 @@ export default function DetailPage() {
   const addComment = useAddComment(tenantId!, projectId!, 'change-requests', crId!);
   const updateCR = useUpdateCR(tenantId!, projectId!, crId!);
   const { data: workers } = useWorkers(tenantId, projectId);
+  const { data: docs } = useDocs(tenantId, projectId);
+  const docsRouteBase = `/tenants/${tenantId}/projects/${projectId}/docs`;
   const navigate = useNavigate();
   const [commentBody, setCommentBody] = useState('');
   const [jobDialog, setJobDialog] = useState<{ jobType: JobType } | null>(null);
@@ -154,7 +157,7 @@ export default function DetailPage() {
             </div>
 
             <div className="px-6 py-5">
-              <MarkdownRenderer content={cr.body} />
+              <MarkdownRenderer content={cr.body} basePath="change-requests" docs={docs} docsRouteBase={docsRouteBase} />
             </div>
           </>
         )}
@@ -233,7 +236,7 @@ export default function DetailPage() {
                   </span>
                 </div>
                 <div className="mt-2 pl-8">
-                  <MarkdownRenderer content={comment.body} />
+                  <MarkdownRenderer content={comment.body} basePath="change-requests" docs={docs} docsRouteBase={docsRouteBase} />
                 </div>
               </div>
             ))}

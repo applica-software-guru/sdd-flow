@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useBug, useTransitionBug, useUpdateBug } from '../../hooks/useBugs';
 import { useComments, useAddComment } from '../../hooks/useComments';
 import { useWorkers } from '../../hooks/useWorkers';
+import { useDocs } from '../../hooks/useDocs';
 import PageContainer from '../../components/PageContainer';
 import StatusBadge from '../../components/StatusBadge';
 import SeverityBadge from '../../components/SeverityBadge';
@@ -28,6 +29,8 @@ export default function DetailPage() {
   const { data: bug, isLoading } = useBug(tenantId, projectId, bugId);
   const { data: comments } = useComments(tenantId, projectId, 'bugs', bugId);
   const { data: workers } = useWorkers(tenantId, projectId);
+  const { data: docs } = useDocs(tenantId, projectId);
+  const docsRouteBase = `/tenants/${tenantId}/projects/${projectId}/docs`;
   const transitionBug = useTransitionBug(tenantId!, projectId!, bugId!);
   const updateBug = useUpdateBug(tenantId!, projectId!, bugId!);
   const addComment = useAddComment(tenantId!, projectId!, 'bugs', bugId!);
@@ -168,7 +171,7 @@ export default function DetailPage() {
             </div>
 
             <div className="px-6 py-5">
-              <MarkdownRenderer content={bug.body} />
+              <MarkdownRenderer content={bug.body} basePath="bugs" docs={docs} docsRouteBase={docsRouteBase} />
             </div>
           </>
         )}
@@ -216,7 +219,7 @@ export default function DetailPage() {
                   </span>
                 </div>
                 <div className="mt-2 pl-8">
-                  <MarkdownRenderer content={comment.body} />
+                  <MarkdownRenderer content={comment.body} basePath="bugs" docs={docs} docsRouteBase={docsRouteBase} />
                 </div>
               </div>
             ))}

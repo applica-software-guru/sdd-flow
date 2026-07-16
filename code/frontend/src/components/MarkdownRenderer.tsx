@@ -5,22 +5,43 @@ import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 
 interface MarkdownRendererProps {
   content: string;
+  basePath?: string;
+  docs?: Array<{ id: string; path: string }>;
+  docsRouteBase?: string;
 }
 
 function isExternalLink(href: string) {
   return /^(https?:)?\/\//.test(href);
 }
 
-export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+function resolveDocPath(basePath: string, href: string): string {
+  const resolved = new URL(href, `fake://h/${basePath}/x.md`).pathname;
+  return resolved.replace(/^\//, '');
+}
+
+export default function MarkdownRenderer({ content, basePath, docs, docsRouteBase }: MarkdownRendererProps) {
   const { resolvedTheme } = useTheme();
   const syntaxTheme = resolvedTheme === 'dark' ? oneDark : oneLight;
 
   const components: Components = {
     a({ href, children, node: _node, ...props }) {
+      if (href && basePath && docs && docsRouteBase && !isExternalLink(href) && href.endsWith('.md')) {
+        const resolvedPath = resolveDocPath(basePath, href);
+        const doc = docs.find(d => d.path === resolvedPath);
+        if (doc) {
+          return (
+            <Link to={`${docsRouteBase}/${doc.id}`}>
+              {children}
+            </Link>
+          );
+        }
+      }
+
       const target = href && isExternalLink(href) ? '_blank' : undefined;
       const rel = target ? 'noreferrer noopener' : undefined;
 
