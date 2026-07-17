@@ -258,8 +258,21 @@ async def push_crs(
         ).to_list()
         existing_by_id = {cr.id: cr for cr in fetched}
 
+    # Batch fetch by path as fallback for stale IDs (e.g. after external reset)
+    stale_id_paths = [item.path for item in body.change_requests
+                      if item.id is not None and item.path is not None
+                      and existing_by_id.get(item.id) is None]
+    existing_by_path: dict = {}
+    if stale_id_paths:
+        fetched_by_path = await ChangeRequest.find(
+            {"projectId": ctx.project.id, "path": {"$in": stale_id_paths}}
+        ).to_list()
+        existing_by_path = {cr.path: cr for cr in fetched_by_path}
+
     for item in body.change_requests:
         existing = existing_by_id.get(item.id) if item.id else None
+        if existing is None and item.id is not None and item.path is not None:
+            existing = existing_by_path.get(item.path)
 
         if existing is not None:
             updates: dict = {}
@@ -320,8 +333,21 @@ async def push_bugs(
         ).to_list()
         existing_by_id = {b.id: b for b in fetched}
 
+    # Batch fetch by path as fallback for stale IDs (e.g. after external reset)
+    stale_id_paths = [item.path for item in body.bugs
+                      if item.id is not None and item.path is not None
+                      and existing_by_id.get(item.id) is None]
+    existing_by_path: dict = {}
+    if stale_id_paths:
+        fetched_by_path = await Bug.find(
+            {"projectId": ctx.project.id, "path": {"$in": stale_id_paths}}
+        ).to_list()
+        existing_by_path = {b.path: b for b in fetched_by_path}
+
     for item in body.bugs:
         existing = existing_by_id.get(item.id) if item.id else None
+        if existing is None and item.id is not None and item.path is not None:
+            existing = existing_by_path.get(item.path)
 
         if existing is not None:
             updates: dict = {}
