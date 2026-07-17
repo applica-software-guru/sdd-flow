@@ -50,6 +50,19 @@ async def open_bugs(
     return bugs
 
 
+@router.get("/deleted-doc-ids", response_model=list[str])
+async def deleted_doc_ids(
+    project: Project = Depends(get_api_key_project),
+):
+    docs = await DocumentFile.find(
+        {
+            "projectId": project.id,
+            "status": DocStatus.deleted.value,
+        }
+    ).to_list()
+    return [str(doc.id) for doc in docs]
+
+
 @router.get("/deleted-cr-ids", response_model=list[str])
 async def deleted_cr_ids(
     project: Project = Depends(get_api_key_project),
