@@ -18,6 +18,7 @@ class CRCreate(BaseModel):
 class CRUpdate(BaseModel):
     title: str | None = None
     body: str | None = None
+    slug: str | None = None
     assignee_id: uuid.UUID | None = None
     target_files: list[str] | None = None
 

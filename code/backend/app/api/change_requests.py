@@ -13,7 +13,7 @@ from app.schemas.change_requests import CRCreate, CRListResponse, CRResponse, CR
 from app.schemas.comments import CommentCreate, CommentResponse
 from app.services.audit import log_event
 from app.services.notifications import create_notification
-from app.services.slug import assign_number_and_slug
+from app.services.slug import assign_number_and_slug, slugify
 
 router = APIRouter(
     prefix="/tenants/{tenant_id}/projects/{project_id}/change-requests",
@@ -127,6 +127,12 @@ async def update_cr(
         updates[ChangeRequest.assignee_id] = body.assignee_id
     if body.target_files is not None:
         updates[ChangeRequest.target_files] = body.target_files
+    if body.slug is not None:
+        new_slug = slugify(body.slug)
+        existing = await cr_repo.find_by_slug(project_id, new_slug)
+        if existing is not None and existing.id != cr_id:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Slug already in use")
+        updates[ChangeRequest.slug] = new_slug
 
     if updates:
         await cr.set(updates)

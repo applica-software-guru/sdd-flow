@@ -108,6 +108,12 @@ async def update_doc(
         updates[DocumentFile.status] = DocStatus.changed
     if body.status is not None:
         updates[DocumentFile.status] = body.status
+    if body.path is not None:
+        doc_repo = DocumentFileRepository()
+        existing = await doc_repo.find_by_path(project_id, body.path)
+        if existing is not None and existing.id != doc_id:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Path already in use")
+        updates[DocumentFile.path] = body.path
 
     await doc.set(updates)
 

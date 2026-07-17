@@ -57,6 +57,7 @@ export default function ViewPage() {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editStatus, setEditStatus] = useState('');
+  const [editPath, setEditPath] = useState('');
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEnrichDialog, setShowEnrichDialog] = useState(false);
 
@@ -74,12 +75,18 @@ export default function ViewPage() {
     setEditTitle(doc.title);
     setEditContent(doc.content);
     setEditStatus(doc.status);
+    setEditPath(doc.path);
     setEditing(true);
   };
 
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
-    await updateDoc.mutateAsync({ title: editTitle, content: editContent, status: editStatus });
+    await updateDoc.mutateAsync({
+      title: editTitle,
+      content: editContent,
+      status: editStatus,
+      path: editPath !== doc.path ? editPath : undefined,
+    });
     setEditing(false);
   };
 
@@ -169,6 +176,18 @@ export default function ViewPage() {
                   onChange={(e) => setEditTitle(e.target.value)}
                   className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Path</label>
+                <input
+                  type="text"
+                  value={editPath}
+                  onChange={(e) => setEditPath(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+                />
+                <p className="mt-1 text-xs text-slate-400">
+                  E.g. <code>product/features/auth.md</code>
+                </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Status</label>

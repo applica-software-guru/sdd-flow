@@ -94,6 +94,7 @@ export function useUpdateBug(
     mutationFn: async (payload: {
       title?: string;
       body?: string;
+      slug?: string;
       severity?: string;
       assignee_id?: string;
     }) => {

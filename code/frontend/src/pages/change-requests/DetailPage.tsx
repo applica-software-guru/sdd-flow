@@ -39,6 +39,7 @@ export default function DetailPage() {
   const [editing, setEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
+  const [editSlug, setEditSlug] = useState('');
 
   if (isLoading) {
     return (
@@ -65,12 +66,17 @@ export default function DetailPage() {
   const startEditing = () => {
     setEditTitle(cr.title);
     setEditBody(cr.body);
+    setEditSlug(cr.slug);
     setEditing(true);
   };
 
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
-    await updateCR.mutateAsync({ title: editTitle, body: editBody });
+    await updateCR.mutateAsync({
+      title: editTitle,
+      body: editBody,
+      slug: editSlug !== cr.slug ? editSlug : undefined,
+    });
     setEditing(false);
   };
 
@@ -108,6 +114,18 @@ export default function DetailPage() {
                 onChange={(e) => setEditTitle(e.target.value)}
                 className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Slug</label>
+              <input
+                type="text"
+                value={editSlug}
+                onChange={(e) => setEditSlug(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-700 dark:border-slate-600 dark:text-slate-100"
+              />
+              <p className="mt-1 text-xs text-slate-400">
+                Filename: <code>change-requests/{cr.formatted_number}-{editSlug}.md</code>
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Body</label>

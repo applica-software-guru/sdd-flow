@@ -81,6 +81,7 @@ export function useUpdateDoc(
       title?: string;
       content?: string;
       status?: string;
+      path?: string;
     }) => {
       const { data } = await api.patch(
         `/tenants/${tenantId}/projects/${projectId}/docs/${docId}`,

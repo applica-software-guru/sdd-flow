@@ -18,6 +18,7 @@ class BugCreate(BaseModel):
 class BugUpdate(BaseModel):
     title: str | None = None
     body: str | None = None
+    slug: str | None = None
     severity: BugSeverity | None = None
     assignee_id: uuid.UUID | None = None
 

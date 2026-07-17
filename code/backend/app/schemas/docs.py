@@ -16,6 +16,7 @@ class DocUpdate(BaseModel):
     title: str | None = None
     content: str | None = None
     status: DocStatus | None = None
+    path: str | None = None
 
 
 class DocResponse(BaseModel):
