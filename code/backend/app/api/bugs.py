@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from app.middleware.auth import get_current_tenant_member
-from app.models.bug import Bug, BugStatus
+from app.models.bug import Bug, BugSeverity, BugStatus
 from app.models.comment import Comment, EntityType
 from app.models.tenant_member import TenantMember
 from app.repositories import BugRepository, CommentRepository, ProjectRepository
@@ -67,6 +67,7 @@ async def list_bugs(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     status_filter: BugStatus | None = Query(None, alias="status"),
+    severity_filter: BugSeverity | None = Query(None, alias="severity"),
     member: TenantMember = Depends(get_current_tenant_member),
 ):
     await _get_project(tenant_id, project_id)
@@ -75,6 +76,9 @@ async def list_bugs(
         query: dict = {"projectId": project_id, "status": {"$ne": BugStatus.deleted.value}}
     else:
         query = {"projectId": project_id, "status": status_filter.value}
+
+    if severity_filter is not None:
+        query["severity"] = severity_filter.value
 
     total = await Bug.find(query).count()
     skip = (page - 1) * page_size
