@@ -165,18 +165,30 @@ async def test_update_cr(client: AsyncClient, test_tenant, test_project, cr_payl
 
 
 @pytest.mark.asyncio
-async def test_update_cr_slug_is_immutable(client: AsyncClient, test_tenant, test_project, cr_payload):
+async def test_update_cr_slug_can_be_changed(client: AsyncClient, test_tenant, test_project, cr_payload):
     create_resp = await client.post(_base(test_tenant, test_project), json=cr_payload)
-    original_slug = create_resp.json()["slug"]
     cr_id = create_resp.json()["id"]
 
     resp = await client.patch(
         f"{_base(test_tenant, test_project)}/{cr_id}",
-        json={"title": "Renamed CR", "slug": "hacker-slug"},
+        json={"title": "Renamed CR", "slug": "my-custom-slug"},
     )
     assert resp.status_code == 200
-    # slug must not have changed
-    assert resp.json()["slug"] == original_slug
+    assert resp.json()["slug"] == "my-custom-slug"
+
+
+@pytest.mark.asyncio
+async def test_update_cr_slug_conflict_returns_409(client: AsyncClient, test_tenant, test_project):
+    r1 = await client.post(_base(test_tenant, test_project), json={"title": "CR One", "body": "body"})
+    r2 = await client.post(_base(test_tenant, test_project), json={"title": "CR Two", "body": "body"})
+    cr1_id = r1.json()["id"]
+    slug2 = r2.json()["slug"]
+
+    resp = await client.patch(
+        f"{_base(test_tenant, test_project)}/{cr1_id}",
+        json={"slug": slug2},
+    )
+    assert resp.status_code == 409
 
 
 @pytest.mark.asyncio

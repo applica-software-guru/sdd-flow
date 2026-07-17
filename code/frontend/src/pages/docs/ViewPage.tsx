@@ -81,6 +81,7 @@ export default function ViewPage() {
 
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
+    if (!doc) return;
     await updateDoc.mutateAsync({
       title: editTitle,
       content: editContent,
