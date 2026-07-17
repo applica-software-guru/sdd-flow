@@ -10,6 +10,7 @@ from app.schemas.common import PaginatedResponse
 class BugCreate(BaseModel):
     title: str
     body: str
+    slug: str | None = None
     severity: BugSeverity
     assignee_id: uuid.UUID | None = None
 

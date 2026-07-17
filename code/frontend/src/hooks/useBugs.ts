@@ -61,6 +61,7 @@ export function useCreateBug(tenantId: string, projectId: string) {
     mutationFn: async (payload: {
       title: string;
       body: string;
+      slug?: string;
       severity: string;
       assignee_id?: string;
     }) => {

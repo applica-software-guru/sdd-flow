@@ -40,14 +40,16 @@ async def assign_number_and_slug(
     project_id: uuid.UUID,
     title: str,
     path: str | None = None,
+    explicit_slug: str | None = None,
     repo: ChangeRequestRepository | BugRepository = None,
 ) -> tuple[int, str]:
     """
     Determine number and slug for a new CR or Bug.
 
     Priority:
-    1. If path has a numeric prefix, restore number from it and derive slug from the path remainder.
-    2. Otherwise, auto-increment number and slugify title.
+    1. explicit_slug (UI-provided override), sanitised via slugify.
+    2. If path has a numeric prefix, restore number from it and derive slug from the path remainder.
+    3. Otherwise, auto-increment number and slugify title.
 
     In both cases, ensure slug uniqueness within the project by appending -2, -3, etc.
     Catches DuplicateKeyError on concurrent insert collisions.
@@ -69,7 +71,12 @@ async def assign_number_and_slug(
         number = path_number
 
     # --- Determine slug ---
-    base_slug = path_slug if path_slug is not None else slugify(title)
+    if explicit_slug is not None:
+        base_slug = slugify(explicit_slug)
+    elif path_slug is not None:
+        base_slug = path_slug
+    else:
+        base_slug = slugify(title)
     slug = base_slug
     suffix = 2
 

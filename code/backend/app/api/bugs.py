@@ -48,7 +48,7 @@ async def create_bug(
         author_id=member.user_id,
         assignee_id=body.assignee_id,
     )
-    await assign_number_and_slug(bug, project_id, body.title, repo=bug_repo)
+    await assign_number_and_slug(bug, project_id, body.title, explicit_slug=body.slug, repo=bug_repo)
 
     await log_event(tenant_id, member.user_id, "bug.created", "bug", bug.id)
 

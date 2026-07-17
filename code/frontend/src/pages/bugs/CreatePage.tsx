@@ -5,6 +5,10 @@ import { useTenantMembers } from '../../hooks/useTenants';
 import MarkdownEditor from '../../components/MarkdownEditor';
 import PageContainer from '../../components/PageContainer';
 
+function slugify(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'untitled';
+}
+
 export default function CreatePage() {
   const { tenantId, projectId } = useParams();
   const navigate = useNavigate();
@@ -13,8 +17,20 @@ export default function CreatePage() {
 
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [slug, setSlug] = useState('');
+  const [slugEdited, setSlugEdited] = useState(false);
   const [severity, setSeverity] = useState('minor');
   const [assigneeId, setAssigneeId] = useState('');
+
+  const handleTitleChange = (value: string) => {
+    setTitle(value);
+    if (!slugEdited) setSlug(slugify(value));
+  };
+
+  const handleSlugChange = (value: string) => {
+    setSlugEdited(true);
+    setSlug(value);
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -22,6 +38,7 @@ export default function CreatePage() {
       const bug = await createBug.mutateAsync({
         title,
         body,
+        slug: slug || undefined,
         severity,
         assignee_id: assigneeId || undefined,
       });
@@ -66,10 +83,28 @@ export default function CreatePage() {
               type="text"
               required
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => handleTitleChange(e.target.value)}
               className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
               placeholder="Brief description of the bug"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Slug <span className="font-normal text-slate-400">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={slug}
+              onChange={(e) => handleSlugChange(e.target.value)}
+              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm placeholder-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              placeholder="auto-generated from title"
+            />
+            {slug && (
+              <p className="mt-1 text-xs text-slate-400">
+                Filename: <code>bugs/NNN-{slug}.md</code>
+              </p>
+            )}
           </div>
 
           <div>

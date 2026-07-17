@@ -10,6 +10,7 @@ from app.schemas.common import PaginatedResponse
 class CRCreate(BaseModel):
     title: str
     body: str
+    slug: str | None = None
     assignee_id: uuid.UUID | None = None
     target_files: list[str] | None = None
 

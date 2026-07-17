@@ -59,6 +59,7 @@ export function useCreateCR(tenantId: string, projectId: string) {
     mutationFn: async (payload: {
       title: string;
       body: string;
+      slug?: string;
       assignee_id?: string;
     }) => {
       const { data } = await api.post(

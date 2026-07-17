@@ -48,7 +48,7 @@ async def create_cr(
         assignee_id=body.assignee_id,
         target_files=body.target_files or [],
     )
-    await assign_number_and_slug(cr, project_id, body.title, repo=cr_repo)
+    await assign_number_and_slug(cr, project_id, body.title, explicit_slug=body.slug, repo=cr_repo)
 
     await log_event(tenant_id, member.user_id, "cr.created", "change_request", cr.id)
 
