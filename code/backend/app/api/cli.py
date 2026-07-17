@@ -50,6 +50,32 @@ async def open_bugs(
     return bugs
 
 
+@router.get("/deleted-cr-ids", response_model=list[str])
+async def deleted_cr_ids(
+    project: Project = Depends(get_api_key_project),
+):
+    crs = await ChangeRequest.find(
+        {
+            "projectId": project.id,
+            "status": CRStatus.deleted.value,
+        }
+    ).to_list()
+    return [str(cr.id) for cr in crs]
+
+
+@router.get("/deleted-bug-ids", response_model=list[str])
+async def deleted_bug_ids(
+    project: Project = Depends(get_api_key_project),
+):
+    bugs = await Bug.find(
+        {
+            "projectId": project.id,
+            "status": BugStatus.deleted.value,
+        }
+    ).to_list()
+    return [str(bug.id) for bug in bugs]
+
+
 @router.post("/crs/{cr_id}/applied", response_model=CRResponse)
 async def mark_cr_applied(
     cr_id: uuid.UUID,
