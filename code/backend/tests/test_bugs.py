@@ -27,8 +27,11 @@ def bug_payload():
 # Create
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
-async def test_create_bug(client: AsyncClient, test_tenant, test_project, test_user: User, bug_payload):
+async def test_create_bug(
+    client: AsyncClient, test_tenant, test_project, test_user: User, bug_payload
+):
     resp = await client.post(_base(test_tenant, test_project), json=bug_payload)
     assert resp.status_code == 201
     data = resp.json()
@@ -39,7 +42,9 @@ async def test_create_bug(client: AsyncClient, test_tenant, test_project, test_u
 
 
 @pytest.mark.asyncio
-async def test_create_bug_assigns_number_and_slug(client: AsyncClient, test_tenant, test_project, bug_payload):
+async def test_create_bug_assigns_number_and_slug(
+    client: AsyncClient, test_tenant, test_project, bug_payload
+):
     resp = await client.post(_base(test_tenant, test_project), json=bug_payload)
     assert resp.status_code == 201
     data = resp.json()
@@ -50,9 +55,18 @@ async def test_create_bug_assigns_number_and_slug(client: AsyncClient, test_tena
 
 @pytest.mark.asyncio
 async def test_create_bug_sequential_numbering(client: AsyncClient, test_tenant, test_project):
-    r1 = await client.post(_base(test_tenant, test_project), json={"title": "Bug one", "body": "b", "severity": "minor"})
-    r2 = await client.post(_base(test_tenant, test_project), json={"title": "Bug two", "body": "b", "severity": "minor"})
-    r3 = await client.post(_base(test_tenant, test_project), json={"title": "Bug three", "body": "b", "severity": "minor"})
+    r1 = await client.post(
+        _base(test_tenant, test_project),
+        json={"title": "Bug one", "body": "b", "severity": "minor"},
+    )
+    r2 = await client.post(
+        _base(test_tenant, test_project),
+        json={"title": "Bug two", "body": "b", "severity": "minor"},
+    )
+    r3 = await client.post(
+        _base(test_tenant, test_project),
+        json={"title": "Bug three", "body": "b", "severity": "minor"},
+    )
     assert r1.json()["number"] == 1
     assert r2.json()["number"] == 2
     assert r3.json()["number"] == 3
@@ -61,34 +75,47 @@ async def test_create_bug_sequential_numbering(client: AsyncClient, test_tenant,
 
 @pytest.mark.asyncio
 async def test_create_bug_slug_dedup(client: AsyncClient, test_tenant, test_project):
-    r1 = await client.post(_base(test_tenant, test_project), json={"title": "Login crash", "body": "b", "severity": "major"})
-    r2 = await client.post(_base(test_tenant, test_project), json={"title": "Login crash", "body": "b", "severity": "minor"})
+    r1 = await client.post(
+        _base(test_tenant, test_project),
+        json={"title": "Login crash", "body": "b", "severity": "major"},
+    )
+    r2 = await client.post(
+        _base(test_tenant, test_project),
+        json={"title": "Login crash", "body": "b", "severity": "minor"},
+    )
     assert r1.json()["slug"] == "login-crash"
     assert r2.json()["slug"] == "login-crash-2"
 
 
 @pytest.mark.asyncio
 async def test_create_bug_missing_severity(client: AsyncClient, test_tenant, test_project):
-    resp = await client.post(_base(test_tenant, test_project), json={
-        "title": "No severity",
-        "body": "missing required field",
-    })
+    resp = await client.post(
+        _base(test_tenant, test_project),
+        json={
+            "title": "No severity",
+            "body": "missing required field",
+        },
+    )
     assert resp.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_create_bug_invalid_severity(client: AsyncClient, test_tenant, test_project):
-    resp = await client.post(_base(test_tenant, test_project), json={
-        "title": "Bad sev",
-        "body": "bad",
-        "severity": "catastrophic",
-    })
+    resp = await client.post(
+        _base(test_tenant, test_project),
+        json={
+            "title": "Bad sev",
+            "body": "bad",
+            "severity": "catastrophic",
+        },
+    )
     assert resp.status_code == 422
 
 
 # ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_list_bugs(client: AsyncClient, test_tenant, test_project, bug_payload):
@@ -101,7 +128,9 @@ async def test_list_bugs(client: AsyncClient, test_tenant, test_project, bug_pay
 
 
 @pytest.mark.asyncio
-async def test_list_bugs_items_include_number_and_slug(client: AsyncClient, test_tenant, test_project, bug_payload):
+async def test_list_bugs_items_include_number_and_slug(
+    client: AsyncClient, test_tenant, test_project, bug_payload
+):
     await client.post(_base(test_tenant, test_project), json=bug_payload)
     resp = await client.get(_base(test_tenant, test_project))
     assert resp.status_code == 200
@@ -112,7 +141,9 @@ async def test_list_bugs_items_include_number_and_slug(client: AsyncClient, test
 
 
 @pytest.mark.asyncio
-async def test_list_bugs_filter_by_status(client: AsyncClient, test_tenant, test_project, bug_payload):
+async def test_list_bugs_filter_by_status(
+    client: AsyncClient, test_tenant, test_project, bug_payload
+):
     await client.post(_base(test_tenant, test_project), json=bug_payload)
     resp = await client.get(_base(test_tenant, test_project), params={"status": "open"})
     assert resp.status_code == 200
@@ -123,6 +154,7 @@ async def test_list_bugs_filter_by_status(client: AsyncClient, test_tenant, test
 # ---------------------------------------------------------------------------
 # Get by ID
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_get_bug(client: AsyncClient, test_tenant, test_project, bug_payload):
@@ -148,6 +180,7 @@ async def test_get_bug_not_found(client: AsyncClient, test_tenant, test_project)
 # Update
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_update_bug(client: AsyncClient, test_tenant, test_project, bug_payload):
     create_resp = await client.post(_base(test_tenant, test_project), json=bug_payload)
@@ -163,7 +196,9 @@ async def test_update_bug(client: AsyncClient, test_tenant, test_project, bug_pa
 
 
 @pytest.mark.asyncio
-async def test_update_bug_slug_can_be_changed(client: AsyncClient, test_tenant, test_project, bug_payload):
+async def test_update_bug_slug_can_be_changed(
+    client: AsyncClient, test_tenant, test_project, bug_payload
+):
     create_resp = await client.post(_base(test_tenant, test_project), json=bug_payload)
     bug_id = create_resp.json()["id"]
 
@@ -177,8 +212,14 @@ async def test_update_bug_slug_can_be_changed(client: AsyncClient, test_tenant, 
 
 @pytest.mark.asyncio
 async def test_update_bug_slug_conflict_returns_409(client: AsyncClient, test_tenant, test_project):
-    r1 = await client.post(_base(test_tenant, test_project), json={"title": "Bug One", "body": "body", "severity": "minor"})
-    r2 = await client.post(_base(test_tenant, test_project), json={"title": "Bug Two", "body": "body", "severity": "minor"})
+    r1 = await client.post(
+        _base(test_tenant, test_project),
+        json={"title": "Bug One", "body": "body", "severity": "minor"},
+    )
+    r2 = await client.post(
+        _base(test_tenant, test_project),
+        json={"title": "Bug Two", "body": "body", "severity": "minor"},
+    )
     bug1_id = r1.json()["id"]
     slug2 = r2.json()["slug"]
 
@@ -190,7 +231,9 @@ async def test_update_bug_slug_conflict_returns_409(client: AsyncClient, test_te
 
 
 @pytest.mark.asyncio
-async def test_update_bug_number_is_immutable(client: AsyncClient, test_tenant, test_project, bug_payload):
+async def test_update_bug_number_is_immutable(
+    client: AsyncClient, test_tenant, test_project, bug_payload
+):
     create_resp = await client.post(_base(test_tenant, test_project), json=bug_payload)
     original_number = create_resp.json()["number"]
     bug_id = create_resp.json()["id"]
@@ -206,6 +249,7 @@ async def test_update_bug_number_is_immutable(client: AsyncClient, test_tenant, 
 # ---------------------------------------------------------------------------
 # Transition
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_transition_bug(client: AsyncClient, test_tenant, test_project, bug_payload):
@@ -232,8 +276,11 @@ async def test_transition_bug(client: AsyncClient, test_tenant, test_project, bu
 # Comments
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
-async def test_add_and_list_bug_comments(client: AsyncClient, test_tenant, test_project, bug_payload):
+async def test_add_and_list_bug_comments(
+    client: AsyncClient, test_tenant, test_project, bug_payload
+):
     create_resp = await client.post(_base(test_tenant, test_project), json=bug_payload)
     bug_id = create_resp.json()["id"]
 
@@ -284,4 +331,3 @@ async def test_bug_comments_count(client: AsyncClient, test_tenant, test_project
     assert list_resp.status_code == 200
     item = next(i for i in list_resp.json()["items"] if i["id"] == bug_id)
     assert item["comments_count"] == 2
-

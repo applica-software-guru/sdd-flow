@@ -1,8 +1,7 @@
-from typing import Optional
 from uuid import UUID
 
-from pymongo import IndexModel
 from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import ImmutableDocument
 
@@ -14,11 +13,11 @@ class AssignmentHistory(ImmutableDocument):
     Seeded at creation when the entity is created with an assignee.
     """
 
-    tenant_id: UUID = Field(alias="tenantId")
-    entity_type: str = Field(alias="entityType")  # "change_request" | "bug"
-    entity_id: UUID = Field(alias="entityId")
-    assignee_id: Optional[UUID] = Field(default=None, alias="assigneeId")
-    assigned_by: Optional[UUID] = Field(default=None, alias="assignedBy")
+    tenant_id: UUID = Field()
+    entity_type: str = Field()  # "change_request" | "bug"
+    entity_id: UUID = Field()
+    assignee_id: UUID | None = Field(default=None)
+    assigned_by: UUID | None = Field(default=None)
 
     class Settings:
         name = "assignment_history"

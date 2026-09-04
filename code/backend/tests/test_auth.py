@@ -1,7 +1,7 @@
 """Tests for /api/v1/auth endpoints."""
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from httpx import ASGITransport, AsyncClient
@@ -12,10 +12,10 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.services.auth import hash_password, verify_password
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 async def auth_client():
@@ -29,13 +29,17 @@ async def auth_client():
 # Register
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_register_success(auth_client: AsyncClient):
-    resp = await auth_client.post("/api/v1/auth/register", json={
-        "email": f"new-{uuid.uuid4().hex[:8]}@example.com",
-        "password": "Str0ngP@ss!",
-        "display_name": "New User",
-    })
+    resp = await auth_client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": f"new-{uuid.uuid4().hex[:8]}@example.com",
+            "password": "Str0ngP@ss!",
+            "display_name": "New User",
+        },
+    )
     assert resp.status_code == 201
     data = resp.json()
     assert "id" in data
@@ -57,11 +61,14 @@ async def test_register_duplicate_email(auth_client: AsyncClient, unique_id: str
     await user.insert()
 
     try:
-        resp = await auth_client.post("/api/v1/auth/register", json={
-            "email": email,
-            "password": "AnotherP@ss1",
-            "display_name": "Dup User",
-        })
+        resp = await auth_client.post(
+            "/api/v1/auth/register",
+            json={
+                "email": email,
+                "password": "AnotherP@ss1",
+                "display_name": "Dup User",
+            },
+        )
         assert resp.status_code == 409
     finally:
         await user.delete()
@@ -69,17 +76,21 @@ async def test_register_duplicate_email(auth_client: AsyncClient, unique_id: str
 
 @pytest.mark.asyncio
 async def test_register_invalid_email(auth_client: AsyncClient):
-    resp = await auth_client.post("/api/v1/auth/register", json={
-        "email": "not-an-email",
-        "password": "abc",
-        "display_name": "Bad",
-    })
+    resp = await auth_client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": "not-an-email",
+            "password": "abc",
+            "display_name": "Bad",
+        },
+    )
     assert resp.status_code == 422
 
 
 # ---------------------------------------------------------------------------
 # Login
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_login_success(auth_client: AsyncClient, unique_id: str):
@@ -93,10 +104,13 @@ async def test_login_success(auth_client: AsyncClient, unique_id: str):
     await user.insert()
 
     try:
-        resp = await auth_client.post("/api/v1/auth/login", json={
-            "email": email,
-            "password": "MyPassword1!",
-        })
+        resp = await auth_client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": email,
+                "password": "MyPassword1!",
+            },
+        )
         assert resp.status_code == 200
         assert resp.json()["email"] == email
         assert "access_token" in resp.cookies
@@ -116,10 +130,13 @@ async def test_login_wrong_password(auth_client: AsyncClient, unique_id: str):
     await user.insert()
 
     try:
-        resp = await auth_client.post("/api/v1/auth/login", json={
-            "email": email,
-            "password": "WrongPassword",
-        })
+        resp = await auth_client.post(
+            "/api/v1/auth/login",
+            json={
+                "email": email,
+                "password": "WrongPassword",
+            },
+        )
         assert resp.status_code == 401
     finally:
         await user.delete()
@@ -127,16 +144,20 @@ async def test_login_wrong_password(auth_client: AsyncClient, unique_id: str):
 
 @pytest.mark.asyncio
 async def test_login_nonexistent_user(auth_client: AsyncClient):
-    resp = await auth_client.post("/api/v1/auth/login", json={
-        "email": "nobody@example.com",
-        "password": "whatever",
-    })
+    resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "nobody@example.com",
+            "password": "whatever",
+        },
+    )
     assert resp.status_code == 401
 
 
 # ---------------------------------------------------------------------------
 # /me
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_me_authenticated(client: AsyncClient):
@@ -184,7 +205,7 @@ async def test_forgot_password_creates_token_and_dispatches_email(
         assert kwargs["subject"]
         assert "reset" in kwargs["subject"].lower()
 
-    monkeypatch.setattr("app.services.password_reset.send_email", fake_send_email)
+    monkeypatch.setattr("app.services.auth.send_email", fake_send_email)
 
     try:
         resp = await auth_client.post("/api/v1/auth/forgot-password", json={"email": email})
@@ -214,7 +235,7 @@ async def test_reset_password_success(
     auth_client: AsyncClient,
     unique_id: str,
 ):
-    from app.services.password_reset import _hash_token
+    from app.services.auth import _hash_token
 
     email = f"reset-{unique_id}@example.com"
     user = User(
@@ -229,14 +250,14 @@ async def test_reset_password_success(
     reset_token = PasswordResetToken(
         user_id=user.id,
         token_hash=_hash_token(raw_token),
-        expires_at=datetime.now(timezone.utc) + timedelta(minutes=20),
+        expires_at=datetime.now(UTC) + timedelta(minutes=20),
     )
     await reset_token.insert()
 
     refresh = RefreshToken(
         user_id=user.id,
         token_hash=f"refresh-{uuid.uuid4().hex}",
-        expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+        expires_at=datetime.now(UTC) + timedelta(days=1),
     )
     await refresh.insert()
 

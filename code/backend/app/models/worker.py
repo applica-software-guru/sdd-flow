@@ -1,28 +1,29 @@
 import enum
-from typing import Optional
 from datetime import datetime
-from pymongo import IndexModel
-from pydantic import Field
+from typing import Any
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import BaseDocument, utcnow
 
 
-class WorkerStatus(str, enum.Enum):
+class WorkerStatus(enum.StrEnum):
     online = "online"
     offline = "offline"
     busy = "busy"
 
 
 class Worker(BaseDocument):
-    project_id: UUID = Field(alias="projectId")
+    project_id: UUID = Field()
     name: str
     status: WorkerStatus = WorkerStatus.offline
     agent: str = "claude"
-    branch: Optional[str] = None
-    last_heartbeat_at: datetime = Field(default_factory=utcnow, alias="lastHeartbeatAt")
-    registered_at: datetime = Field(default_factory=utcnow, alias="registeredAt")
-    metadata_: dict = Field(default_factory=dict, alias="metadata")
+    branch: str | None = None
+    last_heartbeat_at: datetime = Field(default_factory=utcnow)
+    registered_at: datetime = Field(default_factory=utcnow)
+    metadata_: dict[str, Any] = Field(default_factory=dict)
 
     class Settings:
         name = "workers"

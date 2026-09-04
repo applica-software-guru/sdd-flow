@@ -8,7 +8,7 @@ def uuid_to_bin(uid: UUID) -> Binary:
     return Binary.from_uuid(uid, uuid_representation=UuidRepresentation.STANDARD)
 
 
-def bin_to_uuid(bin_value) -> UUID | None:
+def bin_to_uuid(bin_value: object) -> UUID | None:
     """Convert a BSON Binary (from aggregation results) back to a Python UUID."""
     if isinstance(bin_value, Binary):
         return bin_value.as_uuid(uuid_representation=UuidRepresentation.STANDARD)

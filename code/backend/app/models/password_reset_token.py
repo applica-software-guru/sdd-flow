@@ -1,15 +1,16 @@
 from datetime import datetime
-from pymongo import IndexModel
-from pydantic import Field
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import ImmutableDocument
 
 
 class PasswordResetToken(ImmutableDocument):
-    user_id: UUID = Field(alias="userId")
-    token_hash: str = Field(alias="tokenHash")
-    expires_at: datetime = Field(alias="expiresAt")
+    user_id: UUID = Field()
+    token_hash: str = Field()
+    expires_at: datetime = Field()
 
     class Settings:
         name = "password_reset_tokens"

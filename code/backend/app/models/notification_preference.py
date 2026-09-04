@@ -1,14 +1,15 @@
-from pymongo import IndexModel
-from pydantic import Field
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import BaseDocument
 
 
 class NotificationPreference(BaseDocument):
-    user_id: UUID = Field(alias="userId")
-    event_type: str = Field(alias="eventType")
-    email_enabled: bool = Field(default=True, alias="emailEnabled")
+    user_id: UUID = Field()
+    event_type: str = Field()
+    email_enabled: bool = Field(default=True)
 
     class Settings:
         name = "notification_preferences"

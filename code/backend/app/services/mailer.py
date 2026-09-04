@@ -3,13 +3,16 @@ from __future__ import annotations
 import asyncio
 import smtplib
 from email.message import EmailMessage
+from typing import Any
 
 import httpx
 
 from app.config import settings
 
 
-def build_email_message(*, recipient_email: str, subject: str, text_body: str, html_body: str) -> EmailMessage:
+def build_email_message(
+    *, recipient_email: str, subject: str, text_body: str, html_body: str
+) -> EmailMessage:
     message = EmailMessage()
     message["From"] = f"{settings.MAIL_FROM_NAME} <{settings.MAIL_FROM_EMAIL}>"
     message["To"] = recipient_email
@@ -38,7 +41,7 @@ async def _send_via_brevo(
     if not settings.BREVO_API_KEY:
         raise RuntimeError("BREVO_API_KEY is required when MAIL_PROVIDER is set to 'brevo'")
 
-    payload = {
+    payload: dict[str, Any] = {
         "sender": {
             "email": settings.MAIL_FROM_EMAIL,
             "name": settings.MAIL_FROM_NAME,
@@ -56,11 +59,15 @@ async def _send_via_brevo(
     }
 
     async with httpx.AsyncClient(timeout=10) as client:
-        response = await client.post("https://api.brevo.com/v3/smtp/email", json=payload, headers=headers)
+        response = await client.post(
+            "https://api.brevo.com/v3/smtp/email", json=payload, headers=headers
+        )
         response.raise_for_status()
 
 
-async def send_email(*, recipient_email: str, subject: str, text_body: str, html_body: str, log_label: str) -> None:
+async def send_email(
+    *, recipient_email: str, subject: str, text_body: str, html_body: str, log_label: str
+) -> None:
     message = build_email_message(
         recipient_email=recipient_email,
         subject=subject,
@@ -69,18 +76,19 @@ async def send_email(*, recipient_email: str, subject: str, text_body: str, html
     )
 
     if settings.MAIL_PROVIDER == "log":
-        print(
-            f"{log_label} email (log mode): "
-            f"to={recipient_email} subject={subject}"
-        )
+        print(f"{log_label} email (log mode): to={recipient_email} subject={subject}")
         return
 
     if settings.MAIL_PROVIDER == "brevo":
+        plain_part = message.get_body(preferencelist=("plain",))
+        html_part = message.get_body(preferencelist=("html",))
+        if plain_part is None or html_part is None:
+            raise ValueError("Email message is missing plain or html body part")
         await _send_via_brevo(
             recipient_email=recipient_email,
             subject=str(message["Subject"]),
-            text_body=message.get_body(preferencelist=("plain",)).get_content(),
-            html_body=message.get_body(preferencelist=("html",)).get_content(),
+            text_body=plain_part.get_content(),
+            html_body=html_part.get_content(),
         )
         return
 

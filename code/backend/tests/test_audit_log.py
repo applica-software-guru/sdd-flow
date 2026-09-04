@@ -10,7 +10,8 @@ from httpx import AsyncClient
 from app.models.audit_log_entry import AuditLogEntry
 from app.models.tenant import Tenant
 from app.models.user import User
-from app.services.audit import log_event
+from app.repositories import AuditRepository, TenantRepository, UserRepository
+from app.services.audit import AuditService
 
 
 def _base(tenant: Tenant) -> str:
@@ -62,9 +63,7 @@ async def test_list_audit_log_returns_entry(
 
 
 @pytest.mark.asyncio
-async def test_audit_log_entry_fields(
-    client: AsyncClient, test_tenant: Tenant, test_user: User
-):
+async def test_audit_log_entry_fields(client: AsyncClient, test_tenant: Tenant, test_user: User):
     entry = await _create_entry(
         test_tenant,
         test_user,
@@ -111,9 +110,7 @@ async def test_audit_log_legacy_entry_without_label(
 
 
 @pytest.mark.asyncio
-async def test_audit_log_system_entry_user_is_null(
-    client: AsyncClient, test_tenant: Tenant
-):
+async def test_audit_log_system_entry_user_is_null(client: AsyncClient, test_tenant: Tenant):
     """Entries without a user (system events) expose user: null instead of failing."""
     entry = AuditLogEntry(
         tenant_id=test_tenant.id,
@@ -134,9 +131,7 @@ async def test_audit_log_system_entry_user_is_null(
 
 
 @pytest.mark.asyncio
-async def test_audit_log_pagination(
-    client: AsyncClient, test_tenant: Tenant, test_user: User
-):
+async def test_audit_log_pagination(client: AsyncClient, test_tenant: Tenant, test_user: User):
     entries = [await _create_entry(test_tenant, test_user) for _ in range(5)]
     try:
         resp = await client.get(_base(test_tenant), params={"page": 1, "page_size": 2})
@@ -187,9 +182,7 @@ async def test_audit_log_filter_entity_type(
 
 
 @pytest.mark.asyncio
-async def test_audit_log_filter_user_id(
-    client: AsyncClient, test_tenant: Tenant, test_user: User
-):
+async def test_audit_log_filter_user_id(client: AsyncClient, test_tenant: Tenant, test_user: User):
     e1 = await _create_entry(test_tenant, test_user, "a.one")
     e2 = await _create_entry(test_tenant, test_user, "a.two")
     try:
@@ -259,8 +252,13 @@ async def test_audit_log_filter_event_type_exact_legacy(
 async def test_log_event_persists_label_and_summary(
     client: AsyncClient, test_tenant: Tenant, test_user: User
 ):
-    """Unit test: log_event captures entity_label and summary at write time."""
-    entry = await log_event(
+    """Unit test: AuditService.log_event captures entity_label and summary at write time."""
+    svc = AuditService(
+        audit_repo=AuditRepository(),
+        user_repo=UserRepository(),
+        tenant_repo=TenantRepository(),
+    )
+    entry = await svc.log_event(
         tenant_id=test_tenant.id,
         user_id=test_user.id,
         event_type="bug.transitioned",

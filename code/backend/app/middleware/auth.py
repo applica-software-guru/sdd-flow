@@ -1,16 +1,17 @@
 import hashlib
 import uuid
-from typing import Callable
+from collections.abc import Callable
+from typing import Any
 
 from fastapi import Cookie, Depends, Header, HTTPException, Path, status
 from jose import JWTError, jwt
 
 from app.config import settings
 from app.models.api_key import ApiKey
+from app.models.base import utcnow
 from app.models.project import Project
 from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
-from app.models.base import utcnow
 
 
 async def get_current_user(
@@ -23,15 +24,15 @@ async def get_current_user(
         )
     try:
         payload = jwt.decode(access_token, settings.JWT_SECRET, algorithms=["HS256"])
-        user_id_str: str = payload.get("sub")
-        token_type: str = payload.get("type", "access")
-        if user_id_str is None or token_type != "access":
+        sub = payload.get("sub")
+        token_type = payload.get("type", "access")
+        if not isinstance(sub, str) or token_type != "access":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token",
             )
-        user_id = uuid.UUID(user_id_str)
-    except (JWTError, ValueError):
+        user_id = uuid.UUID(sub)
+    except JWTError, ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
@@ -50,9 +51,7 @@ async def get_current_tenant_member(
     tenant_id: uuid.UUID = Path(...),
     current_user: User = Depends(get_current_user),
 ) -> TenantMember:
-    member = await TenantMember.find_one(
-        {"tenantId": tenant_id, "userId": current_user.id}
-    )
+    member = await TenantMember.find_one({"tenantId": tenant_id, "userId": current_user.id})
     if member is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -61,14 +60,16 @@ async def get_current_tenant_member(
     return member
 
 
-def require_role(*roles: MemberRole) -> Callable:
+def require_role(*roles: MemberRole) -> Callable[..., Any]:
     async def dependency(
         member: TenantMember = Depends(get_current_tenant_member),
     ) -> TenantMember:
         if member.role not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Role {member.role.value} not authorized. Required: {[r.value for r in roles]}",
+                detail=(
+                    f"Role {member.role.value} not authorized. Required: {[r.value for r in roles]}"
+                ),
             )
         return member
 
@@ -77,6 +78,7 @@ def require_role(*roles: MemberRole) -> Callable:
 
 class ApiKeyContext:
     """Project and author resolved from an API key."""
+
     def __init__(self, project: Project, user_id: uuid.UUID):
         self.project = project
         self.user_id = user_id

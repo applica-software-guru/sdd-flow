@@ -1,14 +1,14 @@
 import enum
-from typing import Optional
 from datetime import datetime
-from pymongo import IndexModel
-from pydantic import Field
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import BaseDocument, utcnow
 
 
-class MemberRole(str, enum.Enum):
+class MemberRole(enum.StrEnum):
     owner = "owner"
     admin = "admin"
     member = "member"
@@ -16,11 +16,11 @@ class MemberRole(str, enum.Enum):
 
 
 class TenantMember(BaseDocument):
-    tenant_id: UUID = Field(alias="tenantId")
-    user_id: UUID = Field(alias="userId")
+    tenant_id: UUID = Field()
+    user_id: UUID = Field()
     role: MemberRole
-    invited_by: Optional[UUID] = Field(default=None, alias="invitedBy")
-    joined_at: datetime = Field(default_factory=utcnow, alias="joinedAt")
+    invited_by: UUID | None = Field(default=None)
+    joined_at: datetime = Field(default_factory=utcnow)
 
     class Settings:
         name = "tenant_members"

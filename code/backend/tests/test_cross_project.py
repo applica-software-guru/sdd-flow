@@ -3,14 +3,9 @@ Tests that verify cross-project access is correctly denied.
 Resources belonging to project A must not be accessible via project B URLs.
 """
 
-import uuid
-
 import pytest
 from httpx import AsyncClient
 
-from app.models.bug import Bug
-from app.models.change_request import ChangeRequest
-from app.models.document_file import DocumentFile
 from app.models.project import Project
 from app.models.tenant import Tenant
 
@@ -43,9 +38,10 @@ def _docs(tenant: Tenant, project: Project) -> str:
 async def test_get_bug_from_wrong_project(
     client: AsyncClient, test_tenant, test_project, second_project
 ):
-    resp = await client.post(_bugs(test_tenant, test_project), json={
-        "title": "Bug in project 1", "body": "body", "severity": "minor"
-    })
+    resp = await client.post(
+        _bugs(test_tenant, test_project),
+        json={"title": "Bug in project 1", "body": "body", "severity": "minor"},
+    )
     bug_id = resp.json()["id"]
 
     # Try to access it via the second project's URL
@@ -57,9 +53,9 @@ async def test_get_bug_from_wrong_project(
 async def test_get_cr_from_wrong_project(
     client: AsyncClient, test_tenant, test_project, second_project
 ):
-    resp = await client.post(_crs(test_tenant, test_project), json={
-        "title": "CR in project 1", "body": "body"
-    })
+    resp = await client.post(
+        _crs(test_tenant, test_project), json={"title": "CR in project 1", "body": "body"}
+    )
     cr_id = resp.json()["id"]
 
     resp = await client.get(f"{_crs(test_tenant, second_project)}/{cr_id}")
@@ -70,13 +66,16 @@ async def test_get_cr_from_wrong_project(
 async def test_get_doc_from_wrong_project(
     client: AsyncClient, test_tenant, test_project, second_project
 ):
-    resp = await client.post(_docs(test_tenant, test_project), json={
-        "path": "product/test.md",
-        "title": "Doc in project 1",
-        "content": "# Test",
-        "status": "synced",
-        "version": "1.0",
-    })
+    resp = await client.post(
+        _docs(test_tenant, test_project),
+        json={
+            "path": "product/test.md",
+            "title": "Doc in project 1",
+            "content": "# Test",
+            "status": "synced",
+            "version": "1.0",
+        },
+    )
     doc_id = resp.json()["id"]
 
     resp = await client.get(f"{_docs(test_tenant, second_project)}/{doc_id}")
@@ -87,9 +86,9 @@ async def test_get_doc_from_wrong_project(
 async def test_update_bug_from_wrong_project(
     client: AsyncClient, test_tenant, test_project, second_project
 ):
-    resp = await client.post(_bugs(test_tenant, test_project), json={
-        "title": "Bug", "body": "body", "severity": "minor"
-    })
+    resp = await client.post(
+        _bugs(test_tenant, test_project), json={"title": "Bug", "body": "body", "severity": "minor"}
+    )
     bug_id = resp.json()["id"]
 
     resp = await client.patch(
@@ -103,9 +102,9 @@ async def test_update_bug_from_wrong_project(
 async def test_transition_bug_from_wrong_project(
     client: AsyncClient, test_tenant, test_project, second_project
 ):
-    resp = await client.post(_bugs(test_tenant, test_project), json={
-        "title": "Bug", "body": "body", "severity": "minor"
-    })
+    resp = await client.post(
+        _bugs(test_tenant, test_project), json={"title": "Bug", "body": "body", "severity": "minor"}
+    )
     bug_id = resp.json()["id"]
 
     resp = await client.post(
@@ -119,9 +118,10 @@ async def test_transition_bug_from_wrong_project(
 async def test_list_bugs_does_not_leak_across_projects(
     client: AsyncClient, test_tenant, test_project, second_project
 ):
-    resp = await client.post(_bugs(test_tenant, test_project), json={
-        "title": "Project 1 bug", "body": "body", "severity": "minor"
-    })
+    resp = await client.post(
+        _bugs(test_tenant, test_project),
+        json={"title": "Project 1 bug", "body": "body", "severity": "minor"},
+    )
     bug_id = resp.json()["id"]
 
     # List bugs for second project — must not contain the bug from project 1

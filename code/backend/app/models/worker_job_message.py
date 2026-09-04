@@ -1,19 +1,20 @@
 import enum
-from pymongo import IndexModel
-from pydantic import Field
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import ImmutableDocument
 
 
-class MessageKind(str, enum.Enum):
+class MessageKind(enum.StrEnum):
     output = "output"
     question = "question"
     answer = "answer"
 
 
 class WorkerJobMessage(ImmutableDocument):
-    job_id: UUID = Field(alias="jobId")
+    job_id: UUID = Field()
     kind: MessageKind
     content: str
     sequence: int = 0

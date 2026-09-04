@@ -13,10 +13,10 @@ from app.models.project import Project
 from app.models.tenant import Tenant
 from app.models.user import User
 
-
 # ---------------------------------------------------------------------------
 # Create project
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_project(client: AsyncClient, test_tenant: Tenant):
@@ -56,6 +56,7 @@ async def test_create_project_validation_error(client: AsyncClient, test_tenant:
 # List projects
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_list_projects(client: AsyncClient, test_tenant: Tenant, test_project: Project):
     resp = await client.get(f"/api/v1/tenants/{test_tenant.id}/projects")
@@ -69,26 +70,24 @@ async def test_list_projects(client: AsyncClient, test_tenant: Tenant, test_proj
 # Get project
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_get_project(client: AsyncClient, test_tenant: Tenant, test_project: Project):
-    resp = await client.get(
-        f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}"
-    )
+    resp = await client.get(f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}")
     assert resp.status_code == 200
     assert resp.json()["id"] == str(test_project.id)
 
 
 @pytest.mark.asyncio
 async def test_get_project_not_found(client: AsyncClient, test_tenant: Tenant):
-    resp = await client.get(
-        f"/api/v1/tenants/{test_tenant.id}/projects/{uuid.uuid4()}"
-    )
+    resp = await client.get(f"/api/v1/tenants/{test_tenant.id}/projects/{uuid.uuid4()}")
     assert resp.status_code == 404
 
 
 # ---------------------------------------------------------------------------
 # Update project
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_update_project(client: AsyncClient, test_tenant: Tenant, test_project: Project):
@@ -104,14 +103,13 @@ async def test_update_project(client: AsyncClient, test_tenant: Tenant, test_pro
 # Archive / restore
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_archive_and_restore_project(
     client: AsyncClient, test_tenant: Tenant, test_project: Project
 ):
     # Archive
-    resp = await client.post(
-        f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}/archive"
-    )
+    resp = await client.post(f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}/archive")
     assert resp.status_code == 200
     assert resp.json()["archived_at"] is not None
 
@@ -120,9 +118,7 @@ async def test_archive_and_restore_project(
     assert all(p["id"] != str(test_project.id) for p in resp.json())
 
     # Restore
-    resp = await client.post(
-        f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}/restore"
-    )
+    resp = await client.post(f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}/restore")
     assert resp.status_code == 200
     assert resp.json()["archived_at"] is None
 
@@ -130,6 +126,7 @@ async def test_archive_and_restore_project(
 # ---------------------------------------------------------------------------
 # Reset project
 # ---------------------------------------------------------------------------
+
 
 @pytest_asyncio.fixture
 async def project_with_data(test_project: Project, test_user: User):
@@ -208,9 +205,7 @@ async def test_reset_project_wrong_slug(
 
 
 @pytest.mark.asyncio
-async def test_reset_empty_project(
-    client: AsyncClient, test_tenant: Tenant, test_project: Project
-):
+async def test_reset_empty_project(client: AsyncClient, test_tenant: Tenant, test_project: Project):
     resp = await client.post(
         f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}/reset",
         json={"confirm_slug": test_project.slug},

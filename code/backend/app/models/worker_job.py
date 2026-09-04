@@ -1,14 +1,15 @@
 import enum
-from typing import Optional
 from datetime import datetime
-from pymongo import IndexModel
-from pydantic import Field
+from typing import Any
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import BaseDocument
 
 
-class JobStatus(str, enum.Enum):
+class JobStatus(enum.StrEnum):
     queued = "queued"
     assigned = "assigned"
     running = "running"
@@ -17,7 +18,7 @@ class JobStatus(str, enum.Enum):
     cancelled = "cancelled"
 
 
-class JobType(str, enum.Enum):
+class JobType(enum.StrEnum):
     apply = "apply"
     enrich = "enrich"
     sync = "sync"
@@ -26,20 +27,21 @@ class JobType(str, enum.Enum):
 
 
 class WorkerJob(BaseDocument):
-    project_id: UUID = Field(alias="projectId")
-    worker_id: Optional[UUID] = Field(default=None, alias="workerId")
-    entity_type: Optional[str] = Field(default=None, alias="entityType")
-    entity_id: Optional[UUID] = Field(default=None, alias="entityId")
-    job_type: JobType = Field(alias="jobType")
+    project_id: UUID = Field()
+    worker_id: UUID | None = Field(default=None)
+    entity_type: str | None = Field(default=None)
+    entity_id: UUID | None = Field(default=None)
+    job_type: JobType = Field()
     status: JobStatus = JobStatus.queued
     prompt: str = ""
     agent: str = "claude"
-    model: Optional[str] = None
-    exit_code: Optional[int] = Field(default=None, alias="exitCode")
-    created_by: UUID = Field(alias="createdBy")
-    started_at: Optional[datetime] = Field(default=None, alias="startedAt")
-    completed_at: Optional[datetime] = Field(default=None, alias="completedAt")
-    changed_files: list[str] = Field(default_factory=list, alias="changedFiles")
+    model: str | None = None
+    exit_code: int | None = Field(default=None)
+    created_by: UUID = Field()
+    started_at: datetime | None = Field(default=None)
+    completed_at: datetime | None = Field(default=None)
+    # ChangedFile-shaped dicts (stored via model_dump in worker completion flow)
+    changed_files: list[dict[str, Any]] = Field(default_factory=list[dict[str, Any]])
 
     class Settings:
         name = "worker_jobs"

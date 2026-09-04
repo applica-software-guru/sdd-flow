@@ -1,6 +1,6 @@
 ---
 title: "Allow custom slug when creating CRs and bugs"
-status: pending
+status: applied
 author: "user"
 created-at: "2026-07-16T00:00:00.000Z"
 ---

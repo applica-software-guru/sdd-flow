@@ -1,17 +1,15 @@
-import math
-import re
 import uuid
 from datetime import datetime
+from typing import Any
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
+from app.dependencies import get_audit_service
 from app.middleware.auth import require_role
-from app.models.audit_log_entry import AuditLogEntry
-from app.models.tenant_member import TenantMember
-from app.models.user import User
-from app.models.tenant_member import MemberRole
+from app.models.tenant_member import MemberRole, TenantMember
 from app.schemas.users import UserBrief
+from app.services.audit import AuditService
 
 
 class AuditLogResponse(BaseModel):
@@ -25,7 +23,7 @@ class AuditLogResponse(BaseModel):
     entity_id: uuid.UUID | None = None
     entity_label: str | None = None
     summary: str | None = None
-    details: dict | None = None
+    details: dict[str, Any] | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -54,51 +52,25 @@ async def list_audit_log(
     from_dt: datetime | None = Query(None, alias="from"),
     to_dt: datetime | None = Query(None, alias="to"),
     member: TenantMember = Depends(require_role(MemberRole.owner, MemberRole.admin)),
-):
-    query: dict = {"tenantId": tenant_id}
-    if action is not None:
-        query["eventType"] = {"$regex": re.escape(action), "$options": "i"}
-    elif event_type is not None:
-        query["eventType"] = event_type
-    if entity_type is not None:
-        query["entityType"] = entity_type
-    if user_id is not None:
-        query["userId"] = user_id
-    if from_dt is not None or to_dt is not None:
-        range_query: dict = {}
-        if from_dt is not None:
-            range_query["$gte"] = from_dt
-        if to_dt is not None:
-            range_query["$lte"] = to_dt
-        query["createdAt"] = range_query
-
-    total = await AuditLogEntry.find(query).count()
-    skip = (page - 1) * page_size
-    items = (
-        await AuditLogEntry.find(query)
-        .sort([("createdAt", -1)])
-        .skip(skip)
-        .limit(page_size)
-        .to_list()
+    svc: AuditService = Depends(get_audit_service),
+) -> AuditLogListResponse:
+    pairs, total, pages = await svc.query_audit_log(
+        tenant_id,
+        page=page,
+        page_size=page_size,
+        action=action,
+        event_type=event_type,
+        entity_type=entity_type,
+        user_id=user_id,
+        from_dt=from_dt,
+        to_dt=to_dt,
     )
 
-    # Batch-resolve users for the current page (single query, avoids N+1)
-    user_ids = {i.user_id for i in items if i.user_id is not None}
-    users_by_id: dict[uuid.UUID, User] = {}
-    if user_ids:
-        users = await User.find({"_id": {"$in": list(user_ids)}}).to_list()
-        users_by_id = {u.id: u for u in users}
-
-    item_responses = []
-    for i in items:
-        u = users_by_id.get(i.user_id) if i.user_id is not None else None
+    item_responses: list[AuditLogResponse] = []
+    for i, u in pairs:
         resp = AuditLogResponse.model_validate(i)
         resp.action = i.event_type
-        resp.user = (
-            UserBrief(id=u.id, display_name=u.display_name, email=u.email)
-            if u is not None
-            else None
-        )
+        resp.user = u
         item_responses.append(resp)
 
     return AuditLogListResponse(
@@ -106,5 +78,5 @@ async def list_audit_log(
         total=total,
         page=page,
         page_size=page_size,
-        pages=math.ceil(total / page_size) if total > 0 else 0,
+        pages=pages,
     )

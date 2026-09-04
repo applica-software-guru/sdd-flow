@@ -1,29 +1,21 @@
-import asyncio
 import uuid
-from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, Response, status
 
-from app.middleware.auth import ApiKeyContext, get_api_key_context, get_api_key_project
-from app.models.bug import Bug, BugStatus
-from app.models.change_request import ChangeRequest, CRStatus
-from app.models.document_file import DocumentFile, DocStatus
-from app.models.worker import Worker, WorkerStatus
-from app.models.worker_job import JobStatus, WorkerJob
-from app.models.worker_job_message import MessageKind, WorkerJobMessage
-from app.models.base import utcnow
-from app.repositories import WorkerRepository
+from app.dependencies import get_worker_job_service
+from app.middleware.auth import get_api_key_project
+from app.models.project import Project
 from app.schemas.workers import (
     WorkerHeartbeatRequest,
     WorkerJobAssignment,
     WorkerJobCompletedRequest,
+    WorkerJobMessageResponse,
     WorkerJobOutputRequest,
     WorkerJobQuestionRequest,
-    WorkerJobMessageResponse,
     WorkerRegisterRequest,
     WorkerResponse,
 )
-from app.services.notifications import create_notification
+from app.services.worker_jobs import WorkerJobService
 
 router = APIRouter(prefix="/cli/workers", tags=["cli-workers"])
 
@@ -34,18 +26,11 @@ POLL_INTERVAL = 1  # seconds
 @router.post("/register", response_model=WorkerResponse)
 async def register_worker(
     body: WorkerRegisterRequest,
-    project: "Project" = Depends(get_api_key_project),
-):
+    project: Project = Depends(get_api_key_project),
+    svc: WorkerJobService = Depends(get_worker_job_service),
+) -> WorkerResponse:
     """Register or reconnect a worker. Upserts by (project_id, name)."""
-    worker_repo = WorkerRepository()
-    worker = await worker_repo.register_or_update(
-        project_id=project.id,
-        name=body.name,
-        agent=body.agent,
-        branch=body.branch,
-        metadata=body.metadata or {},
-    )
-
+    worker = await svc.register_worker(project.id, body)
     return WorkerResponse(
         id=worker.id,
         project_id=worker.project_id,
@@ -63,70 +48,50 @@ async def register_worker(
 async def heartbeat(
     worker_id: uuid.UUID,
     body: WorkerHeartbeatRequest,
-    project: "Project" = Depends(get_api_key_project),
-):
+    project: Project = Depends(get_api_key_project),
+    svc: WorkerJobService = Depends(get_worker_job_service),
+) -> dict[str, str]:
     """Update worker heartbeat and status."""
-    worker = await Worker.get(str(worker_id))
-    if worker is None or str(worker.project_id) != str(project.id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker not found")
-
-    await worker.set({
-        Worker.status: body.status,
-        Worker.last_heartbeat_at: utcnow(),
-    })
-
+    await svc.worker_heartbeat(worker_id, project.id, body.status)
     return {"status": "ok"}
 
 
-@router.get("/{worker_id}/poll")
+@router.get("/{worker_id}/poll", response_model=None)
 async def poll_job(
     worker_id: uuid.UUID,
-    project: "Project" = Depends(get_api_key_project),
-):
+    project: Project = Depends(get_api_key_project),
+    svc: WorkerJobService = Depends(get_worker_job_service),
+) -> Response | WorkerJobAssignment:
     """Long-poll for a queued job. Holds connection up to 30s."""
-    worker = await Worker.get(str(worker_id))
-    if worker is None or str(worker.project_id) != str(project.id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Worker not found")
+    job, worker = await svc.poll_for_job(
+        worker_id,
+        project.id,
+        poll_duration=POLL_DURATION,
+        poll_interval=POLL_INTERVAL,
+    )
+    if job is None:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-    worker_repo = WorkerRepository()
-
-    for _ in range(POLL_DURATION):
-        job = await worker_repo.assign_job(project.id, worker_id)
-        if job is not None:
-            await worker.set({
-                Worker.status: WorkerStatus.busy,
-                Worker.last_heartbeat_at: utcnow(),
-            })
-            return WorkerJobAssignment(
-                job_id=job.id,
-                entity_type=job.entity_type,
-                entity_id=job.entity_id,
-                job_type=job.job_type,
-                prompt=job.prompt,
-                agent=job.agent,
-                model=job.model,
-                branch=worker.branch,
-            )
-
-        await asyncio.sleep(POLL_INTERVAL)
-
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return WorkerJobAssignment(
+        job_id=job.id,
+        entity_type=job.entity_type,
+        entity_id=job.entity_id,
+        job_type=job.job_type,
+        prompt=job.prompt,
+        agent=job.agent,
+        model=job.model,
+        branch=worker.branch,
+    )
 
 
 @router.post("/jobs/{job_id}/started")
 async def job_started(
     job_id: uuid.UUID,
-    project: "Project" = Depends(get_api_key_project),
-):
+    project: Project = Depends(get_api_key_project),
+    svc: WorkerJobService = Depends(get_worker_job_service),
+) -> dict[str, str]:
     """Worker notifies that the agent process has started."""
-    job = await WorkerJob.get(str(job_id))
-    if job is None or str(job.project_id) != str(project.id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
-
-    await job.set({
-        WorkerJob.status: JobStatus.running,
-        WorkerJob.started_at: utcnow(),
-    })
+    await svc.job_started(job_id, project.id)
     return {"status": "ok"}
 
 
@@ -134,56 +99,23 @@ async def job_started(
 async def job_output(
     job_id: uuid.UUID,
     body: WorkerJobOutputRequest,
-    project: "Project" = Depends(get_api_key_project),
-):
+    project: Project = Depends(get_api_key_project),
+    svc: WorkerJobService = Depends(get_worker_job_service),
+) -> dict[str, str | int]:
     """Worker posts batched output lines."""
-    worker_repo = WorkerRepository()
-    existing_messages = await worker_repo.find_messages(job_id)
-    max_seq = existing_messages[-1].sequence if existing_messages else 0
-
-    for i, line in enumerate(body.lines):
-        msg = WorkerJobMessage(
-            job_id=job_id,
-            kind=MessageKind.output,
-            content=line,
-            sequence=max_seq + i + 1,
-        )
-        await worker_repo.create_message(msg)
-
-    return {"status": "ok", "count": len(body.lines)}
+    count = await svc.job_output(job_id, body.lines)
+    return {"status": "ok", "count": count}
 
 
 @router.post("/jobs/{job_id}/question")
 async def job_question(
     job_id: uuid.UUID,
     body: WorkerJobQuestionRequest,
-    project: "Project" = Depends(get_api_key_project),
-):
+    project: Project = Depends(get_api_key_project),
+    svc: WorkerJobService = Depends(get_worker_job_service),
+) -> WorkerJobMessageResponse:
     """Worker posts a question from the agent."""
-    worker_repo = WorkerRepository()
-    existing_messages = await worker_repo.find_messages(job_id)
-    max_seq = existing_messages[-1].sequence if existing_messages else 0
-
-    msg = WorkerJobMessage(
-        job_id=job_id,
-        kind=MessageKind.question,
-        content=body.content,
-        sequence=max_seq + 1,
-    )
-    await worker_repo.create_message(msg)
-
-    # Notify the job creator
-    job = await WorkerJob.get(str(job_id))
-    if job and str(job.project_id) == str(project.id):
-        await create_notification(
-            user_id=job.created_by,
-            tenant_id=project.tenant_id,
-            event_type="worker_question",
-            entity_type="worker_job",
-            entity_id=job_id,
-            title=f"Worker needs your attention on job #{str(job_id)[:8]}",
-        )
-
+    msg = await svc.job_question(job_id, body.content, project.id, project.tenant_id)
     return WorkerJobMessageResponse.model_validate(msg)
 
 
@@ -191,69 +123,23 @@ async def job_question(
 async def job_answers(
     job_id: uuid.UUID,
     after_sequence: int = 0,
-    project: "Project" = Depends(get_api_key_project),
-):
+    project: Project = Depends(get_api_key_project),
+    svc: WorkerJobService = Depends(get_worker_job_service),
+) -> list[WorkerJobMessageResponse]:
     """Worker reads answers from the user (new answers since after_sequence)."""
-    messages = await WorkerJobMessage.find(
-        {
-            "jobId": job_id,
-            "kind": MessageKind.answer.value,
-            "sequence": {"$gt": after_sequence},
-        }
-    ).sort([("sequence", 1)]).to_list()
-    return messages
+    messages = await svc.job_answers(job_id, after_sequence=after_sequence)
+    return [WorkerJobMessageResponse.model_validate(m) for m in messages]
 
 
 @router.post("/jobs/{job_id}/completed")
 async def job_completed(
     job_id: uuid.UUID,
     body: WorkerJobCompletedRequest,
-    project: "Project" = Depends(get_api_key_project),
-):
+    project: Project = Depends(get_api_key_project),
+    svc: WorkerJobService = Depends(get_worker_job_service),
+) -> dict[str, str | int]:
     """Worker reports job completion. Auto-transitions the entity on success."""
-    job = await WorkerJob.get(str(job_id))
-    if job is None or str(job.project_id) != str(project.id):
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
-
-    now = utcnow()
-    new_status = JobStatus.completed if body.exit_code == 0 else JobStatus.failed
-    updates: dict = {
-        WorkerJob.exit_code: body.exit_code,
-        WorkerJob.completed_at: now,
-        WorkerJob.status: new_status,
-    }
-    if body.changed_files:
-        updates[WorkerJob.changed_files] = [f.model_dump() for f in body.changed_files]
-    await job.set(updates)
-
-    # Set worker back to online
-    if job.worker_id:
-        worker = await Worker.get(str(job.worker_id))
-        if worker:
-            await worker.set({Worker.status: WorkerStatus.online})
-
-    # Auto-transition entity on success
-    if body.exit_code == 0:
-        if job.entity_type == "change_request" and job.entity_id:
-            cr = await ChangeRequest.get(str(job.entity_id))
-            if cr and cr.status == CRStatus.draft:
-                await cr.set({ChangeRequest.status: CRStatus.pending})
-
-        elif job.entity_type == "document" and job.entity_id:
-            doc = await DocumentFile.get(str(job.entity_id))
-            if doc and doc.status == DocStatus.draft:
-                await doc.set({DocumentFile.status: DocStatus.new})
-
-    # Send notification to job creator
-    event_type = "worker_job_completed" if body.exit_code == 0 else "worker_job_failed"
-    status_label = "completed" if body.exit_code == 0 else "failed"
-    await create_notification(
-        user_id=job.created_by,
-        tenant_id=project.tenant_id,
-        event_type=event_type,
-        entity_type="worker_job",
-        entity_id=job_id,
-        title=f"Worker job #{str(job_id)[:8]} {status_label}",
+    new_status, exit_code = await svc.job_completed(
+        job_id, body.exit_code, body.changed_files, project.id, project.tenant_id
     )
-
-    return {"status": new_status.value, "exit_code": body.exit_code}
+    return {"status": new_status.value, "exit_code": exit_code}

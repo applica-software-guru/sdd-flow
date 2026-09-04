@@ -9,7 +9,6 @@ from httpx import AsyncClient
 
 from app.models.project import Project
 from app.models.tenant import Tenant
-from app.models.worker_job import JobStatus
 
 
 def _workers(tenant: Tenant, project: Project) -> str:
@@ -32,6 +31,7 @@ def _agent_models(tenant: Tenant, project: Project) -> str:
 # Workers list
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_list_workers_empty(client: AsyncClient, test_tenant: Tenant, test_project: Project):
     resp = await client.get(_workers(test_tenant, test_project))
@@ -51,6 +51,7 @@ async def test_get_agent_models(client: AsyncClient, test_tenant: Tenant, test_p
 # ---------------------------------------------------------------------------
 # Create worker jobs
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_create_build_job(client: AsyncClient, test_tenant: Tenant, test_project: Project):
@@ -74,10 +75,13 @@ async def test_create_custom_job_requires_prompt(
 async def test_create_custom_job_with_prompt(
     client: AsyncClient, test_tenant: Tenant, test_project: Project
 ):
-    resp = await client.post(_jobs(test_tenant, test_project), json={
-        "job_type": "custom",
-        "prompt": "Do something useful",
-    })
+    resp = await client.post(
+        _jobs(test_tenant, test_project),
+        json={
+            "job_type": "custom",
+            "prompt": "Do something useful",
+        },
+    )
     assert resp.status_code == 201
     assert resp.json()["job_type"] == "custom"
 
@@ -95,16 +99,20 @@ async def test_create_enrich_job_requires_entity(
 async def test_create_job_with_unknown_worker_returns_404(
     client: AsyncClient, test_tenant: Tenant, test_project: Project
 ):
-    resp = await client.post(_jobs(test_tenant, test_project), json={
-        "job_type": "build",
-        "worker_id": str(uuid.uuid4()),
-    })
+    resp = await client.post(
+        _jobs(test_tenant, test_project),
+        json={
+            "job_type": "build",
+            "worker_id": str(uuid.uuid4()),
+        },
+    )
     assert resp.status_code == 404
 
 
 # ---------------------------------------------------------------------------
 # List / get jobs
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_list_worker_jobs(client: AsyncClient, test_tenant: Tenant, test_project: Project):
@@ -153,6 +161,7 @@ async def test_get_worker_job_not_found(
 # Cancel
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_cancel_queued_job(client: AsyncClient, test_tenant: Tenant, test_project: Project):
     create_resp = await client.post(_jobs(test_tenant, test_project), json={"job_type": "build"})
@@ -183,6 +192,7 @@ async def test_cancel_already_cancelled_job_returns_400(
 # ---------------------------------------------------------------------------
 # Preview
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_preview_build_job(client: AsyncClient, test_tenant: Tenant, test_project: Project):

@@ -9,7 +9,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 from app.middleware.auth import get_current_tenant_member, get_current_user
-from app.models.tenant import DefaultRole, Tenant
+from app.models.tenant import Tenant
 from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
 
@@ -18,7 +18,9 @@ def _members_url(tenant: Tenant, user_id: uuid.UUID) -> str:
     return f"/api/v1/tenants/{tenant.id}/members/{user_id}"
 
 
-async def _make_member(tenant: Tenant, role: MemberRole, unique_id: str) -> tuple[User, TenantMember]:
+async def _make_member(
+    tenant: Tenant, role: MemberRole, unique_id: str
+) -> tuple[User, TenantMember]:
     user = User(
         email=f"member-{unique_id}@example.com",
         display_name=f"Member {unique_id}",
@@ -39,6 +41,7 @@ async def test_remove_member_success(
     target_user, target_member = await _make_member(test_tenant, MemberRole.member, unique_id)
 
     try:
+
         async def _current_user():
             return test_user
 
@@ -97,9 +100,12 @@ async def test_remove_owner_by_other_admin_is_forbidden(
     test_user: User, test_tenant: Tenant, unique_id: str
 ):
     """An admin cannot remove an owner."""
-    admin_user, admin_member = await _make_member(test_tenant, MemberRole.admin, f"admin-{unique_id}")
+    admin_user, admin_member = await _make_member(
+        test_tenant, MemberRole.admin, f"admin-{unique_id}"
+    )
 
     try:
+
         async def _current_user():
             return admin_user
 
@@ -128,10 +134,15 @@ async def test_remove_member_requires_admin_or_owner(
     test_user: User, test_tenant: Tenant, unique_id: str
 ):
     """A regular member cannot remove anyone — should get 403."""
-    regular_user, regular_member = await _make_member(test_tenant, MemberRole.member, f"reg-{unique_id}")
-    target_user, target_member = await _make_member(test_tenant, MemberRole.member, f"tgt-{unique_id}")
+    regular_user, regular_member = await _make_member(
+        test_tenant, MemberRole.member, f"reg-{unique_id}"
+    )
+    target_user, target_member = await _make_member(
+        test_tenant, MemberRole.member, f"tgt-{unique_id}"
+    )
 
     try:
+
         async def _current_user():
             return regular_user
 

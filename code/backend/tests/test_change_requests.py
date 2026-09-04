@@ -26,8 +26,11 @@ async def cr_payload():
 # Create
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
-async def test_create_cr(client: AsyncClient, test_tenant, test_project, test_user: User, cr_payload):
+async def test_create_cr(
+    client: AsyncClient, test_tenant, test_project, test_user: User, cr_payload
+):
     resp = await client.post(_base(test_tenant, test_project), json=cr_payload)
     assert resp.status_code == 201
     data = resp.json()
@@ -37,7 +40,9 @@ async def test_create_cr(client: AsyncClient, test_tenant, test_project, test_us
 
 
 @pytest.mark.asyncio
-async def test_create_cr_assigns_number_and_slug(client: AsyncClient, test_tenant, test_project, cr_payload):
+async def test_create_cr_assigns_number_and_slug(
+    client: AsyncClient, test_tenant, test_project, cr_payload
+):
     resp = await client.post(_base(test_tenant, test_project), json=cr_payload)
     assert resp.status_code == 201
     data = resp.json()
@@ -48,9 +53,15 @@ async def test_create_cr_assigns_number_and_slug(client: AsyncClient, test_tenan
 
 @pytest.mark.asyncio
 async def test_create_cr_sequential_numbering(client: AsyncClient, test_tenant, test_project):
-    r1 = await client.post(_base(test_tenant, test_project), json={"title": "First CR", "body": "b"})
-    r2 = await client.post(_base(test_tenant, test_project), json={"title": "Second CR", "body": "b"})
-    r3 = await client.post(_base(test_tenant, test_project), json={"title": "Third CR", "body": "b"})
+    r1 = await client.post(
+        _base(test_tenant, test_project), json={"title": "First CR", "body": "b"}
+    )
+    r2 = await client.post(
+        _base(test_tenant, test_project), json={"title": "Second CR", "body": "b"}
+    )
+    r3 = await client.post(
+        _base(test_tenant, test_project), json={"title": "Third CR", "body": "b"}
+    )
     assert r1.json()["number"] == 1
     assert r2.json()["number"] == 2
     assert r3.json()["number"] == 3
@@ -59,28 +70,38 @@ async def test_create_cr_sequential_numbering(client: AsyncClient, test_tenant, 
 
 @pytest.mark.asyncio
 async def test_create_cr_slug_dedup(client: AsyncClient, test_tenant, test_project):
-    r1 = await client.post(_base(test_tenant, test_project), json={"title": "Fix auth", "body": "b"})
-    r2 = await client.post(_base(test_tenant, test_project), json={"title": "Fix auth", "body": "b"})
+    r1 = await client.post(
+        _base(test_tenant, test_project), json={"title": "Fix auth", "body": "b"}
+    )
+    r2 = await client.post(
+        _base(test_tenant, test_project), json={"title": "Fix auth", "body": "b"}
+    )
     assert r1.json()["slug"] == "fix-auth"
     assert r2.json()["slug"] == "fix-auth-2"
 
 
 @pytest.mark.asyncio
 async def test_create_cr_with_target_files(client: AsyncClient, test_tenant, test_project):
-    resp = await client.post(_base(test_tenant, test_project), json={
-        "title": "Refactor utils",
-        "body": "Clean up utility functions",
-        "target_files": ["src/utils.py", "src/helpers.py"],
-    })
+    resp = await client.post(
+        _base(test_tenant, test_project),
+        json={
+            "title": "Refactor utils",
+            "body": "Clean up utility functions",
+            "target_files": ["src/utils.py", "src/helpers.py"],
+        },
+    )
     assert resp.status_code == 201
     assert resp.json()["target_files"] == ["src/utils.py", "src/helpers.py"]
 
 
 @pytest.mark.asyncio
 async def test_create_cr_missing_body(client: AsyncClient, test_tenant, test_project):
-    resp = await client.post(_base(test_tenant, test_project), json={
-        "title": "No body",
-    })
+    resp = await client.post(
+        _base(test_tenant, test_project),
+        json={
+            "title": "No body",
+        },
+    )
     assert resp.status_code == 422
 
 
@@ -88,13 +109,18 @@ async def test_create_cr_missing_body(client: AsyncClient, test_tenant, test_pro
 # List
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_list_crs(client: AsyncClient, test_tenant, test_project, cr_payload):
     # Create two CRs
     await client.post(_base(test_tenant, test_project), json=cr_payload)
-    await client.post(_base(test_tenant, test_project), json={
-        "title": "Second CR", "body": "body2",
-    })
+    await client.post(
+        _base(test_tenant, test_project),
+        json={
+            "title": "Second CR",
+            "body": "body2",
+        },
+    )
 
     resp = await client.get(_base(test_tenant, test_project))
     assert resp.status_code == 200
@@ -104,7 +130,9 @@ async def test_list_crs(client: AsyncClient, test_tenant, test_project, cr_paylo
 
 
 @pytest.mark.asyncio
-async def test_list_crs_items_include_number_and_slug(client: AsyncClient, test_tenant, test_project):
+async def test_list_crs_items_include_number_and_slug(
+    client: AsyncClient, test_tenant, test_project
+):
     await client.post(_base(test_tenant, test_project), json={"title": "Some CR", "body": "b"})
     resp = await client.get(_base(test_tenant, test_project))
     assert resp.status_code == 200
@@ -115,7 +143,9 @@ async def test_list_crs_items_include_number_and_slug(client: AsyncClient, test_
 
 
 @pytest.mark.asyncio
-async def test_list_crs_with_status_filter(client: AsyncClient, test_tenant, test_project, cr_payload):
+async def test_list_crs_with_status_filter(
+    client: AsyncClient, test_tenant, test_project, cr_payload
+):
     await client.post(_base(test_tenant, test_project), json=cr_payload)
     resp = await client.get(_base(test_tenant, test_project), params={"status": "draft"})
     assert resp.status_code == 200
@@ -126,6 +156,7 @@ async def test_list_crs_with_status_filter(client: AsyncClient, test_tenant, tes
 # ---------------------------------------------------------------------------
 # Get by ID
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_get_cr(client: AsyncClient, test_tenant, test_project, cr_payload):
@@ -151,6 +182,7 @@ async def test_get_cr_not_found(client: AsyncClient, test_tenant, test_project):
 # Update
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_update_cr(client: AsyncClient, test_tenant, test_project, cr_payload):
     create_resp = await client.post(_base(test_tenant, test_project), json=cr_payload)
@@ -165,7 +197,9 @@ async def test_update_cr(client: AsyncClient, test_tenant, test_project, cr_payl
 
 
 @pytest.mark.asyncio
-async def test_update_cr_slug_can_be_changed(client: AsyncClient, test_tenant, test_project, cr_payload):
+async def test_update_cr_slug_can_be_changed(
+    client: AsyncClient, test_tenant, test_project, cr_payload
+):
     create_resp = await client.post(_base(test_tenant, test_project), json=cr_payload)
     cr_id = create_resp.json()["id"]
 
@@ -179,8 +213,12 @@ async def test_update_cr_slug_can_be_changed(client: AsyncClient, test_tenant, t
 
 @pytest.mark.asyncio
 async def test_update_cr_slug_conflict_returns_409(client: AsyncClient, test_tenant, test_project):
-    r1 = await client.post(_base(test_tenant, test_project), json={"title": "CR One", "body": "body"})
-    r2 = await client.post(_base(test_tenant, test_project), json={"title": "CR Two", "body": "body"})
+    r1 = await client.post(
+        _base(test_tenant, test_project), json={"title": "CR One", "body": "body"}
+    )
+    r2 = await client.post(
+        _base(test_tenant, test_project), json={"title": "CR Two", "body": "body"}
+    )
     cr1_id = r1.json()["id"]
     slug2 = r2.json()["slug"]
 
@@ -192,7 +230,9 @@ async def test_update_cr_slug_conflict_returns_409(client: AsyncClient, test_ten
 
 
 @pytest.mark.asyncio
-async def test_update_cr_number_is_immutable(client: AsyncClient, test_tenant, test_project, cr_payload):
+async def test_update_cr_number_is_immutable(
+    client: AsyncClient, test_tenant, test_project, cr_payload
+):
     create_resp = await client.post(_base(test_tenant, test_project), json=cr_payload)
     original_number = create_resp.json()["number"]
     cr_id = create_resp.json()["id"]
@@ -208,6 +248,7 @@ async def test_update_cr_number_is_immutable(client: AsyncClient, test_tenant, t
 # ---------------------------------------------------------------------------
 # Transition
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_transition_cr(client: AsyncClient, test_tenant, test_project, cr_payload):
@@ -233,6 +274,7 @@ async def test_transition_cr(client: AsyncClient, test_tenant, test_project, cr_
 # ---------------------------------------------------------------------------
 # Comments
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_add_and_list_comments(client: AsyncClient, test_tenant, test_project, cr_payload):
@@ -288,4 +330,3 @@ async def test_cr_comments_count(client: AsyncClient, test_tenant, test_project,
     assert list_resp.status_code == 200
     item = next(i for i in list_resp.json()["items"] if i["id"] == cr_id)
     assert item["comments_count"] == 2
-

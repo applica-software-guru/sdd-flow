@@ -29,11 +29,14 @@ async def test_bug_title_with_html_stored_as_is(
     client: AsyncClient, test_tenant: Tenant, test_project: Project
 ):
     html_title = "<script>alert('xss')</script> Bug"
-    resp = await client.post(_bugs(test_tenant, test_project), json={
-        "title": html_title,
-        "body": "Normal body",
-        "severity": "minor",
-    })
+    resp = await client.post(
+        _bugs(test_tenant, test_project),
+        json={
+            "title": html_title,
+            "body": "Normal body",
+            "severity": "minor",
+        },
+    )
     assert resp.status_code == 201
     assert resp.json()["title"] == html_title
 
@@ -43,11 +46,14 @@ async def test_bug_body_with_html_stored_as_is(
     client: AsyncClient, test_tenant: Tenant, test_project: Project
 ):
     html_body = "<img src=x onerror=alert(1)> description"
-    resp = await client.post(_bugs(test_tenant, test_project), json={
-        "title": "Normal title",
-        "body": html_body,
-        "severity": "minor",
-    })
+    resp = await client.post(
+        _bugs(test_tenant, test_project),
+        json={
+            "title": "Normal title",
+            "body": html_body,
+            "severity": "minor",
+        },
+    )
     assert resp.status_code == 201
     assert resp.json()["body"] == html_body
 
@@ -57,10 +63,13 @@ async def test_cr_title_with_script_tag_stored_as_is(
     client: AsyncClient, test_tenant: Tenant, test_project: Project
 ):
     script_title = "<script>evil()</script>"
-    resp = await client.post(_crs(test_tenant, test_project), json={
-        "title": script_title,
-        "body": "body",
-    })
+    resp = await client.post(
+        _crs(test_tenant, test_project),
+        json={
+            "title": script_title,
+            "body": "body",
+        },
+    )
     assert resp.status_code == 201
     assert resp.json()["title"] == script_title
 
@@ -70,13 +79,16 @@ async def test_doc_title_with_html_stored_as_is(
     client: AsyncClient, test_tenant: Tenant, test_project: Project
 ):
     html_title = "<b>Bold</b> Doc"
-    resp = await client.post(_docs(test_tenant, test_project), json={
-        "path": "product/html-title.md",
-        "title": html_title,
-        "content": "# Test",
-        "status": "synced",
-        "version": "1.0",
-    })
+    resp = await client.post(
+        _docs(test_tenant, test_project),
+        json={
+            "path": "product/html-title.md",
+            "title": html_title,
+            "content": "# Test",
+            "status": "synced",
+            "version": "1.0",
+        },
+    )
     assert resp.status_code == 201
     assert resp.json()["title"] == html_title
 
@@ -87,11 +99,14 @@ async def test_very_long_title_is_rejected_or_stored(
 ):
     """A title of 10 000 characters should either be accepted or rejected with 422 — not crash."""
     long_title = "A" * 10_000
-    resp = await client.post(_bugs(test_tenant, test_project), json={
-        "title": long_title,
-        "body": "body",
-        "severity": "minor",
-    })
+    resp = await client.post(
+        _bugs(test_tenant, test_project),
+        json={
+            "title": long_title,
+            "body": "body",
+            "severity": "minor",
+        },
+    )
     assert resp.status_code in (201, 422)
 
 
@@ -100,10 +115,13 @@ async def test_unicode_title_roundtrips_correctly(
     client: AsyncClient, test_tenant: Tenant, test_project: Project
 ):
     emoji_title = "Bug: 🐛 TypeError in ñoño module"
-    resp = await client.post(_bugs(test_tenant, test_project), json={
-        "title": emoji_title,
-        "body": "body",
-        "severity": "trivial",
-    })
+    resp = await client.post(
+        _bugs(test_tenant, test_project),
+        json={
+            "title": emoji_title,
+            "body": "body",
+            "severity": "trivial",
+        },
+    )
     assert resp.status_code == 201
     assert resp.json()["title"] == emoji_title

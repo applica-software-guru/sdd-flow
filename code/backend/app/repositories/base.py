@@ -1,14 +1,12 @@
-from typing import Generic, TypeVar, Optional
 from uuid import UUID
+
 from beanie import Document
 
-T = TypeVar("T", bound=Document)
 
-
-class BaseRepository(Generic[T]):
+class BaseRepository[T: Document]:
     model: type[T]
 
-    async def find_by_id(self, id: UUID) -> Optional[T]:
+    async def find_by_id(self, id: UUID) -> T | None:
         return await self.model.get(str(id))
 
     async def save(self, doc: T) -> T:

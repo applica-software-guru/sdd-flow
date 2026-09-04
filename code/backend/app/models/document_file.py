@@ -1,13 +1,13 @@
 import enum
-from typing import Optional
-from pymongo import IndexModel
-from pydantic import Field
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import BaseDocument
 
 
-class DocStatus(str, enum.Enum):
+class DocStatus(enum.StrEnum):
     draft = "draft"
     new = "new"
     changed = "changed"
@@ -16,13 +16,13 @@ class DocStatus(str, enum.Enum):
 
 
 class DocumentFile(BaseDocument):
-    project_id: UUID = Field(alias="projectId")
+    project_id: UUID = Field()
     path: str
     title: str
     status: DocStatus = DocStatus.new
     version: int = 1
     content: str = ""
-    last_modified_by: Optional[UUID] = Field(default=None, alias="lastModifiedBy")
+    last_modified_by: UUID | None = Field(default=None)
 
     class Settings:
         name = "document_files"

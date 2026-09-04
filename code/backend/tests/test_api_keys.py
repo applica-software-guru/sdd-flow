@@ -17,6 +17,7 @@ def _base(tenant: Tenant, project: Project) -> str:
 # Create API key
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_create_api_key(client: AsyncClient, test_tenant, test_project):
     resp = await client.post(
@@ -45,6 +46,7 @@ async def test_create_api_key_missing_name(client: AsyncClient, test_tenant, tes
 # List API keys
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_list_api_keys(client: AsyncClient, test_tenant, test_project):
     # Create two keys
@@ -65,10 +67,12 @@ async def test_list_api_keys(client: AsyncClient, test_tenant, test_project):
 # Revoke API key
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_revoke_api_key(client: AsyncClient, test_tenant, test_project):
     create_resp = await client.post(
-        _base(test_tenant, test_project), json={"name": "To Revoke"},
+        _base(test_tenant, test_project),
+        json={"name": "To Revoke"},
     )
     key_id = create_resp.json()["id"]
 

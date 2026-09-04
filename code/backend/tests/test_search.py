@@ -23,6 +23,7 @@ def _url(tenant: Tenant) -> str:
 # Fixtures: seed searchable data
 # ---------------------------------------------------------------------------
 
+
 @pytest_asyncio.fixture
 async def search_data(test_tenant: Tenant, test_project: Project, test_user: User):
     """Create one of each entity type with known searchable content."""
@@ -91,6 +92,7 @@ async def search_data(test_tenant: Tenant, test_project: Project, test_user: Use
 # Tests
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_search_requires_query(client: AsyncClient, test_tenant):
     resp = await client.get(_url(test_tenant))
@@ -98,7 +100,9 @@ async def test_search_requires_query(client: AsyncClient, test_tenant):
 
 
 @pytest.mark.asyncio
-async def test_search_returns_all_entity_types(client: AsyncClient, test_tenant, test_project, search_data):
+async def test_search_returns_all_entity_types(
+    client: AsyncClient, test_tenant, test_project, search_data
+):
     resp = await client.get(_url(test_tenant), params={"q": "foobar"})
     assert resp.status_code == 200
     data = resp.json()
@@ -111,7 +115,9 @@ async def test_search_returns_all_entity_types(client: AsyncClient, test_tenant,
 
 
 @pytest.mark.asyncio
-async def test_search_filter_by_type_cr(client: AsyncClient, test_tenant, test_project, search_data):
+async def test_search_filter_by_type_cr(
+    client: AsyncClient, test_tenant, test_project, search_data
+):
     resp = await client.get(_url(test_tenant), params={"q": "foobar", "type": "cr"})
     assert resp.status_code == 200
     data = resp.json()
@@ -120,7 +126,9 @@ async def test_search_filter_by_type_cr(client: AsyncClient, test_tenant, test_p
 
 
 @pytest.mark.asyncio
-async def test_search_filter_by_type_bug(client: AsyncClient, test_tenant, test_project, search_data):
+async def test_search_filter_by_type_bug(
+    client: AsyncClient, test_tenant, test_project, search_data
+):
     resp = await client.get(_url(test_tenant), params={"q": "foobar", "type": "bug"})
     assert resp.status_code == 200
     data = resp.json()
@@ -129,7 +137,9 @@ async def test_search_filter_by_type_bug(client: AsyncClient, test_tenant, test_
 
 
 @pytest.mark.asyncio
-async def test_search_filter_by_type_doc(client: AsyncClient, test_tenant, test_project, search_data):
+async def test_search_filter_by_type_doc(
+    client: AsyncClient, test_tenant, test_project, search_data
+):
     resp = await client.get(_url(test_tenant), params={"q": "foobar", "type": "doc"})
     assert resp.status_code == 200
     data = resp.json()
@@ -138,7 +148,9 @@ async def test_search_filter_by_type_doc(client: AsyncClient, test_tenant, test_
 
 
 @pytest.mark.asyncio
-async def test_search_filter_by_type_audit_log(client: AsyncClient, test_tenant, test_project, search_data):
+async def test_search_filter_by_type_audit_log(
+    client: AsyncClient, test_tenant, test_project, search_data
+):
     resp = await client.get(_url(test_tenant), params={"q": "foobar", "type": "audit_log"})
     assert resp.status_code == 200
     data = resp.json()
@@ -147,7 +159,9 @@ async def test_search_filter_by_type_audit_log(client: AsyncClient, test_tenant,
 
 
 @pytest.mark.asyncio
-async def test_search_filter_by_type_project(client: AsyncClient, test_tenant, test_project, search_data):
+async def test_search_filter_by_type_project(
+    client: AsyncClient, test_tenant, test_project, search_data
+):
     resp = await client.get(_url(test_tenant), params={"q": "Test Project", "type": "project"})
     assert resp.status_code == 200
     data = resp.json()

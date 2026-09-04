@@ -1,9 +1,8 @@
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 from uuid import UUID
 
-from pymongo import IndexModel
 from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import ImmutableDocument
 
@@ -17,12 +16,12 @@ class NotificationEmailLog(ImmutableDocument):
     sending one email per comment.
     """
 
-    tenant_id: UUID = Field(alias="tenantId")
-    user_id: UUID = Field(alias="userId")
-    event_type: str = Field(alias="eventType")
-    entity_type: Optional[str] = Field(default=None, alias="entityType")
-    entity_id: Optional[UUID] = Field(default=None, alias="entityId")
-    sent_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc), alias="sentAt")
+    tenant_id: UUID = Field()
+    user_id: UUID = Field()
+    event_type: str = Field()
+    entity_type: str | None = Field(default=None)
+    entity_id: UUID | None = Field(default=None)
+    sent_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     class Settings:
         name = "notification_email_logs"

@@ -1,7 +1,7 @@
 """Tests for /api/v1/tenants endpoints."""
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from httpx import AsyncClient
@@ -13,18 +13,21 @@ from app.models.tenant_invitation import TenantInvitation
 from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
 
-
 # ---------------------------------------------------------------------------
 # Create tenant
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_create_tenant(client: AsyncClient):
     slug = f"t-{uuid.uuid4().hex[:8]}"
-    resp = await client.post("/api/v1/tenants", json={
-        "name": "My Org",
-        "slug": slug,
-    })
+    resp = await client.post(
+        "/api/v1/tenants",
+        json={
+            "name": "My Org",
+            "slug": slug,
+        },
+    )
     assert resp.status_code == 201
     data = resp.json()
     assert data["name"] == "My Org"
@@ -34,10 +37,13 @@ async def test_create_tenant(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_create_tenant_duplicate_slug(client: AsyncClient, test_tenant: Tenant):
-    resp = await client.post("/api/v1/tenants", json={
-        "name": "Dup",
-        "slug": test_tenant.slug,
-    })
+    resp = await client.post(
+        "/api/v1/tenants",
+        json={
+            "name": "Dup",
+            "slug": test_tenant.slug,
+        },
+    )
     assert resp.status_code == 409
 
 
@@ -51,6 +57,7 @@ async def test_create_tenant_missing_fields(client: AsyncClient):
 # List tenants
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_list_tenants(client: AsyncClient, test_tenant: Tenant):
     resp = await client.get("/api/v1/tenants")
@@ -63,6 +70,7 @@ async def test_list_tenants(client: AsyncClient, test_tenant: Tenant):
 # ---------------------------------------------------------------------------
 # Get tenant by ID
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_get_tenant(client: AsyncClient, test_tenant: Tenant):
@@ -82,11 +90,15 @@ async def test_get_tenant_not_found(client: AsyncClient):
 # Update tenant
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_update_tenant(client: AsyncClient, test_tenant: Tenant):
-    resp = await client.patch(f"/api/v1/tenants/{test_tenant.id}", json={
-        "name": "Renamed Tenant",
-    })
+    resp = await client.patch(
+        f"/api/v1/tenants/{test_tenant.id}",
+        json={
+            "name": "Renamed Tenant",
+        },
+    )
     assert resp.status_code == 200
     assert resp.json()["name"] == "Renamed Tenant"
 
@@ -94,6 +106,7 @@ async def test_update_tenant(client: AsyncClient, test_tenant: Tenant):
 # ---------------------------------------------------------------------------
 # List members
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_list_members(client: AsyncClient, test_tenant: Tenant):
@@ -203,8 +216,12 @@ async def test_accept_invitation_success(
         assert data["email"] == invitee.email
         assert data["role"] == "member"
     finally:
-        await TenantMember.find({"tenantId": str(test_tenant.id), "userId": str(invitee.id)}).delete()
-        await TenantInvitation.find({"tenantId": str(test_tenant.id), "email": invitee.email}).delete()
+        await TenantMember.find(
+            {"tenantId": str(test_tenant.id), "userId": str(invitee.id)}
+        ).delete()
+        await TenantInvitation.find(
+            {"tenantId": str(test_tenant.id), "email": invitee.email}
+        ).delete()
         await invitee.delete()
 
 
@@ -220,7 +237,7 @@ async def test_accept_invitation_expired(
         role=MemberRole.member,
         invited_by=test_user.id,
         token=f"expired-{uuid.uuid4().hex}",
-        expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+        expires_at=datetime.now(UTC) - timedelta(hours=1),
     )
     await expired_invitation.insert()
 
@@ -253,7 +270,7 @@ async def test_accept_invitation_wrong_email(
         role=MemberRole.member,
         invited_by=test_user.id,
         token=f"wrong-email-{uuid.uuid4().hex}",
-        expires_at=datetime.now(timezone.utc) + timedelta(days=1),
+        expires_at=datetime.now(UTC) + timedelta(days=1),
     )
     await invitation.insert()
 
@@ -282,7 +299,7 @@ async def test_invitation_email_dispatch_called(
         assert kwargs["token"]
 
     monkeypatch.setattr(
-        "app.api.tenants.send_tenant_invitation_email",
+        "app.services.tenants.send_tenant_invitation_email",
         fake_send_tenant_invitation_email,
     )
 
@@ -327,8 +344,8 @@ async def test_list_invitations_shows_accepted_and_expired_status(
         role=MemberRole.member,
         invited_by=test_user.id,
         token=f"accepted-{uuid.uuid4().hex}",
-        expires_at=datetime.now(timezone.utc) + timedelta(days=2),
-        accepted_at=datetime.now(timezone.utc),
+        expires_at=datetime.now(UTC) + timedelta(days=2),
+        accepted_at=datetime.now(UTC),
     )
     expired_invitation = TenantInvitation(
         tenant_id=test_tenant.id,
@@ -336,7 +353,7 @@ async def test_list_invitations_shows_accepted_and_expired_status(
         role=MemberRole.viewer,
         invited_by=test_user.id,
         token=f"expired-{uuid.uuid4().hex}",
-        expires_at=datetime.now(timezone.utc) - timedelta(hours=1),
+        expires_at=datetime.now(UTC) - timedelta(hours=1),
     )
     await accepted_invitation.insert()
     await expired_invitation.insert()

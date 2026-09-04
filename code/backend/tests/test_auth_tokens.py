@@ -9,7 +9,6 @@ from httpx import ASGITransport, AsyncClient
 
 from app.main import app
 from app.models.user import User
-from app.services.auth import hash_password
 
 
 @pytest.fixture
@@ -22,15 +21,21 @@ async def auth_client():
 async def _register_and_login(client: AsyncClient, unique_id: str) -> dict:
     email = f"tokens-{unique_id}@example.com"
     password = "StrongPass123!"
-    await client.post("/api/v1/auth/register", json={
-        "email": email,
-        "password": password,
-        "display_name": f"Token User {unique_id}",
-    })
-    resp = await client.post("/api/v1/auth/login", json={
-        "email": email,
-        "password": password,
-    })
+    await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": email,
+            "password": password,
+            "display_name": f"Token User {unique_id}",
+        },
+    )
+    resp = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": email,
+            "password": password,
+        },
+    )
     return {"email": email, "password": password, "resp": resp}
 
 
@@ -57,9 +62,7 @@ async def test_refresh_token_success(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_refresh_token_missing_returns_401(auth_client: AsyncClient):
     """Calling /refresh with no cookie should fail with 401."""
-    fresh_client = AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://testserver"
-    )
+    fresh_client = AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver")
     async with fresh_client as ac:
         resp = await ac.post("/api/v1/auth/refresh")
     assert resp.status_code == 401
@@ -88,9 +91,7 @@ async def test_logout_clears_cookies(auth_client: AsyncClient):
 @pytest.mark.asyncio
 async def test_logout_without_token_is_noop(auth_client: AsyncClient):
     """Logout without an active session should still return 200."""
-    fresh_client = AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://testserver"
-    )
+    fresh_client = AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver")
     async with fresh_client as ac:
         resp = await ac.post("/api/v1/auth/logout")
     assert resp.status_code == 200

@@ -3,16 +3,12 @@ Tests verifying that API keys work as authentication for CLI endpoints,
 and that revoked/invalid keys are rejected.
 """
 
-import uuid
-
 import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from app.middleware.auth import get_current_tenant_member, get_current_user
 from app.models.project import Project
 from app.models.tenant import Tenant
-from app.models.tenant_member import TenantMember
 
 
 def _api_keys_url(tenant: Tenant, project: Project) -> str:

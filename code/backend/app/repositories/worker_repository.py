@@ -1,20 +1,28 @@
-from typing import Optional
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
+from typing import Any
 from uuid import UUID, uuid4
 
-from app.utils.bson import uuid_to_bin, bin_to_uuid
+from beanie import SortDirection
 
-from app.models.worker import Worker, WorkerStatus
-from app.models.worker_job import WorkerJob, JobStatus
-from app.models.worker_job_message import WorkerJobMessage
 from app.models.base import utcnow
-
-
+from app.models.worker import Worker, WorkerStatus
+from app.models.worker_job import JobStatus, WorkerJob
+from app.models.worker_job_message import MessageKind, WorkerJobMessage
+from app.utils.bson import uuid_to_bin
+from app.utils.mongo import raw_collection
 
 
 class WorkerRepository:
-    async def find_by_id(self, id: UUID) -> Optional[Worker]:
+    async def find_by_id(self, id: UUID) -> Worker | None:
         return await Worker.get(id)
+
+    async def find_by_ids(self, ids: list[UUID]) -> dict[UUID, Worker]:
+        id_bins = [uuid_to_bin(i) for i in ids]
+        items = await Worker.find({"_id": {"$in": id_bins}}).to_list()
+        return {w.id: w for w in items}
+
+    async def find_online_worker(self, project_id: UUID) -> Worker | None:
+        return await Worker.find_one({"projectId": project_id, "status": WorkerStatus.online.value})
 
     async def find_by_project(self, project_id: UUID) -> list[Worker]:
         return await Worker.find({"projectId": project_id}).to_list()
@@ -24,10 +32,10 @@ class WorkerRepository:
         project_id: UUID,
         name: str,
         agent: str,
-        branch: Optional[str],
-        metadata: dict,
+        branch: str | None,
+        metadata: dict[str, Any],
     ) -> Worker:
-        col = Worker.get_pymongo_collection()
+        col = raw_collection(Worker)
         now = utcnow()
         pid_bin = uuid_to_bin(project_id)
         new_id_bin = uuid_to_bin(uuid4())
@@ -53,10 +61,12 @@ class WorkerRepository:
             upsert=True,
             return_document=True,
         )
-        return await Worker.find_one({"projectId": project_id, "name": name})
+        worker = await Worker.find_one({"projectId": project_id, "name": name})
+        assert worker is not None, "upsert completed but worker not found"
+        return worker
 
     async def update_heartbeat(self, worker_id: UUID) -> None:
-        col = Worker.get_pymongo_collection()
+        col = raw_collection(Worker)
         now = utcnow()
         await col.update_one(
             {"_id": uuid_to_bin(worker_id)},
@@ -64,7 +74,7 @@ class WorkerRepository:
         )
 
     async def mark_stale_workers_offline(self, threshold_seconds: int = 60) -> int:
-        col = Worker.get_pymongo_collection()
+        col = raw_collection(Worker)
         cutoff = utcnow() - timedelta(seconds=threshold_seconds)
         result = await col.update_many(
             {
@@ -76,7 +86,7 @@ class WorkerRepository:
         return result.modified_count
 
     async def fail_orphaned_jobs(self, offline_threshold_seconds: int = 300) -> int:
-        col = WorkerJob.get_pymongo_collection()
+        col = raw_collection(WorkerJob)
         cutoff = utcnow() - timedelta(seconds=offline_threshold_seconds)
         offline_workers = await Worker.find(
             {"status": WorkerStatus.offline.value, "lastHeartbeatAt": {"$lt": cutoff}}
@@ -94,34 +104,32 @@ class WorkerRepository:
         )
         return result.modified_count
 
-    async def find_job_by_id(self, id: UUID) -> Optional[WorkerJob]:
+    async def find_job_by_id(self, id: UUID) -> WorkerJob | None:
         return await WorkerJob.get(id)
 
     async def find_jobs_by_project(
         self,
         project_id: UUID,
-        status: Optional[JobStatus] = None,
+        status: JobStatus | None = None,
         page: int = 1,
         page_size: int = 20,
     ) -> tuple[list[WorkerJob], int]:
-        query: dict = {"projectId": project_id}
+        query: dict[str, Any] = {"projectId": project_id}
         if status is not None:
             query["status"] = status.value
         skip = (page - 1) * page_size
         total = await WorkerJob.find(query).count()
         items = (
             await WorkerJob.find(query)
-            .sort([("createdAt", -1)])
+            .sort([("createdAt", SortDirection.DESCENDING)])
             .skip(skip)
             .limit(page_size)
             .to_list()
         )
         return items, total
 
-    async def assign_job(
-        self, project_id: UUID, worker_id: UUID
-    ) -> Optional[WorkerJob]:
-        col = WorkerJob.get_pymongo_collection()
+    async def assign_job(self, project_id: UUID, worker_id: UUID) -> WorkerJob | None:
+        col = raw_collection(WorkerJob)
         now = utcnow()
         pid_bin = uuid_to_bin(project_id)
         wid_bin = uuid_to_bin(worker_id)
@@ -146,13 +154,17 @@ class WorkerRepository:
         return job
 
     async def find_messages(
-        self, job_id: UUID, after_sequence: int = 0
+        self,
+        job_id: UUID,
+        after_sequence: int = 0,
+        kind: MessageKind | None = None,
     ) -> list[WorkerJobMessage]:
+        query: dict[str, Any] = {"jobId": job_id, "sequence": {"$gt": after_sequence}}
+        if kind is not None:
+            query["kind"] = kind.value if hasattr(kind, "value") else kind
         return (
-            await WorkerJobMessage.find(
-                {"jobId": job_id, "sequence": {"$gt": after_sequence}}
-            )
-            .sort([("sequence", 1)])
+            await WorkerJobMessage.find(query)
+            .sort([("sequence", SortDirection.ASCENDING)])
             .to_list()
         )
 
@@ -160,9 +172,10 @@ class WorkerRepository:
         await msg.insert()
         return msg
 
-    async def delete_by_project(self, project_id: UUID) -> dict:
-        workers = await Worker.find({"projectId": project_id}).to_list()
-        job_ids = [uuid_to_bin(j.id) for j in await WorkerJob.find({"projectId": project_id}).to_list()]
+    async def delete_by_project(self, project_id: UUID) -> dict[str, Any]:
+        job_ids = [
+            uuid_to_bin(j.id) for j in await WorkerJob.find({"projectId": project_id}).to_list()
+        ]
 
         msg_count = 0
         if job_ids:

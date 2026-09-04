@@ -1,5 +1,5 @@
-from pydantic_settings import BaseSettings
 from pydantic import field_validator, model_validator
+from pydantic_settings import BaseSettings
 
 _WEAK_SECRETS = {"change-me-in-production", "secret", "changeme", "supersecret"}
 

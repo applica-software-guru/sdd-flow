@@ -1,15 +1,17 @@
 import hashlib
 import logging
+from collections.abc import Callable
+from typing import Literal, ParamSpec, TypeVar, cast
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from slowapi import Limiter
 
 from app.config import settings
+from app.dependencies import get_audit_service, get_auth_service
 from app.middleware.auth import get_current_user
 from app.models.user import User
-from app.repositories import AuthRepository, UserRepository
 from app.schemas.auth import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
@@ -19,20 +21,10 @@ from app.schemas.auth import (
     UpdateProfileRequest,
     UserResponse,
 )
-from app.services.auth import (
-    ProfileValidationError,
-    authenticate_user,
-    change_own_password,
-    create_tokens,
-    create_user,
-    refresh_access_token,
-    update_display_name,
-)
-from app.services.audit import log_event_for_user_tenants
-from app.services.email_templates import render_template
-from app.services.mailer import send_email
-from app.services.password_reset import request_password_reset, reset_password
-from fastapi import Cookie
+from app.services.audit import AuditService
+from app.services.auth import AuthService, ProfileValidationError
+
+logger = logging.getLogger(__name__)
 
 
 def _get_real_ip(request: Request) -> str:
@@ -44,82 +36,102 @@ def _get_real_ip(request: Request) -> str:
 
 limiter = Limiter(key_func=_get_real_ip, enabled=not settings.TESTING)
 
-logger = logging.getLogger(__name__)
+# Typed wrapper around slowapi's untyped decorator factory.
+_P = ParamSpec("_P")
+_R = TypeVar("_R")
+
+
+def rate_limit(rule: str) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
+    return cast(
+        "Callable[[Callable[_P, _R]], Callable[_P, _R]]",
+        limiter.limit(rule),  # pyright: ignore[reportUnknownMemberType]
+    )
+
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def _cookie_options(max_age_seconds: int) -> dict[str, bool | str | int]:
-    return {
-        "httponly": True,
-        "samesite": settings.AUTH_COOKIE_SAMESITE,
-        "secure": settings.AUTH_COOKIE_SECURE,
-        "max_age": max_age_seconds,
-    }
+def _set_auth_cookie(response: Response, key: str, value: str, max_age_seconds: int) -> None:
+    """Set an auth cookie with the shared secure options (typed explicitly)."""
+    samesite: Literal["lax", "strict", "none"] = settings.AUTH_COOKIE_SAMESITE  # type: ignore[assignment]  # validated in config
+    response.set_cookie(
+        key=key,
+        value=value,
+        httponly=True,
+        samesite=samesite,
+        secure=settings.AUTH_COOKIE_SECURE,
+        max_age=max_age_seconds,
+    )
+
+
+def _set_auth_cookie_pair(response: Response, access_token: str, refresh_token: str) -> None:
+    _set_auth_cookie(
+        response,
+        "access_token",
+        access_token,
+        settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    _set_auth_cookie(
+        response,
+        "refresh_token",
+        refresh_token,
+        settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+    )
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-@limiter.limit("5/minute")
-async def register(request: Request, body: RegisterRequest, response: Response):
-    user_repo = UserRepository()
-    existing = await user_repo.find_by_email(body.email)
-    if existing is not None:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
+@rate_limit("5/minute")
+async def register(
+    request: Request,
+    body: RegisterRequest,
+    response: Response,
+    svc: AuthService = Depends(get_auth_service),
+) -> UserResponse:
+    await svc.ensure_email_available(body.email)
+    user = await svc.create_user(body.email, body.password, body.display_name)
+    access_token, refresh_token = await svc.create_tokens(user.id)
 
-    user = await create_user(body.email, body.password, body.display_name, user_repo=user_repo)
-    access_token, refresh_token = await create_tokens(user.id)
-
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        **_cookie_options(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        **_cookie_options(settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400),
-    )
-    return user
+    _set_auth_cookie_pair(response, access_token, refresh_token)
+    return UserResponse.model_validate(user)
 
 
 @router.post("/login", response_model=UserResponse)
-@limiter.limit("10/minute")
-async def login(request: Request, body: LoginRequest, response: Response):
-    user = await authenticate_user(body.email, body.password)
+@rate_limit("10/minute")
+async def login(
+    request: Request,
+    body: LoginRequest,
+    response: Response,
+    svc: AuthService = Depends(get_auth_service),
+) -> UserResponse:
+    user = await svc.authenticate_user(body.email, body.password)
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
-    access_token, refresh_token = await create_tokens(user.id)
-
-    response.set_cookie(
-        key="access_token",
-        value=access_token,
-        **_cookie_options(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
-    )
-    response.set_cookie(
-        key="refresh_token",
-        value=refresh_token,
-        **_cookie_options(settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400),
-    )
-    return user
+    access_token, refresh_token = await svc.create_tokens(user.id)
+    _set_auth_cookie_pair(response, access_token, refresh_token)
+    return UserResponse.model_validate(user)
 
 
 @router.post("/refresh")
 async def refresh(
     response: Response,
     refresh_token: str | None = Cookie(default=None),
-):
+    svc: AuthService = Depends(get_auth_service),
+) -> dict[str, str]:
     if not refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No refresh token")
 
-    new_access = await refresh_access_token(refresh_token)
+    new_access = await svc.refresh_access_token(refresh_token)
     if new_access is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired refresh token"
+        )
 
-    response.set_cookie(
-        key="access_token",
-        value=new_access,
-        **_cookie_options(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
+    _set_auth_cookie(
+        response,
+        "access_token",
+        new_access,
+        settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
     return {"detail": "Token refreshed"}
 
@@ -128,11 +140,10 @@ async def refresh(
 async def logout(
     response: Response,
     refresh_token: str | None = Cookie(default=None),
-):
+    svc: AuthService = Depends(get_auth_service),
+) -> dict[str, str]:
     if refresh_token:
-        token_hash = hashlib.sha256(refresh_token.encode()).hexdigest()
-        auth_repo = AuthRepository()
-        await auth_repo.delete_refresh_token(token_hash)
+        await svc.revoke_refresh_token(refresh_token)
 
     response.delete_cookie("access_token")
     response.delete_cookie("refresh_token")
@@ -140,11 +151,15 @@ async def logout(
 
 
 @router.get("/google")
-async def google_login():
+async def google_login() -> RedirectResponse:
     if not settings.ENABLE_GOOGLE_OAUTH:
-        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth disabled")
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth disabled"
+        )
     if not settings.GOOGLE_CLIENT_ID:
-        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth not configured")
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth not configured"
+        )
     params = {
         "client_id": settings.GOOGLE_CLIENT_ID,
         "redirect_uri": settings.GOOGLE_REDIRECT_URI,
@@ -157,11 +172,18 @@ async def google_login():
 
 
 @router.get("/google/callback")
-async def google_callback(code: str):
+async def google_callback(
+    code: str,
+    svc: AuthService = Depends(get_auth_service),
+) -> RedirectResponse:
     if not settings.ENABLE_GOOGLE_OAUTH:
-        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth disabled")
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth disabled"
+        )
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
-        raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth not configured")
+        raise HTTPException(
+            status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Google OAuth not configured"
+        )
 
     async with httpx.AsyncClient() as client:
         token_resp = await client.post(
@@ -175,7 +197,9 @@ async def google_callback(code: str):
             },
         )
         if token_resp.status_code != 200:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to exchange code")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to exchange code"
+            )
         tokens = token_resp.json()
 
         userinfo_resp = await client.get(
@@ -183,46 +207,39 @@ async def google_callback(code: str):
             headers={"Authorization": f"Bearer {tokens['access_token']}"},
         )
         if userinfo_resp.status_code != 200:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to get user info")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to get user info"
+            )
         google_user = userinfo_resp.json()
 
-    from app.services.auth import get_or_create_google_user
-
-    user = await get_or_create_google_user(google_user)
-    access_token, refresh_tok = await create_tokens(user.id)
+    user = await svc.get_or_create_google_user(google_user)
+    access_token, refresh_tok = await svc.create_tokens(user.id)
 
     redirect = RedirectResponse(url="/tenants", status_code=302)
-    redirect.set_cookie(
-        key="access_token",
-        value=access_token,
-        **_cookie_options(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
-    )
-    redirect.set_cookie(
-        key="refresh_token",
-        value=refresh_tok,
-        **_cookie_options(settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400),
-    )
+    _set_auth_cookie_pair(redirect, access_token, refresh_tok)
     return redirect
 
 
 @router.get("/me", response_model=UserResponse)
-async def me(current_user: User = Depends(get_current_user)):
-    return current_user
+async def me(current_user: User = Depends(get_current_user)) -> UserResponse:
+    return UserResponse.model_validate(current_user)
 
 
 @router.patch("/me", response_model=UserResponse)
 async def update_me(
     body: UpdateProfileRequest,
     current_user: User = Depends(get_current_user),
-):
+    svc: AuthService = Depends(get_auth_service),
+    audit: AuditService = Depends(get_audit_service),
+) -> UserResponse:
     old_name = current_user.display_name
     try:
-        user = await update_display_name(current_user, body.display_name)
+        user = await svc.update_display_name(current_user, body.display_name)
     except ProfileValidationError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
 
     # Profile-level event: recorded in every tenant the user belongs to
-    await log_event_for_user_tenants(
+    await audit.log_event_for_user_tenants(
         user_id=user.id,
         event_type="user.profile_updated",
         entity_type="user",
@@ -231,7 +248,7 @@ async def update_me(
         summary=f"{old_name} renamed to {user.display_name}",
         details={"old_display_name": old_name, "new_display_name": user.display_name},
     )
-    return user
+    return UserResponse.model_validate(user)
 
 
 @router.post("/me/change-password")
@@ -239,14 +256,16 @@ async def change_password_me(
     body: ChangePasswordRequest,
     request: Request,
     current_user: User = Depends(get_current_user),
-):
+    svc: AuthService = Depends(get_auth_service),
+    audit: AuditService = Depends(get_audit_service),
+) -> dict[str, bool]:
     keep_token_hash = None
     raw_refresh = request.cookies.get("refresh_token")
     if raw_refresh:
         keep_token_hash = hashlib.sha256(raw_refresh.encode()).hexdigest()
 
     try:
-        password_was_set = await change_own_password(
+        password_was_set = await svc.change_own_password(
             current_user,
             body.current_password,
             body.new_password,
@@ -261,6 +280,9 @@ async def change_password_me(
         "display_name": current_user.display_name,
     }
     try:
+        from app.services.email_templates import render_template
+        from app.services.mailer import send_email
+
         await send_email(
             recipient_email=current_user.email,
             subject=render_template("emails/password_changed_subject.txt", **context),
@@ -269,11 +291,9 @@ async def change_password_me(
             log_label="Password changed",
         )
     except Exception:
-        logger.exception(
-            "Failed to send password-changed email to %s", current_user.email
-        )
+        logger.exception("Failed to send password-changed email to %s", current_user.email)
 
-    await log_event_for_user_tenants(
+    await audit.log_event_for_user_tenants(
         user_id=current_user.id,
         event_type="user.password_changed",
         entity_type="user",
@@ -289,23 +309,28 @@ async def change_password_me(
 
 
 @router.post("/forgot-password")
-@limiter.limit("5/minute")
-async def forgot_password(request: Request, body: ForgotPasswordRequest):
-    await request_password_reset(body.email)
-    return {
-        "detail": "If an account with that email exists, a password reset link has been sent"
-    }
+@rate_limit("5/minute")
+async def forgot_password(
+    request: Request,
+    body: ForgotPasswordRequest,
+    svc: AuthService = Depends(get_auth_service),
+) -> dict[str, str]:
+    await svc.request_password_reset(body.email)
+    return {"detail": "If an account with that email exists, a password reset link has been sent"}
 
 
 @router.post("/reset-password")
-async def reset_password_endpoint(body: ResetPasswordRequest):
+async def reset_password_endpoint(
+    body: ResetPasswordRequest,
+    svc: AuthService = Depends(get_auth_service),
+) -> dict[str, str]:
     if len(body.new_password) < 8:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Password must be at least 8 characters",
         )
 
-    success = await reset_password(body.token, body.new_password)
+    success = await svc.reset_password(body.token, body.new_password)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

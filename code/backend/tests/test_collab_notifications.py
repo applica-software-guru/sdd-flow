@@ -1,10 +1,9 @@
 """Tests for comment/content-change notifications and email preferences."""
 
-import uuid
-
 import pytest
 from httpx import AsyncClient
 
+import app.services.collab_notifications as collab
 from app.models.audit_log_entry import AuditLogEntry
 from app.models.change_request import ChangeRequest
 from app.models.notification import Notification
@@ -14,8 +13,6 @@ from app.models.project import Project
 from app.models.tenant import Tenant
 from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
-
-import app.services.collab_notifications as collab
 
 
 def _cr_base(tenant: Tenant, project: Project) -> str:
@@ -71,7 +68,9 @@ async def memberships(test_tenant: Tenant, other_user: User, third_user: User):
 
 
 @pytest.fixture
-async def cr(test_tenant: Tenant, test_project: Project, test_user: User, other_user: User) -> ChangeRequest:
+async def cr(
+    test_tenant: Tenant, test_project: Project, test_user: User, other_user: User
+) -> ChangeRequest:
     """CR authored by test_user and assigned to other_user."""
     cr = ChangeRequest(
         tenant_id=test_tenant.id,
@@ -128,7 +127,13 @@ async def test_comment_notifies_actors(
 
 @pytest.mark.asyncio
 async def test_comment_notifies_previous_commenters(
-    client: AsyncClient, test_tenant, test_project, test_user: User, other_user: User, third_user: User, cr
+    client: AsyncClient,
+    test_tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
+    third_user: User,
+    cr,
 ):
     """A previous commenter is notified on subsequent comments."""
     # other_user comments first (via service, as another actor)
@@ -164,9 +169,7 @@ async def test_inactive_members_excluded_from_actors(
         f"{_cr_base(test_tenant, test_project)}/{cr.id}/comments", json={"body": "hi"}
     )
     # other_user leaves the tenant
-    await TenantMember.find_one(
-        {"tenantId": test_tenant.id, "userId": other_user.id}
-    ).delete()
+    await TenantMember.find_one({"tenantId": test_tenant.id, "userId": other_user.id}).delete()
 
     # test_user comments again: other_user must NOT be notified again
     await client.post(
@@ -189,7 +192,12 @@ async def test_inactive_members_excluded_from_actors(
 
 @pytest.mark.asyncio
 async def test_comment_email_sent_to_actors(
-    client: AsyncClient, test_tenant, test_project, test_user: User, other_user: User, cr,
+    client: AsyncClient,
+    test_tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
+    cr,
     mock_send_email,
 ):
     """Actors with the default (on) comment_added preference receive an email with deep link."""
@@ -226,7 +234,12 @@ async def test_comment_email_skipped_when_preference_disabled(
 
 @pytest.mark.asyncio
 async def test_comment_email_coalesced_within_window(
-    client: AsyncClient, test_tenant, test_project, test_user: User, other_user: User, cr,
+    client: AsyncClient,
+    test_tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
+    cr,
     mock_send_email,
 ):
     """Two comments within the window: in-app notifications double, emails don't."""
@@ -269,7 +282,12 @@ async def test_comment_email_failure_does_not_break_comment_creation(
 
 @pytest.mark.asyncio
 async def test_content_change_notifies_actors_except_editor(
-    client: AsyncClient, test_tenant, test_project, test_user: User, other_user: User, cr,
+    client: AsyncClient,
+    test_tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
+    cr,
     mock_send_email,
 ):
     """Editing the body notifies the assignee in-app; no email (opt-in only)."""
@@ -289,9 +307,7 @@ async def test_content_change_notifies_actors_except_editor(
 
 
 @pytest.mark.asyncio
-async def test_noop_save_triggers_nothing(
-    client: AsyncClient, test_tenant, test_project, cr
-):
+async def test_noop_save_triggers_nothing(client: AsyncClient, test_tenant, test_project, cr):
     resp = await client.patch(
         f"{_cr_base(test_tenant, test_project)}/{cr.id}",
         json={"body": "Original body"},  # identical
@@ -328,7 +344,12 @@ async def test_content_changed_email_only_optin(
 
 @pytest.mark.asyncio
 async def test_bug_comment_and_content_change(
-    client: AsyncClient, test_tenant, test_project, test_user: User, other_user: User, cr,
+    client: AsyncClient,
+    test_tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
+    cr,
     mock_send_email,
 ):
     """Same behavior for bugs: comment emails + content_changed notifications."""
@@ -375,9 +396,7 @@ async def test_audit_entries_recorded(
     await client.post(
         f"{_cr_base(test_tenant, test_project)}/{cr.id}/comments", json={"body": "hello"}
     )
-    await client.patch(
-        f"{_cr_base(test_tenant, test_project)}/{cr.id}", json={"body": "new body"}
-    )
+    await client.patch(f"{_cr_base(test_tenant, test_project)}/{cr.id}", json={"body": "new body"})
 
     commented = await AuditLogEntry.find(
         {"eventType": "cr.commented", "tenantId": test_tenant.id}
@@ -458,9 +477,7 @@ async def test_comments_include_author(
     assert resp.status_code == 201
     assert resp.json()["author"]["display_name"] == test_user.display_name
 
-    listed = await client.get(
-        f"{_cr_base(test_tenant, test_project)}/{cr.id}/comments"
-    )
+    listed = await client.get(f"{_cr_base(test_tenant, test_project)}/{cr.id}/comments")
     assert listed.status_code == 200
     assert len(listed.json()) >= 1
     assert listed.json()[-1]["author"]["id"] == str(test_user.id)

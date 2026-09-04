@@ -3,7 +3,7 @@ title: "Bug Tracking"
 status: synced
 author: ""
 last-modified: "2026-09-04T00:00:00.000Z"
-version: "1.5"
+version: "1.6"
 ---
 
 # Bug Tracking
@@ -36,7 +36,7 @@ open → in-progress → resolved → closed
 - Body in Markdown (required) — describes the bug, steps to reproduce, expected vs. actual behavior
 - Severity: `critical`, `major`, `minor`, `trivial`
 - Author is set automatically
-- A **progressive number** (scoped to the project, zero-padded to 3 digits, e.g. `001`) and an immutable **slug** (derived from the title) are assigned automatically at creation. Neither can be changed afterwards.
+- A **progressive number** (scoped to the project, zero-padded to 3 digits, e.g. `001`) and an immutable **slug** are assigned automatically at creation. By default the slug is derived from the title; an optional **slug field** at creation lets the user override it (auto-filled from the title until manually edited, sanitised server-side via `slugify`). Neither `number` nor `slug` can be changed after creation.
 
 ### Assign Bug
 
@@ -81,4 +81,4 @@ open → in-progress → resolved → closed
 
 - The SDD CLI uses only `open` and `resolved` statuses. The additional statuses are for the web workflow. When the CLI fetches open bugs via API, it should receive bugs with status `open` or `in-progress`.
 - Bug body format must be compatible with the SDD CLI frontmatter format.
-- `number` and `slug` are server-generated at creation and immutable. Do not expose a slug edit field in the UI. `formatted_number` is `number` zero-padded to at least 3 digits and is computed, not stored.
+- `number` and `slug` are server-generated at creation and immutable after creation. The create form may expose an optional slug field that auto-fills from the title until the user edits it; the backend sanitises it via `slugify`. Do not expose a slug edit field after creation. `formatted_number` is `number` zero-padded to at least 3 digits and is computed, not stored.

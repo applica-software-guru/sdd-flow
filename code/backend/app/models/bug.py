@@ -1,14 +1,14 @@
 import enum
-from typing import Optional
 from datetime import datetime
-from pymongo import IndexModel
-from pydantic import Field
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import BaseDocument
 
 
-class BugStatus(str, enum.Enum):
+class BugStatus(enum.StrEnum):
     draft = "draft"
     open = "open"
     in_progress = "in_progress"
@@ -18,7 +18,7 @@ class BugStatus(str, enum.Enum):
     deleted = "deleted"
 
 
-class BugSeverity(str, enum.Enum):
+class BugSeverity(enum.StrEnum):
     critical = "critical"
     major = "major"
     minor = "minor"
@@ -26,17 +26,17 @@ class BugSeverity(str, enum.Enum):
 
 
 class Bug(BaseDocument):
-    project_id: UUID = Field(alias="projectId")
+    project_id: UUID = Field()
     number: int
     slug: str
-    path: Optional[str] = None
+    path: str | None = None
     title: str
     body: str
     status: BugStatus = BugStatus.draft
     severity: BugSeverity
-    author_id: UUID = Field(alias="authorId")
-    assignee_id: Optional[UUID] = Field(default=None, alias="assigneeId")
-    closed_at: Optional[datetime] = Field(default=None, alias="closedAt")
+    author_id: UUID = Field()
+    assignee_id: UUID | None = Field(default=None)
+    closed_at: datetime | None = Field(default=None)
 
     class Settings:
         name = "bugs"

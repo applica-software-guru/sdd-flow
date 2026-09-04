@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -8,14 +9,14 @@ from app.models.worker_job import JobStatus, JobType
 from app.models.worker_job_message import MessageKind
 from app.schemas.common import PaginatedResponse
 
-
 # --- Worker schemas ---
+
 
 class WorkerRegisterRequest(BaseModel):
     name: str
     agent: str = "claude"
     branch: str | None = None
-    metadata: dict | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class WorkerResponse(BaseModel):
@@ -38,13 +39,14 @@ class WorkerHeartbeatRequest(BaseModel):
 
 # --- WorkerJob schemas ---
 
+
 class WorkerJobCreate(BaseModel):
     entity_type: str | None = None
     entity_id: uuid.UUID | None = None
     job_type: JobType = JobType.build
     agent: str | None = None
     model: str | None = None
-    prompt: str | None = None   # Override generated prompt if provided
+    prompt: str | None = None  # Override generated prompt if provided
     worker_id: uuid.UUID | None = None  # Target a specific worker
 
 
@@ -107,8 +109,10 @@ class WorkerJobDetail(WorkerJobResponse):
 
 # --- CLI-side schemas ---
 
+
 class WorkerJobAssignment(BaseModel):
     """Returned to the worker when it picks up a job via poll."""
+
     job_id: uuid.UUID
     entity_type: str | None
     entity_id: uuid.UUID | None

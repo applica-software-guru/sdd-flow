@@ -1,18 +1,18 @@
-from typing import Optional
 from datetime import datetime
-from pymongo import IndexModel
-from pydantic import Field
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import BaseDocument
 
 
 class Project(BaseDocument):
-    tenant_id: UUID = Field(alias="tenantId")
+    tenant_id: UUID = Field()
     name: str
     slug: str
-    description: Optional[str] = None
-    archived_at: Optional[datetime] = Field(default=None, alias="archivedAt")
+    description: str | None = None
+    archived_at: datetime | None = Field(default=None)
 
     class Settings:
         name = "projects"

@@ -1,11 +1,12 @@
 import enum
-from pymongo import IndexModel
+
 from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import BaseDocument
 
 
-class DefaultRole(str, enum.Enum):
+class DefaultRole(enum.StrEnum):
     member = "member"
     viewer = "viewer"
 
@@ -13,7 +14,7 @@ class DefaultRole(str, enum.Enum):
 class Tenant(BaseDocument):
     name: str
     slug: str
-    default_role: DefaultRole = Field(default=DefaultRole.member, alias="defaultRole")
+    default_role: DefaultRole = Field(default=DefaultRole.member)
 
     class Settings:
         name = "tenants"

@@ -1,14 +1,14 @@
 import enum
-from typing import Optional
 from datetime import datetime
-from pymongo import IndexModel
-from pydantic import Field
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import BaseDocument
 
 
-class CRStatus(str, enum.Enum):
+class CRStatus(enum.StrEnum):
     draft = "draft"
     pending = "pending"
     approved = "approved"
@@ -19,17 +19,17 @@ class CRStatus(str, enum.Enum):
 
 
 class ChangeRequest(BaseDocument):
-    project_id: UUID = Field(alias="projectId")
+    project_id: UUID = Field()
     number: int
     slug: str
-    path: Optional[str] = None
+    path: str | None = None
     title: str
     body: str
     status: CRStatus = CRStatus.draft
-    author_id: UUID = Field(alias="authorId")
-    assignee_id: Optional[UUID] = Field(default=None, alias="assigneeId")
-    target_files: list[str] = Field(default_factory=list, alias="targetFiles")
-    closed_at: Optional[datetime] = Field(default=None, alias="closedAt")
+    author_id: UUID = Field()
+    assignee_id: UUID | None = Field(default=None)
+    target_files: list[str] = Field(default_factory=list)
+    closed_at: datetime | None = Field(default=None)
 
     class Settings:
         name = "change_requests"

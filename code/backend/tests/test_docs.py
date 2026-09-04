@@ -26,6 +26,7 @@ def doc_payload():
 # Create
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_create_doc(client: AsyncClient, test_tenant, test_project, doc_payload):
     resp = await client.post(_base(test_tenant, test_project), json=doc_payload)
@@ -38,7 +39,9 @@ async def test_create_doc(client: AsyncClient, test_tenant, test_project, doc_pa
 
 
 @pytest.mark.asyncio
-async def test_create_doc_duplicate_path(client: AsyncClient, test_tenant, test_project, doc_payload):
+async def test_create_doc_duplicate_path(
+    client: AsyncClient, test_tenant, test_project, doc_payload
+):
     await client.post(_base(test_tenant, test_project), json=doc_payload)
     resp = await client.post(_base(test_tenant, test_project), json=doc_payload)
     assert resp.status_code == 409
@@ -46,15 +49,19 @@ async def test_create_doc_duplicate_path(client: AsyncClient, test_tenant, test_
 
 @pytest.mark.asyncio
 async def test_create_doc_missing_path(client: AsyncClient, test_tenant, test_project):
-    resp = await client.post(_base(test_tenant, test_project), json={
-        "title": "No path",
-    })
+    resp = await client.post(
+        _base(test_tenant, test_project),
+        json={
+            "title": "No path",
+        },
+    )
     assert resp.status_code == 422
 
 
 # ---------------------------------------------------------------------------
 # List
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_list_docs(client: AsyncClient, test_tenant, test_project, doc_payload):
@@ -69,6 +76,7 @@ async def test_list_docs(client: AsyncClient, test_tenant, test_project, doc_pay
 # ---------------------------------------------------------------------------
 # Get by ID
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_get_doc(client: AsyncClient, test_tenant, test_project, doc_payload):
@@ -91,6 +99,7 @@ async def test_get_doc_not_found(client: AsyncClient, test_tenant, test_project)
 # Update
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_update_doc(client: AsyncClient, test_tenant, test_project, doc_payload):
     create_resp = await client.post(_base(test_tenant, test_project), json=doc_payload)
@@ -112,6 +121,7 @@ async def test_update_doc(client: AsyncClient, test_tenant, test_project, doc_pa
 # Delete (soft-delete)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_delete_doc(client: AsyncClient, test_tenant, test_project, doc_payload):
     create_resp = await client.post(_base(test_tenant, test_project), json=doc_payload)
@@ -128,6 +138,7 @@ async def test_delete_doc(client: AsyncClient, test_tenant, test_project, doc_pa
 # ---------------------------------------------------------------------------
 # Bulk upsert
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_bulk_upsert(client: AsyncClient, test_tenant, test_project):

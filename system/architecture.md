@@ -2,8 +2,8 @@
 title: "Architecture Decisions"
 status: synced
 author: ""
-last-modified: "2026-04-30T00:00:00.000Z"
-version: "1.9"
+last-modified: "2026-09-04T00:00:00.000Z"
+version: "2.1"
 ---
 
 # Architecture Decisions
@@ -19,7 +19,8 @@ sdd-flow/
 │   │   ├── models/        # Beanie Document models
 │   │   ├── schemas/       # Pydantic request/response schemas
 │   │   ├── repositories/  # Data access layer (one per aggregate)
-│   │   ├── api/           # Route handlers grouped by domain
+│   │   ├── dependencies.py # FastAPI DI providers (repositories, services)
+│   │   ├── api/           # Route handlers grouped by domain (thin controllers)
 │   │   │   ├── auth.py
 │   │   │   ├── tenants.py
 │   │   │   ├── projects.py
@@ -78,7 +79,27 @@ app/repositories/
 └── worker_repository.py       # Worker, WorkerJob, WorkerJobMessage
 ```
 
-Repositories are stateless and injected via FastAPI `Depends()`. Since Beanie operates globally (no session object), repositories require no constructor arguments.
+Repositories are stateless. Since Beanie operates globally (no session object), repositories require no constructor arguments.
+
+### Service Layer
+
+Business logic lives in **domain service classes** under `app/services/`. The layering rule is strict:
+
+```
+controllers (api/) → service classes (services/) → repositories (repositories/) → MongoDB
+                                ▲
+                                └── collaborators (AuditService, NotificationService, …)
+      all wiring happens in app/dependencies.py (single composition root)
+```
+
+- **Route handlers in `api/` must neither import repositories nor run Beanie queries on models** — they receive fully-wired service classes and only map input/output schemas; every handler has an annotated return type
+- **Domain services are classes** (`BugService`, `ProjectService`, `TenantService`, `DocumentService`, `WorkerJobService`, `SearchService`, `SyncService`, …) whose repositories and collaborator services are injected through the constructor and stored as private attributes (`self._bug_repo`) — no default instantiation, no inline singletons
+- **Cross-cutting collaborators are services too**: `AuditService`, `NotificationService`, `UserService`, `AssignmentService`, `CollaborationService` — domain services receive them via the constructor, never via module-level function calls
+- **`app/dependencies.py` is the single composition root**: the only module allowed to instantiate repositories and services. It exposes one provider per repository and one service factory per service (repositories composed bottom-up with `Depends`); stateless components make per-request construction cheap and test-friendly
+- Pure utilities stay stateless function modules: `slug.py` (`slugify`, `parse_path_prefix`), `email_templates.py`, `mailer.py`, `agent_models.py`, `seed.py` (startup-only)
+- **Tests substitute components correctly** via `app.dependency_overrides[get_bug_service] = lambda: FakeBugService()` — no monkey-patching of production modules
+- **HTTP contracts are frozen**: routes, request/response schemas, and status codes do not change during refactors; the integration test suite (black-box via the API) is the specification
+- **Toolchain**: `ruff` (E/F/I/UP/W + format, line-length 100) and strict `pyright` (0 errors on `app/`, see `pyrightconfig.json`), enforced via `cli.sh lint|format|typecheck|check`
 
 ### Frontend: React + Vite + Tailwind + React Query
 

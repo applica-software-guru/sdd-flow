@@ -2,12 +2,11 @@ import secrets
 
 from pymongo.errors import DuplicateKeyError
 
+from app.models.base import utcnow
 from app.models.tenant import DefaultRole, Tenant
 from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
-from app.models.base import utcnow
 from app.services.auth import hash_password
-from app.repositories import UserRepository, TenantRepository
 
 
 async def seed_admin_user() -> None:

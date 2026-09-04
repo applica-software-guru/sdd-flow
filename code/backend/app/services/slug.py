@@ -1,10 +1,11 @@
+"""Pure slug utilities shared by the domain services.
+
+Number/slug assignment (with uniqueness and insertion) lives in
+`NumberingService` (app/services/numbering.py).
+"""
+
 import os
 import re
-import uuid
-
-from pymongo.errors import DuplicateKeyError
-
-from app.repositories import ChangeRequestRepository, BugRepository
 
 
 def slugify(text: str) -> str:
@@ -33,74 +34,3 @@ def parse_path_prefix(path: str) -> tuple[int | None, str | None]:
         slug = match.group(2)
         return number, slug
     return None, None
-
-
-async def assign_number_and_slug(
-    doc,
-    project_id: uuid.UUID,
-    title: str,
-    path: str | None = None,
-    explicit_slug: str | None = None,
-    repo: ChangeRequestRepository | BugRepository = None,
-) -> tuple[int, str]:
-    """
-    Determine number and slug for a new CR or Bug.
-
-    Priority:
-    1. explicit_slug (UI-provided override), sanitised via slugify.
-    2. If path has a numeric prefix, restore number from it and derive slug from the path remainder.
-    3. Otherwise, auto-increment number and slugify title.
-
-    In both cases, ensure slug uniqueness within the project by appending -2, -3, etc.
-    Catches DuplicateKeyError on concurrent insert collisions.
-    """
-    path_number, path_slug = parse_path_prefix(path) if path else (None, None)
-
-    # --- Determine number ---
-    if path_number is not None:
-        # Check if the number is already taken by a different entity
-        existing = await repo.find_by_number(project_id, path_number)
-        if existing is not None:
-            # Fallback to auto-increment
-            path_number = None
-
-    if path_number is None:
-        max_number = await repo.get_max_number(project_id)
-        number = max_number + 1
-    else:
-        number = path_number
-
-    # --- Determine slug ---
-    if explicit_slug is not None:
-        base_slug = slugify(explicit_slug)
-    elif path_slug is not None:
-        base_slug = path_slug
-    else:
-        base_slug = slugify(title)
-    slug = base_slug
-    suffix = 2
-
-    for attempt in range(10):
-        existing_slug = await repo.find_by_slug(project_id, slug)
-        if existing_slug is None:
-            doc.number = number
-            doc.slug = slug
-            try:
-                await doc.insert()
-                return number, slug
-            except DuplicateKeyError:
-                # Slug or number collision from concurrent insert — increment suffix and retry
-                slug = f"{base_slug}-{suffix}"
-                suffix += 1
-                continue
-        else:
-            slug = f"{base_slug}-{suffix}"
-            suffix += 1
-
-    # Final fallback: try once more with timestamp-based uniqueness
-    import time
-    slug = f"{base_slug}-{int(time.time())}"
-    doc.number = number
-    doc.slug = slug
-    await doc.insert()
-    return number, slug

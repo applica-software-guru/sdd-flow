@@ -11,23 +11,22 @@ Strategy:
 import uuid
 from collections.abc import AsyncGenerator
 
-import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 from app.config import settings
-from app.main import app
-from app.middleware.auth import get_current_user, get_current_tenant_member
-from app.models.user import User
-from app.models.tenant import Tenant, DefaultRole
-from app.models.tenant_member import TenantMember, MemberRole
-from app.models.project import Project
 from app.db.mongodb import init_db
-
+from app.main import app
+from app.middleware.auth import get_current_tenant_member, get_current_user
+from app.models.project import Project
+from app.models.tenant import DefaultRole, Tenant
+from app.models.tenant_member import MemberRole, TenantMember
+from app.models.user import User
 
 # ---------------------------------------------------------------------------
 # MongoDB init (session-scoped)
 # ---------------------------------------------------------------------------
+
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def _mongodb():
@@ -40,6 +39,7 @@ async def _mongodb():
 # Unique IDs per test
 # ---------------------------------------------------------------------------
 
+
 @pytest_asyncio.fixture
 def unique_id() -> str:
     return uuid.uuid4().hex[:8]
@@ -49,8 +49,9 @@ def unique_id() -> str:
 # Test user
 # ---------------------------------------------------------------------------
 
+
 @pytest_asyncio.fixture
-async def test_user(unique_id: str) -> AsyncGenerator[User, None]:
+async def test_user(unique_id: str) -> AsyncGenerator[User]:
     user = User(
         email=f"test-{unique_id}@example.com",
         display_name=f"Test User {unique_id}",
@@ -70,8 +71,9 @@ async def test_user(unique_id: str) -> AsyncGenerator[User, None]:
 # Tenant + membership
 # ---------------------------------------------------------------------------
 
+
 @pytest_asyncio.fixture
-async def test_tenant(test_user: User, unique_id: str) -> AsyncGenerator[Tenant, None]:
+async def test_tenant(test_user: User, unique_id: str) -> AsyncGenerator[Tenant]:
     tenant = Tenant(
         name=f"Test Tenant {unique_id}",
         slug=f"test-tenant-{unique_id}",
@@ -98,15 +100,14 @@ async def test_tenant(test_user: User, unique_id: str) -> AsyncGenerator[Tenant,
 
 @pytest_asyncio.fixture
 async def test_member(test_tenant: Tenant, test_user: User) -> TenantMember:
-    member = await TenantMember.find_one(
-        {"tenantId": test_tenant.id, "userId": test_user.id}
-    )
+    member = await TenantMember.find_one({"tenantId": test_tenant.id, "userId": test_user.id})
     return member
 
 
 # ---------------------------------------------------------------------------
 # Test project
 # ---------------------------------------------------------------------------
+
 
 @pytest_asyncio.fixture
 async def test_project(test_tenant: Tenant, unique_id: str) -> Project:
@@ -124,12 +125,13 @@ async def test_project(test_tenant: Tenant, unique_id: str) -> Project:
 # Async HTTP client with dependency overrides
 # ---------------------------------------------------------------------------
 
+
 @pytest_asyncio.fixture
 async def client(
     test_user: User,
     test_tenant: Tenant,
     test_member: TenantMember,
-) -> AsyncGenerator[AsyncClient, None]:
+) -> AsyncGenerator[AsyncClient]:
 
     async def override_get_current_user():
         return test_user

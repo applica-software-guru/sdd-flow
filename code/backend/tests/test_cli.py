@@ -10,10 +10,10 @@ from app.models.api_key import ApiKey
 from app.models.project import Project
 from app.models.user import User
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _unique_key(prefix: str) -> str:
     """Return a unique raw key for each test run to avoid hash collisions."""
@@ -35,6 +35,7 @@ async def _make_api_key(test_project: Project, test_user: User, raw_key: str) ->
 # ---------------------------------------------------------------------------
 # push-docs
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_push_docs_returns_fully_serialized_documents(
@@ -78,6 +79,7 @@ async def test_push_docs_returns_fully_serialized_documents(
 # ---------------------------------------------------------------------------
 # push-crs
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_push_crs_creates_with_number_and_slug(
@@ -207,6 +209,7 @@ async def test_push_crs_update_does_not_change_slug_or_number(
 # push-bugs
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_push_bugs_creates_with_number_and_slug(
     client: AsyncClient, test_project: Project, test_user: User
@@ -263,6 +266,7 @@ async def test_push_bugs_restores_number_from_numeric_path(
 # pending-crs / open-bugs
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_pending_crs_include_number_and_slug(
     client: AsyncClient, test_project: Project, test_user: User
@@ -305,7 +309,12 @@ async def test_open_bugs_include_number_and_slug(
         headers={"Authorization": f"Bearer {raw_key}"},
         json={
             "bugs": [
-                {"path": "bugs/001-crash.md", "title": "Crash", "body": "body", "severity": "critical"},
+                {
+                    "path": "bugs/001-crash.md",
+                    "title": "Crash",
+                    "body": "body",
+                    "severity": "critical",
+                },
             ]
         },
     )
@@ -326,6 +335,7 @@ async def test_open_bugs_include_number_and_slug(
 # ---------------------------------------------------------------------------
 # mark-cr-applied / mark-bug-resolved
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_mark_cr_applied_includes_number_and_slug(
@@ -369,7 +379,12 @@ async def test_mark_bug_resolved_includes_number_and_slug(
         headers={"Authorization": f"Bearer {raw_key}"},
         json={
             "bugs": [
-                {"path": "bugs/002-crash.md", "title": "Crash bug", "body": "body", "severity": "major"},
+                {
+                    "path": "bugs/002-crash.md",
+                    "title": "Crash bug",
+                    "body": "body",
+                    "severity": "major",
+                },
             ]
         },
     )

@@ -5,13 +5,14 @@ author_id/assignee_id filters, and PATCH backwards compatibility.
 """
 
 import uuid
+from datetime import UTC
 
 import pytest
 from httpx import AsyncClient
 
 from app.models.assignment_history import AssignmentHistory
 from app.models.bug import Bug, BugSeverity
-from app.models.change_request import CRStatus, ChangeRequest
+from app.models.change_request import ChangeRequest
 from app.models.notification import Notification
 from app.models.tenant import Tenant
 from app.models.user import User
@@ -47,9 +48,7 @@ async def outsider_user(unique_id: str) -> User:
 async def other_member(test_tenant: Tenant, other_user: User):
     from app.models.tenant_member import MemberRole, TenantMember
 
-    member = TenantMember(
-        tenant_id=test_tenant.id, user_id=other_user.id, role=MemberRole.member
-    )
+    member = TenantMember(tenant_id=test_tenant.id, user_id=other_user.id, role=MemberRole.member)
     await member.insert()
     yield member
     await member.delete()
@@ -93,21 +92,20 @@ async def _cleanup_entity(entity_id: uuid.UUID) -> None:
     from app.models.audit_log_entry import AuditLogEntry
     from app.models.notification import Notification
 
-    for model, field in ((AssignmentHistory, "entityId"), (Notification, "entityId"), (AuditLogEntry, "entityId")):
+    for model, field in (
+        (AssignmentHistory, "entityId"),
+        (Notification, "entityId"),
+        (AuditLogEntry, "entityId"),
+    ):
         await model.find({field: entity_id}).delete()
 
 
 def _cr_url(tenant: Tenant, project, cr: ChangeRequest, suffix: str = "") -> str:
-    return (
-        f"/api/v1/tenants/{tenant.id}/projects/{project.id}"
-        f"/change-requests/{cr.id}{suffix}"
-    )
+    return f"/api/v1/tenants/{tenant.id}/projects/{project.id}/change-requests/{cr.id}{suffix}"
 
 
 def _bug_url(tenant: Tenant, project, bug: Bug, suffix: str = "") -> str:
-    return (
-        f"/api/v1/tenants/{tenant.id}/projects/{project.id}/bugs/{bug.id}{suffix}"
-    )
+    return f"/api/v1/tenants/{tenant.id}/projects/{project.id}/bugs/{bug.id}{suffix}"
 
 
 @pytest.fixture(params=["cr", "bug"], ids=["cr", "bug"])
@@ -122,9 +120,14 @@ def entity_urls(request, test_tenant: Tenant, test_project, cr: ChangeRequest, b
 # Resolved users in responses
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_get_returns_resolved_author_and_assignee(
-    client: AsyncClient, test_tenant: Tenant, test_project, test_user: User, other_user: User,
+    client: AsyncClient,
+    test_tenant: Tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
     cr: ChangeRequest,
 ):
     cr.assignee_id = other_user.id
@@ -142,8 +145,13 @@ async def test_get_returns_resolved_author_and_assignee(
 
 @pytest.mark.asyncio
 async def test_list_returns_resolved_users(
-    client: AsyncClient, test_tenant: Tenant, test_project, test_user: User, other_user: User,
-    cr: ChangeRequest, bug: Bug,
+    client: AsyncClient,
+    test_tenant: Tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
+    cr: ChangeRequest,
+    bug: Bug,
 ):
     cr.assignee_id = other_user.id
     await cr.save()
@@ -161,9 +169,13 @@ async def test_list_returns_resolved_users(
 # Assign endpoint (parametrized over CR and bug)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_assign_success(
-    client: AsyncClient, entity_urls, test_user: User, other_user: User,
+    client: AsyncClient,
+    entity_urls,
+    test_user: User,
+    other_user: User,
     test_tenant: Tenant,
 ):
     url, entity = entity_urls
@@ -174,9 +186,13 @@ async def test_assign_success(
     assert data["assignee"]["display_name"] == other_user.display_name
 
     # audit entry with label + summary
-    audit = await (
-        __import__("app.models.audit_log_entry", fromlist=["AuditLogEntry"])
-        .AuditLogEntry.find_one({"eventType": f"{'cr' if 'change-requests' in url else 'bug'}.assigned", "entityId": entity.id})
+    audit = await __import__(
+        "app.models.audit_log_entry", fromlist=["AuditLogEntry"]
+    ).AuditLogEntry.find_one(
+        {
+            "eventType": f"{'cr' if 'change-requests' in url else 'bug'}.assigned",
+            "entityId": entity.id,
+        }
     )
     assert audit is not None
     assert audit.entity_label == entity.title
@@ -195,7 +211,9 @@ async def test_assign_success(
 
 @pytest.mark.asyncio
 async def test_assign_to_non_member_fails(
-    client: AsyncClient, entity_urls, outsider_user: User,
+    client: AsyncClient,
+    entity_urls,
+    outsider_user: User,
 ):
     url, _ = entity_urls
     resp = await client.post(f"{url}/assign", json={"assignee_id": str(outsider_user.id)})
@@ -205,15 +223,22 @@ async def test_assign_to_non_member_fails(
 
 @pytest.mark.asyncio
 async def test_unassign(
-    client: AsyncClient, entity_urls, test_tenant: Tenant, test_user: User, other_user: User,
+    client: AsyncClient,
+    entity_urls,
+    test_tenant: Tenant,
+    test_user: User,
+    other_user: User,
 ):
     url, entity = entity_urls
     # setup: assign first
     entity.assignee_id = other_user.id
     await entity.save()
     await AssignmentHistory(
-        tenant_id=test_tenant.id, entity_type=_kind(url), entity_id=entity.id,
-        assignee_id=other_user.id, assigned_by=test_user.id,
+        tenant_id=test_tenant.id,
+        entity_type=_kind(url),
+        entity_id=entity.id,
+        assignee_id=other_user.id,
+        assigned_by=test_user.id,
     ).insert()
 
     resp = await client.post(f"{url}/assign", json={"assignee_id": None})
@@ -221,7 +246,9 @@ async def test_unassign(
     assert resp.json()["assignee_id"] is None
 
     # history has 2 rows now: initial + unassignment (assignee null)
-    history = await AssignmentHistory.find({"entityId": entity.id}).sort([("createdAt", 1)]).to_list()
+    history = (
+        await AssignmentHistory.find({"entityId": entity.id}).sort([("createdAt", 1)]).to_list()
+    )
     assert len(history) == 2
     assert history[1].assignee_id is None
 
@@ -232,13 +259,18 @@ async def test_unassign(
 
 @pytest.mark.asyncio
 async def test_assign_noop_does_not_audit(
-    client: AsyncClient, entity_urls, test_tenant: Tenant, other_user: User,
+    client: AsyncClient,
+    entity_urls,
+    test_tenant: Tenant,
+    other_user: User,
 ):
     url, entity = entity_urls
     entity.assignee_id = other_user.id
     await entity.save()
     await AssignmentHistory(
-        tenant_id=test_tenant.id, entity_type=_kind(url), entity_id=entity.id,
+        tenant_id=test_tenant.id,
+        entity_type=_kind(url),
+        entity_id=entity.id,
         assignee_id=other_user.id,
     ).insert()
 
@@ -268,24 +300,35 @@ async def _count_audits(entity) -> int:
 # History endpoint
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_assignments_history_endpoint(
-    client: AsyncClient, test_tenant: Tenant, test_project, test_user: User, other_user: User,
+    client: AsyncClient,
+    test_tenant: Tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
     cr: ChangeRequest,
 ):
     # initial assignment (as if set at creation) then reassignment — explicit
     # timestamps so the newest-first ordering is deterministic
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    base = datetime.now(timezone.utc)
+    base = datetime.now(UTC)
     await AssignmentHistory(
-        tenant_id=test_tenant.id, entity_type="change_request", entity_id=cr.id,
-        assignee_id=test_user.id, assigned_by=test_user.id,
+        tenant_id=test_tenant.id,
+        entity_type="change_request",
+        entity_id=cr.id,
+        assignee_id=test_user.id,
+        assigned_by=test_user.id,
         created_at=base,
     ).insert()
     await AssignmentHistory(
-        tenant_id=test_tenant.id, entity_type="change_request", entity_id=cr.id,
-        assignee_id=other_user.id, assigned_by=test_user.id,
+        tenant_id=test_tenant.id,
+        entity_type="change_request",
+        entity_id=cr.id,
+        assignee_id=other_user.id,
+        assigned_by=test_user.id,
         created_at=base.replace(microsecond=base.microsecond + 1000),
     ).insert()
 
@@ -303,9 +346,14 @@ async def test_assignments_history_endpoint(
 # Filters
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_cr_filters_author_and_assignee(
-    client: AsyncClient, test_tenant: Tenant, test_project, test_user: User, other_user: User,
+    client: AsyncClient,
+    test_tenant: Tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
     cr: ChangeRequest,
 ):
     cr.assignee_id = other_user.id
@@ -325,7 +373,11 @@ async def test_cr_filters_author_and_assignee(
 
 @pytest.mark.asyncio
 async def test_bug_filters_author_and_assignee(
-    client: AsyncClient, test_tenant: Tenant, test_project, test_user: User, other_user: User,
+    client: AsyncClient,
+    test_tenant: Tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
     bug: Bug,
 ):
     bug.assignee_id = other_user.id
@@ -344,9 +396,14 @@ async def test_bug_filters_author_and_assignee(
 # PATCH backwards compatibility (routes through the assignment flow)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_patch_assignee_routes_through_assignment_flow(
-    client: AsyncClient, test_tenant: Tenant, test_project, test_user: User, other_user: User,
+    client: AsyncClient,
+    test_tenant: Tenant,
+    test_project,
+    test_user: User,
+    other_user: User,
     cr: ChangeRequest,
 ):
     resp = await client.patch(
@@ -366,9 +423,13 @@ async def test_patch_assignee_routes_through_assignment_flow(
 # Creation with assignee seeds history + validates member
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_create_cr_with_assignee_seeds_history(
-    client: AsyncClient, test_tenant: Tenant, test_project, other_user: User,
+    client: AsyncClient,
+    test_tenant: Tenant,
+    test_project,
+    other_user: User,
 ):
     resp = await client.post(
         f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}/change-requests",
@@ -390,7 +451,10 @@ async def test_create_cr_with_assignee_seeds_history(
 
 @pytest.mark.asyncio
 async def test_create_cr_with_non_member_assignee_fails(
-    client: AsyncClient, test_tenant: Tenant, test_project, outsider_user: User,
+    client: AsyncClient,
+    test_tenant: Tenant,
+    test_project,
+    outsider_user: User,
 ):
     resp = await client.post(
         f"/api/v1/tenants/{test_tenant.id}/projects/{test_project.id}/change-requests",

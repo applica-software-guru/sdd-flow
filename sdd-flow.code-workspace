@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "code/backend",
+			"name": "Backend"
+		}, {			
+			"path": "code/frontend",
+			"name": "Frontend"
+		}, {
+			"path": "change-requests",
+			"name": "Change Requests"
+		}, {
+			"path": "bugs",
+			"name": "Bugs"
+		}
+	],
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+			"npm install": true,
+			"uv": true
+		}
+	}
+}

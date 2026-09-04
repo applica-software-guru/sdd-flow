@@ -6,13 +6,28 @@ from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
+from app.api import (
+    api_keys,
+    audit_log,
+    auth,
+    bugs,
+    change_requests,
+    cli,
+    docs,
+    notifications,
+    projects,
+    search,
+    tenants,
+    workers,
+    workers_cli,
+)
 from app.config import settings
-from app.api import auth, tenants, projects, change_requests, bugs, docs, api_keys, notifications, audit_log, search, cli, workers, workers_cli
 from app.db.mongodb import init_db
 
 
 async def _monitor_stale_workers():
     from app.repositories.worker_repository import WorkerRepository
+
     repo = WorkerRepository()
     while True:
         await asyncio.sleep(30)
@@ -28,6 +43,7 @@ async def lifespan(app: FastAPI):
     client = await init_db(settings.MONGODB_URL)
     app.state.mongodb_client = client
     from app.services.seed import seed_admin_user
+
     await seed_admin_user()
     monitor_task = asyncio.create_task(_monitor_stale_workers())
     yield
@@ -43,7 +59,9 @@ app = FastAPI(title="SDD Flow API", version="0.1.0", lifespan=lifespan)
 
 # Register slowapi rate limiter
 app.state.limiter = auth.limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# slowapi's handler is (Request, RateLimitExceeded); starlette's typing expects
+# the broader ExceptionHandler contract — safe by contravariance at runtime.
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # pyright: ignore[reportArgumentType]
 
 app.add_middleware(
     CORSMiddleware,

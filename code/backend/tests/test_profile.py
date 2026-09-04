@@ -1,7 +1,5 @@
 """Tests for self-service profile endpoints (CR-035)."""
 
-import uuid
-
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -130,9 +128,7 @@ async def test_change_password_wrong_current(client: AsyncClient, test_user: Use
 
 
 @pytest.mark.asyncio
-async def test_change_password_success_and_session_kept(
-    client: AsyncClient, test_user: User
-):
+async def test_change_password_success_and_session_kept(client: AsyncClient, test_user: User):
     test_user.password_hash = hash_password("OldPassword1!")
     await test_user.save()
 

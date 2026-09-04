@@ -1,13 +1,11 @@
-from typing import Optional
+from typing import Any
 from uuid import UUID
 
-from app.utils.bson import uuid_to_bin, bin_to_uuid
-
-from app.models.refresh_token import RefreshToken
-from app.models.password_reset_token import PasswordResetToken
 from app.models.base import utcnow
-
-
+from app.models.password_reset_token import PasswordResetToken
+from app.models.refresh_token import RefreshToken
+from app.utils.bson import uuid_to_bin
+from app.utils.mongo import raw_collection
 
 
 class AuthRepository:
@@ -15,7 +13,7 @@ class AuthRepository:
         await rt.insert()
         return rt
 
-    async def find_refresh_token(self, token_hash: str) -> Optional[RefreshToken]:
+    async def find_refresh_token(self, token_hash: str) -> RefreshToken | None:
         return await RefreshToken.find_one({"tokenHash": token_hash})
 
     async def delete_refresh_token(self, token_hash: str) -> None:
@@ -38,16 +36,12 @@ class AuthRepository:
         ).delete()
         return result.deleted_count if result else 0
 
-    async def create_password_reset_token(
-        self, prt: PasswordResetToken
-    ) -> PasswordResetToken:
+    async def create_password_reset_token(self, prt: PasswordResetToken) -> PasswordResetToken:
         await prt.insert()
         return prt
 
-    async def find_and_delete_valid_reset_token(
-        self, token_hash: str
-    ) -> Optional[dict]:
-        col = PasswordResetToken.get_pymongo_collection()
+    async def find_and_delete_valid_reset_token(self, token_hash: str) -> dict[str, Any] | None:
+        col = raw_collection(PasswordResetToken)
         doc = await col.find_one_and_delete(
             {"tokenHash": token_hash, "expiresAt": {"$gt": utcnow()}}
         )
@@ -56,11 +50,11 @@ class AuthRepository:
     async def replace_password_reset_token(
         self, user_id: UUID, new_token: PasswordResetToken
     ) -> None:
-        col = PasswordResetToken.get_pymongo_collection()
+        col = raw_collection(PasswordResetToken)
         uid_bin = uuid_to_bin(user_id)
         new_id_bin = uuid_to_bin(new_token.id)
         token_id_bin = uuid_to_bin(new_token.user_id)
-        doc = {
+        doc: dict[str, Any] = {
             "_id": new_id_bin,
             "userId": token_id_bin,
             "tokenHash": new_token.token_hash,

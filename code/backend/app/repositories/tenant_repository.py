@@ -1,24 +1,23 @@
-from typing import Optional
 from uuid import UUID
 
-from app.utils.bson import uuid_to_bin, bin_to_uuid
-
 from app.models.tenant import Tenant
-from app.models.tenant_member import TenantMember
 from app.models.tenant_invitation import TenantInvitation
+from app.models.tenant_member import TenantMember
 from app.models.user import User
-from app.repositories.base import BaseRepository
+from app.utils.bson import uuid_to_bin
 
 
+class TenantRepository:
+    """Repository for the tenant aggregate: tenants, members and invitations.
 
+    Unlike the other repositories it manages three Beanie documents, so it
+    does not inherit the single-aggregate BaseRepository.
+    """
 
-class TenantRepository(BaseRepository[Tenant]):
-    model = Tenant
-
-    async def find_by_id(self, id: UUID) -> Optional[Tenant]:
+    async def find_by_id(self, id: UUID) -> Tenant | None:
         return await Tenant.get(id)
 
-    async def find_by_slug(self, slug: str) -> Optional[Tenant]:
+    async def find_by_slug(self, slug: str) -> Tenant | None:
         return await Tenant.find_one(Tenant.slug == slug)
 
     async def find_by_user(self, user_id: UUID) -> list[Tenant]:
@@ -29,14 +28,20 @@ class TenantRepository(BaseRepository[Tenant]):
         tenant_id_bins = [uuid_to_bin(tid) for tid in tenant_ids]
         return await Tenant.find({"_id": {"$in": tenant_id_bins}}).to_list()
 
-    async def find_member(self, tenant_id: UUID, user_id: UUID) -> Optional[TenantMember]:
-        return await TenantMember.find_one(
-            {"tenantId": tenant_id, "userId": user_id}
-        )
+    async def find_member(self, tenant_id: UUID, user_id: UUID) -> TenantMember | None:
+        return await TenantMember.find_one({"tenantId": tenant_id, "userId": user_id})
 
-    async def find_members_with_users(
-        self, tenant_id: UUID
-    ) -> list[tuple[TenantMember, User]]:
+    async def find_member_user_ids(self, tenant_id: UUID) -> list[UUID]:
+        """All member user ids of a tenant (any role)."""
+        members = await TenantMember.find({"tenantId": tenant_id}).to_list()
+        return [m.user_id for m in members]
+
+    async def find_tenant_ids_for_user(self, user_id: UUID) -> list[UUID]:
+        """Ids of the tenants the user is a member of."""
+        memberships = await TenantMember.find({"userId": user_id}).to_list()
+        return [m.tenant_id for m in memberships]
+
+    async def find_members_with_users(self, tenant_id: UUID) -> list[tuple[TenantMember, User]]:
         members = await TenantMember.find({"tenantId": tenant_id}).to_list()
         user_ids = [m.user_id for m in members]
         if not user_ids:
@@ -49,15 +54,18 @@ class TenantRepository(BaseRepository[Tenant]):
     async def find_invitations(self, tenant_id: UUID) -> list[TenantInvitation]:
         return await TenantInvitation.find({"tenantId": tenant_id}).to_list()
 
-    async def find_invitation_by_token(self, token: str) -> Optional[TenantInvitation]:
+    async def find_invitation_by_token(self, token: str) -> TenantInvitation | None:
         return await TenantInvitation.find_one(TenantInvitation.token == token)
 
-    async def find_invitation_by_id(self, invitation_id: UUID) -> Optional[TenantInvitation]:
+    async def find_invitation_by_id(self, invitation_id: UUID) -> TenantInvitation | None:
         return await TenantInvitation.get(invitation_id)
 
-    async def save(self, doc) -> any:
+    async def save(
+        self, doc: Tenant | TenantMember | TenantInvitation
+    ) -> Tenant | TenantMember | TenantInvitation:
+        """Save one of the tenant-aggregate documents (tenant, member, invitation)."""
         await doc.save()
         return doc
 
-    async def delete(self, doc) -> None:
+    async def delete(self, doc: Tenant | TenantMember | TenantInvitation) -> None:
         await doc.delete()

@@ -1,20 +1,20 @@
-from typing import Optional
 from datetime import datetime
-from pymongo import IndexModel
-from pydantic import Field
 from uuid import UUID
+
+from pydantic import Field
+from pymongo import IndexModel
 
 from app.models.base import BaseDocument
 
 
 class ApiKey(BaseDocument):
-    project_id: UUID = Field(alias="projectId")
+    project_id: UUID = Field()
     name: str
-    key_prefix: str = Field(alias="keyPrefix")
-    key_hash: str = Field(alias="keyHash")
-    created_by: UUID = Field(alias="createdBy")
-    last_used_at: Optional[datetime] = Field(default=None, alias="lastUsedAt")
-    revoked_at: Optional[datetime] = Field(default=None, alias="revokedAt")
+    key_prefix: str = Field()
+    key_hash: str = Field()
+    created_by: UUID = Field()
+    last_used_at: datetime | None = Field(default=None)
+    revoked_at: datetime | None = Field(default=None)
 
     class Settings:
         name = "api_keys"
