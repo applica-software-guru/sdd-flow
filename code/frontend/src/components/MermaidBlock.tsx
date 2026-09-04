@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import mermaid from 'mermaid';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../context/theme';
 
 let idCounter = 0;
 

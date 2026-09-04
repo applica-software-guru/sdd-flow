@@ -11,7 +11,7 @@ vi.mock('react-syntax-highlighter/dist/esm/styles/prism', () => ({
   oneLight: {},
 }));
 
-vi.mock('../context/ThemeContext', () => ({
+vi.mock('../context/theme', () => ({
   useTheme: () => ({
     resolvedTheme: 'light',
   }),

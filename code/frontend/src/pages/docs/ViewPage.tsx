@@ -1,4 +1,4 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDoc, useUpdateDoc, useDeleteDoc } from '../../hooks/useDocs';
 import { useWorkers } from '../../hooks/useWorkers';
@@ -53,7 +53,13 @@ export default function ViewPage() {
   const { data: workers } = useWorkers(tenantId, projectId);
 
   const [editing, setEditing] = useState(false);
-  useEffect(() => { setEditing(false); }, [docId]);
+  // Reset edit mode when navigating to another doc
+  // (render-time reset, see "You Might Not Need an Effect").
+  const [prevDocId, setPrevDocId] = useState(docId);
+  if (prevDocId !== docId) {
+    setPrevDocId(docId);
+    setEditing(false);
+  }
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editStatus, setEditStatus] = useState('');

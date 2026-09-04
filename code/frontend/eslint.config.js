@@ -19,10 +19,7 @@ export default tseslint.config([
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // New in eslint-plugin-react-hooks v7: flags setState calls inside effects.
-      // The legacy codebase relies on this pattern in several components;
-      // downgrade to warning until those are refactored deliberately.
-      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/set-state-in-effect': 'error',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

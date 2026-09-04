@@ -130,7 +130,7 @@ test.describe('Change Requests', () => {
 
   test('scroll-to-comments button scrolls to the comments section', async ({ page }) => {
     // Create a CR with a long body so the comments section ends up below the fold.
-    const projectBase = await goToCRList(page);
+    await goToCRList(page);
     await page.getByRole('link', { name: /New CR/i }).click();
     await page.waitForURL('**/crs/new');
 

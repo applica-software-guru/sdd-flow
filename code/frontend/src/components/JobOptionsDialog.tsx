@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useWorkers, useAgentModels, usePreviewJobPrompt, useCreateWorkerJob } from '../hooks/useWorkers';
 import type { JobType } from '../types';
 
@@ -43,23 +43,28 @@ export default function JobOptionsDialog({
   const [editingPrompt, setEditingPrompt] = useState(isCustom);
   const [promptLoaded, setPromptLoaded] = useState(isCustom);
 
-  // Auto-select worker if only one online
-  useEffect(() => {
-    if (onlineWorkers.length === 1 && !selectedWorkerId) {
-      setSelectedWorkerId(onlineWorkers[0].id);
-      setSelectedAgent(onlineWorkers[0].agent);
-    }
-  }, [onlineWorkers]);
+  // Auto-select the only online worker (render-time reset, see
+  // "You Might Not Need an Effect": converges because the guard flips).
+  if (onlineWorkers.length === 1 && !selectedWorkerId) {
+    setSelectedWorkerId(onlineWorkers[0].id);
+    setSelectedAgent(onlineWorkers[0].agent);
+  }
 
-  // Set first model when agent changes
-  useEffect(() => {
+  // Reset the model whenever the agent or the models list changes
+  // (render-time reset, see "You Might Not Need an Effect").
+  const [prevModelsKey, setPrevModelsKey] = useState<string | null>(null);
+  const modelsKey = `${selectedAgent}:${agentModels ? Object.keys(agentModels).length : -1}`;
+  if (prevModelsKey !== modelsKey) {
+    setPrevModelsKey(modelsKey);
     const models = agentModels?.[selectedAgent] ?? [];
     setSelectedModel(models[0]?.id ?? '');
-  }, [selectedAgent, agentModels]);
+  }
 
-  // Load prompt preview on mount (not for custom jobs)
+  // Load prompt preview once (not for custom jobs)
+  const previewRequestedRef = useRef(false);
   useEffect(() => {
-    if (promptLoaded || isCustom) return;
+    if (promptLoaded || isCustom || previewRequestedRef.current) return;
+    previewRequestedRef.current = true;
     previewPrompt.mutate(
       { entity_type: entityType, entity_id: entityId, job_type: jobType },
       {
@@ -69,7 +74,7 @@ export default function JobOptionsDialog({
         },
       }
     );
-  }, []);
+  }, [promptLoaded, isCustom, entityType, entityId, jobType, previewPrompt]);
 
   const handleConfirm = async () => {
     const result = await createJob.mutateAsync({

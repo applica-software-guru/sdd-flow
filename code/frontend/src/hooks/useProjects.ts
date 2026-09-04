@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/toast';
 import type { Project } from '../types';
 
 export function useProjects(tenantId: string | undefined) {

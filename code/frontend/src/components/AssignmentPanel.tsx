@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AssignmentHistoryEntry, UserBrief } from '../types';
 
 interface AssignmentPanelProps {
@@ -23,10 +23,13 @@ export default function AssignmentPanel({
   assigning,
 }: AssignmentPanelProps) {
   const [selected, setSelected] = useState(assigneeId ?? '');
-
-  useEffect(() => {
+  // Reset the local selection when the assignee changes externally
+  // (render-time reset, see "You Might Not Need an Effect").
+  const [prevAssigneeId, setPrevAssigneeId] = useState(assigneeId ?? '');
+  if (prevAssigneeId !== assigneeId) {
+    setPrevAssigneeId(assigneeId ?? '');
     setSelected(assigneeId ?? '');
-  }, [assigneeId]);
+  }
 
   const currentAssigneeName =
     members.find((m) => m.user_id === assigneeId)?.display_name ??

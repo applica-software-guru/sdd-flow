@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AxiosError } from 'axios';
 import api from '../lib/api';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/toast';
 import type { Tenant, TenantInvitation, TenantMember } from '../types';
 
 type ApiErrorResponse = { detail?: string };

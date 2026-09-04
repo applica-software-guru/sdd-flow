@@ -44,9 +44,12 @@ export default function Layout() {
   }, []);
 
   // Close mobile menu on route change
-  useEffect(() => {
+  // (render-time reset, see "You Might Not Need an Effect").
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  if (prevPathname !== location.pathname) {
+    setPrevPathname(location.pathname);
     setMobileMenuOpen(false);
-  }, [location.pathname]);
+  }
 
   useEffect(() => {
     if (!projectId) {

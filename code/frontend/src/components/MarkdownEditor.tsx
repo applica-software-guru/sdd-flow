@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import MDEditor from '@uiw/react-md-editor';
-import { useTheme } from '../context/ThemeContext';
+import { useTheme } from '../context/theme';
 
 export const MARKDOWN_EDITOR_FONT_STACK = 'ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace';
 

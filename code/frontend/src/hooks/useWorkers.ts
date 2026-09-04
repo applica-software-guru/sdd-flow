@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/toast';
 import type { Worker, WorkerJob, WorkerJobDetail, WorkerJobMessage, PaginatedResponse, AgentModel } from '../types';
 
 // --- Workers ---
@@ -188,12 +188,28 @@ export function useWorkerJobStream(
   const [isStreaming, setIsStreaming] = useState(true);
   const [jobResult, setJobResult] = useState<{ status: string; exit_code?: number } | null>(null);
 
-  useEffect(() => {
-    if (!tenantId || !projectId || !jobId || !enabled) return;
-
+  // Reset the stream state when the target job changes
+  // (render-time reset, see "You Might Not Need an Effect").
+  const streamKey =
+    tenantId && projectId && jobId && enabled
+      ? `${tenantId}:${projectId}:${jobId}`
+      : null;
+  const [prevStreamKey, setPrevStreamKey] = useState<string | null>(null);
+  if (prevStreamKey !== streamKey) {
+    setPrevStreamKey(streamKey);
     setMessages([]);
     setIsStreaming(true);
     setJobResult(null);
+  }
+
+  // Keep the latest onDone callback without re-subscribing the stream.
+  const onDoneRef = useRef(onDone);
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  });
+
+  useEffect(() => {
+    if (!tenantId || !projectId || !jobId || !enabled) return;
 
     const url = `${API_BASE_URL}/tenants/${tenantId}/projects/${projectId}/worker-jobs/${jobId}/stream`;
     const eventSource = new EventSource(url, { withCredentials: true });
@@ -216,7 +232,7 @@ export function useWorkerJobStream(
       }
       setIsStreaming(false);
       eventSource.close();
-      onDone?.();
+      onDoneRef.current?.();
     });
 
     eventSource.onerror = () => {

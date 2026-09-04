@@ -53,6 +53,16 @@ export default function SearchModal() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<SearchTypeFilter | undefined>(undefined);
+  // Reset the search state when the modal closes
+  // (render-time reset, see "You Might Not Need an Effect").
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    if (!open) {
+      setQuery('');
+      setActiveTab(undefined);
+    }
+  }
   const { tenantId } = useParams();
   const navigate = useNavigate();
   const { data: results, isLoading } = useSearch(tenantId, query, activeTab);
@@ -74,13 +84,6 @@ export default function SearchModal() {
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
-
-  useEffect(() => {
-    if (!open) {
-      setQuery('');
-      setActiveTab(undefined);
-    }
-  }, [open]);
 
   if (!open) return null;
 
