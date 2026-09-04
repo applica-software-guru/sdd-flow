@@ -33,7 +33,8 @@ test.describe('Settings', () => {
     await expect(nameInput).toBeVisible();
 
     // Read current name
-    const currentName = await nameInput.inputValue();
+    // Read (and discard) the current name so the field is ready for the new value
+    const _currentName = await nameInput.inputValue();
     // Description is a textarea in the general form
     const descInput = generalForm.locator('textarea');
     const currentDesc = await descInput.inputValue();

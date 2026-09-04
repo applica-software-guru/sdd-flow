@@ -1,4 +1,4 @@
-import { Page, APIRequestContext } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 let _tenantId: string | null = null;
 let _projectId: string | null = null;
