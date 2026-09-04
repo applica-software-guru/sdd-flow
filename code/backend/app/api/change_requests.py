@@ -50,7 +50,10 @@ async def create_cr(
     )
     await assign_number_and_slug(cr, project_id, body.title, explicit_slug=body.slug, repo=cr_repo)
 
-    await log_event(tenant_id, member.user_id, "cr.created", "change_request", cr.id)
+    await log_event(
+        tenant_id, member.user_id, "cr.created", "change_request", cr.id,
+        entity_label=cr.title, summary="created",
+    )
 
     if body.assignee_id and body.assignee_id != member.user_id:
         await create_notification(
@@ -137,7 +140,10 @@ async def update_cr(
     if updates:
         await cr.set(updates)
 
-    await log_event(tenant_id, member.user_id, "cr.updated", "change_request", cr.id)
+    await log_event(
+        tenant_id, member.user_id, "cr.updated", "change_request", cr.id,
+        entity_label=cr.title, summary="updated",
+    )
     cr = await cr_repo.find_by_id(cr_id)
     return cr
 
@@ -159,6 +165,7 @@ async def transition_cr(
     if cr.status in (CRStatus.deleted, CRStatus.closed):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot transition a {cr.status.value} item")
 
+    old_status = cr.status
     updates: dict = {ChangeRequest.status: body.status}
     if body.status in (CRStatus.closed, CRStatus.applied, CRStatus.rejected):
         updates[ChangeRequest.closed_at] = datetime.now(timezone.utc)
@@ -166,7 +173,9 @@ async def transition_cr(
 
     await log_event(
         tenant_id, member.user_id, "cr.transitioned", "change_request", cr.id,
-        details={"new_status": body.status.value},
+        entity_label=cr.title,
+        summary=f"status: {old_status.value} → {body.status.value}",
+        details={"old_status": old_status.value, "new_status": body.status.value},
     )
 
     if cr.author_id != member.user_id:

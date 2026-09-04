@@ -3,6 +3,17 @@ import { useParams } from 'react-router-dom';
 import { useAuditLog } from '../../hooks/useAuditLog';
 import Pagination from '../../components/Pagination';
 import EmptyState from '../../components/EmptyState';
+import { DetailsCell } from '../../components/AuditDetailsCell';
+
+function initialsOf(name: string): string {
+  return (
+    name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase() || '?'
+  );
+}
 
 export default function AuditLogPage() {
   const { tenantId } = useParams();
@@ -101,38 +112,50 @@ export default function AuditLogPage() {
                       {new Date(entry.created_at).toLocaleString()}
                     </td>
                     <td className="px-6 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-[10px] font-semibold text-blue-700 dark:text-blue-400">
-                          {entry.user?.display_name
-                            ?.split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .toUpperCase() || '?'}
+                      {entry.user ? (
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-[10px] font-semibold text-blue-700 dark:text-blue-400">
+                            {initialsOf(entry.user.display_name)}
+                          </div>
+                          <span className="truncate text-sm text-slate-900 dark:text-slate-100" title={entry.user.email}>
+                            {entry.user.display_name}
+                          </span>
                         </div>
-                        <span className="text-sm text-slate-900 dark:text-slate-100">
-                          {entry.user?.display_name || 'Unknown'}
+                      ) : (
+                        <span className="inline-flex rounded-full bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs font-medium italic text-slate-500 dark:text-slate-400">
+                          System
                         </span>
-                      </div>
+                      )}
                     </td>
                     <td className="px-6 py-3">
-                      <span className="inline-flex rounded-full bg-slate-100 dark:bg-slate-700 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300">
-                        {entry.action}
+                      <span
+                        className="inline-flex max-w-full truncate rounded-full bg-slate-100 dark:bg-slate-700 px-2.5 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300"
+                        title={entry.action}
+                      >
+                        {entry.action || entry.event_type}
                       </span>
                     </td>
-                    <td className="px-6 py-3 text-sm text-slate-500 dark:text-slate-400">
-                      <span className="capitalize">
-                        {entry.entity_type.replace(/_/g, ' ')}
-                      </span>
-                      <span className="ml-1 text-xs text-slate-400 dark:text-slate-500">
-                        {entry.entity_id.slice(0, 8)}...
+                    <td className="px-6 py-3 text-sm">
+                      {entry.entity_label ? (
+                        <span
+                          className="block truncate font-medium text-slate-900 dark:text-slate-100"
+                          title={entry.entity_label}
+                        >
+                          {entry.entity_label}
+                        </span>
+                      ) : entry.entity_id ? (
+                        <span className="block truncate font-mono text-xs text-slate-500 dark:text-slate-400" title={entry.entity_id}>
+                          {entry.entity_id.slice(0, 8)}...
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 dark:text-slate-500">--</span>
+                      )}
+                      <span className="block text-xs capitalize text-slate-400 dark:text-slate-500">
+                        {(entry.entity_type ?? '').replace(/_/g, ' ')}
                       </span>
                     </td>
                     <td className="hidden max-w-0 px-6 py-3 text-xs text-slate-400 dark:text-slate-500 align-top lg:table-cell">
-                      <div className="max-h-28 w-full overflow-auto rounded-md bg-slate-50 px-2 py-1 whitespace-pre-wrap break-all font-mono text-[11px] leading-5 text-slate-600 dark:bg-slate-900/40 dark:text-slate-300">
-                        {entry.details
-                          ? JSON.stringify(entry.details, null, 2)
-                          : '--'}
-                      </div>
+                      <DetailsCell entry={entry} />
                     </td>
                   </tr>
                 ))}

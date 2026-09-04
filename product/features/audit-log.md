@@ -1,9 +1,9 @@
 ---
 title: "Audit Log"
 status: synced
-author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.0"
+author: "roberto"
+last-modified: "2026-04-01T00:00:00.000Z"
+version: "1.1"
 ---
 
 # Audit Log
@@ -28,9 +28,11 @@ Every significant action in the system is recorded in an immutable audit log. Th
 ### Audit Log View
 
 - Available to Owners and Admins at the tenant level
-- Filterable by: event type, user, project, date range
-- Each entry shows: timestamp, user, action, target entity, details
-- Paginated with infinite scroll
+- Filterable by: action (free-text search over event type), entity type, user, date range
+- Each entry shows: timestamp, author, action, target entity, details
+- The target entity is identified by a human-readable label (project name, bug/CR title, document path, API key name, invited email) captured when the event happened, so it stays meaningful even after the entity is deleted
+- Details render a human-readable summary plus friendly key/value pairs; raw JSON is shown only for unrecognized or legacy payloads
+- Paginated list
 
 ### Event Detail
 

@@ -81,7 +81,10 @@ async def create_doc(
     )
     await doc.insert()
 
-    await log_event(tenant_id, member.user_id, "doc.created", "document", doc.id)
+    await log_event(
+        tenant_id, member.user_id, "doc.created", "document", doc.id,
+        entity_label=doc.path, summary="created",
+    )
     return doc
 
 
@@ -117,7 +120,10 @@ async def update_doc(
 
     await doc.set(updates)
 
-    await log_event(tenant_id, member.user_id, "doc.updated", "document", doc.id)
+    await log_event(
+        tenant_id, member.user_id, "doc.updated", "document", doc.id,
+        entity_label=doc.path, summary="updated",
+    )
     doc = await doc_repo.find_by_id(doc_id)
     return doc
 
@@ -137,7 +143,10 @@ async def delete_doc(
 
     await doc.set({DocumentFile.status: DocStatus.deleted})
 
-    await log_event(tenant_id, member.user_id, "doc.deleted", "document", doc.id)
+    await log_event(
+        tenant_id, member.user_id, "doc.deleted", "document", doc.id,
+        entity_label=doc.path, summary="deleted",
+    )
 
 
 @router.post("/bulk", response_model=DocBulkResponse)
@@ -189,6 +198,7 @@ async def bulk_upsert(
 
     await log_event(
         tenant_id, member.user_id, "doc.bulk_upsert", "document", None,
+        summary=f"bulk upsert: {created} created, {updated} updated",
         details={"created": created, "updated": updated},
     )
     return DocBulkResponse(

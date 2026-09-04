@@ -12,6 +12,8 @@ class AuditLogEntry(ImmutableDocument):
     event_type: str = Field(alias="eventType")
     entity_type: Optional[str] = Field(default=None, alias="entityType")
     entity_id: Optional[UUID] = Field(default=None, alias="entityId")
+    entity_label: Optional[str] = Field(default=None, alias="entityLabel")
+    summary: Optional[str] = None
     details: dict = Field(default_factory=dict)
 
     class Settings:

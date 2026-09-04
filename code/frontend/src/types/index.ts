@@ -161,15 +161,27 @@ export interface ApiKey {
   created_at: string;
 }
 
+export interface AuditLogUser {
+  id: string;
+  display_name: string;
+  email: string;
+}
+
 export interface AuditLogEntry {
   id: string;
   tenant_id: string;
-  user_id: string;
-  user: User;
+  user_id: string | null;
+  user: AuditLogUser | null;
+  event_type: string;
+  /** Mirrors event_type; kept for a stable, explicit field name in the UI */
   action: string;
-  entity_type: string;
-  entity_id: string;
-  details?: Record<string, unknown>;
+  entity_type: string | null;
+  entity_id: string | null;
+  /** Human-readable label captured at write time (null on legacy entries) */
+  entity_label: string | null;
+  /** One-line human-readable event description (null on legacy entries) */
+  summary: string | null;
+  details?: Record<string, unknown> | null;
   created_at: string;
 }
 

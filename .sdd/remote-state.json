@@ -273,6 +273,26 @@
       "remoteId": "e6acb04c-1482-4369-9ea5-18719cdd1426",
       "localHash": "18948eeefc909a4b62c44250ecd1200ba6fc979ed1e1422d7412f814c9565847",
       "lastSynced": "2026-04-30T10:49:22.075Z"
+    },
+    "change-requests/CR-029-doc-link-resolution-in-cr-and-bug-bodies.md": {
+      "remoteId": "1b5c7893-ba6e-4d12-91ba-a8e5e4b32fb4",
+      "localHash": "e183032f94c9b00ce58de2633582fe243a7ab787e52182beef2ce284c0144217",
+      "lastSynced": "2026-07-17T12:19:30.035Z"
+    },
+    "change-requests/CR-030-mermaid-diagram-rendering.md": {
+      "remoteId": "df05118b-5afe-4ea9-bbda-e441651996db",
+      "localHash": "4eba7177290972b0f0b3d412de126763fa3162ee8b2b837406a0de434933492e",
+      "lastSynced": "2026-07-17T12:19:30.036Z"
+    },
+    "change-requests/CR-031-navigable-breadcrumb-in-doc-viewer.md": {
+      "remoteId": "045ea1d5-5f89-4953-90c5-a5270fcc383f",
+      "localHash": "1a6162193b41eb4684e0053238ff8de5cd352ee29c147cc0dc269b329a025e6e",
+      "lastSynced": "2026-07-17T12:19:30.036Z"
+    },
+    "change-requests/CR-032-custom-slug-on-cr-and-bug-creation.md": {
+      "remoteId": "d188f5bf-e547-4c12-b204-1d7dd3c32f58",
+      "localHash": "ccc33fbde6087885f57018dd9212821af73cf36b4fabc107735561edf74b370d",
+      "lastSynced": "2026-07-17T12:19:30.036Z"
     }
   },
   "bugs": {
@@ -300,7 +320,17 @@
       "remoteId": "81cd6eab-fb3f-4c89-ab97-7fc9a492aa9e",
       "localHash": "901828a12649b93464e4ac027c06cbde3c3c7e166a1ebdf492b3243dc9803261",
       "lastSynced": "2026-03-30T21:55:53.184Z"
+    },
+    "bugs/BUG-006-comment-textarea-slow-on-large-markdown-documents.md": {
+      "remoteId": "2165d417-67a7-437d-b999-6dc5e9dfc1c1",
+      "localHash": "8df08e279b8896b0f104c1ea0dd305b16a2dde5fbf674cf0b447309aa1cf10cc",
+      "lastSynced": "2026-07-17T12:19:30.138Z"
+    },
+    "bugs/BUG-007-severity-filter-not-working-on-bugs-page.md": {
+      "remoteId": "7064b8c2-b077-4eb9-a4f3-9567b3216c3e",
+      "localHash": "f306efdc8175331f7fb851e1b925d06e0f9917d013ea61040a0d87f3141c17b4",
+      "lastSynced": "2026-07-17T12:19:30.138Z"
     }
   },
-  "lastPush": "2026-04-30T10:49:22.083Z"
+  "lastPush": "2026-07-17T12:19:30.138Z"
 }

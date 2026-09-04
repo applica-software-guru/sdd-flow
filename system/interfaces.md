@@ -2,8 +2,8 @@
 title: "API Interfaces"
 status: synced
 author: ""
-last-modified: "2026-03-31T00:00:00.000Z"
-version: "2.0"
+last-modified: "2026-04-01T00:00:00.000Z"
+version: "2.1"
 ---
 
 # API Interfaces
@@ -490,8 +490,10 @@ Mark all notifications as read.
 
 List audit log entries. Owner or Admin only.
 
-**Query:** `event_type`, `user_id`, `project_id`, `from`, `to`, `page`, `per_page`
-**Response:** `200` `{ items: [{ id, event_type, user, entity_type, entity_id, details, created_at }], total }`
+**Query:** `action` (case-insensitive substring match on event type), `event_type` (exact match, legacy), `entity_type`, `user_id`, `from`, `to`, `page`, `page_size`
+**Response:** `200` `{ items: [{ id, event_type, action, user: { id, display_name, email } | null, user_id, entity_type, entity_id, entity_label, summary, details, created_at }], total, page, page_size, pages }`
+
+`action` mirrors `event_type`. `user` is the resolved author (batch-resolved, `null` for system events). `entity_label` (human-readable name of the target, e.g. project name, bug/CR title, doc path, API key name) and `summary` (one-line human-readable event description) are captured at write time and may be `null` on legacy entries; in that case clients fall back to `entity_id`.
 
 ---
 

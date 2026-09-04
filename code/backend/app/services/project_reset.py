@@ -78,13 +78,18 @@ async def reset_project_data(
     deleted_crs = await cr_repo.delete_by_project(project.id)
     deleted_docs = await doc_repo.delete_by_project(project.id)
 
-    # 6. Audit trail
+    # 6. Audit trail (label captured before deletion, entities no longer exist)
     await log_event(
         tenant_id=tenant_id,
         user_id=user_id,
         event_type="project.reset",
         entity_type="project",
         entity_id=project.id,
+        entity_label=project.name,
+        summary=(
+            f"reset: {deleted_bugs} bugs, {deleted_crs} change requests, "
+            f"{deleted_docs} documents deleted"
+        ),
         details={
             "deleted_documents": deleted_docs,
             "deleted_change_requests": deleted_crs,

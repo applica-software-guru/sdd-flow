@@ -50,7 +50,10 @@ async def create_bug(
     )
     await assign_number_and_slug(bug, project_id, body.title, explicit_slug=body.slug, repo=bug_repo)
 
-    await log_event(tenant_id, member.user_id, "bug.created", "bug", bug.id)
+    await log_event(
+        tenant_id, member.user_id, "bug.created", "bug", bug.id,
+        entity_label=bug.title, summary="created",
+    )
 
     if body.assignee_id and body.assignee_id != member.user_id:
         await create_notification(
@@ -141,7 +144,10 @@ async def update_bug(
     if updates:
         await bug.set(updates)
 
-    await log_event(tenant_id, member.user_id, "bug.updated", "bug", bug.id)
+    await log_event(
+        tenant_id, member.user_id, "bug.updated", "bug", bug.id,
+        entity_label=bug.title, summary="updated",
+    )
     bug = await bug_repo.find_by_id(bug_id)
     return bug
 
@@ -163,6 +169,7 @@ async def transition_bug(
     if bug.status in (BugStatus.deleted, BugStatus.closed):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot transition a {bug.status.value} item")
 
+    old_status = bug.status
     updates: dict = {Bug.status: body.status}
     if body.status in (BugStatus.closed, BugStatus.resolved, BugStatus.wont_fix):
         updates[Bug.closed_at] = datetime.now(timezone.utc)
@@ -170,7 +177,9 @@ async def transition_bug(
 
     await log_event(
         tenant_id, member.user_id, "bug.transitioned", "bug", bug.id,
-        details={"new_status": body.status.value},
+        entity_label=bug.title,
+        summary=f"status: {old_status.value} → {body.status.value}",
+        details={"old_status": old_status.value, "new_status": body.status.value},
     )
 
     if bug.author_id != member.user_id:

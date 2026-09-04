@@ -60,7 +60,10 @@ async def create_tenant(
     )
     await member.insert()
 
-    await log_event(tenant.id, current_user.id, "tenant.created", "tenant", tenant.id)
+    await log_event(
+        tenant.id, current_user.id, "tenant.created", "tenant", tenant.id,
+        entity_label=tenant.name, summary="created",
+    )
     return tenant
 
 
@@ -104,7 +107,10 @@ async def update_tenant(
     if updates:
         await tenant.set(updates)
 
-    await log_event(tenant.id, member.user_id, "tenant.updated", "tenant", tenant.id)
+    await log_event(
+        tenant.id, member.user_id, "tenant.updated", "tenant", tenant.id,
+        entity_label=tenant.name, summary="updated",
+    )
     # Reload after update
     tenant = await tenant_repo.find_by_id(tenant_id)
     return tenant
@@ -165,6 +171,8 @@ async def invite_member(
 
     await log_event(
         tenant_id, member.user_id, "invitation.created", "invitation", invitation.id,
+        entity_label=body.email,
+        summary=f"invitation created for {body.email} as {body.role.value}",
         details={"email": body.email, "role": body.role.value},
     )
 
@@ -222,6 +230,8 @@ async def cancel_invitation(
     await invitation.delete()
     await log_event(
         tenant_id, member.user_id, "invitation.cancelled", "invitation", invitation_id,
+        entity_label=invitation.email,
+        summary=f"invitation cancelled for {invitation.email}",
         details={"email": invitation.email},
     )
 
@@ -297,6 +307,9 @@ async def accept_invitation(
 
     await log_event(
         invitation.tenant_id, current_user.id, "member.joined", "tenant_member", member.id,
+        entity_label=current_user.display_name,
+        summary=f"{current_user.email} joined the tenant",
+        details={"email": current_user.email},
     )
     return MemberResponse(
         id=member.id,
@@ -324,7 +337,13 @@ async def remove_member(
 
     await tenant_repo.delete(target)
 
+    user_repo = UserRepository()
+    removed_user = await user_repo.find_by_id(user_id)
+    removed_label = removed_user.display_name if removed_user is not None else str(user_id)
+
     await log_event(
         tenant_id, member.user_id, "member.removed", "tenant_member", target.id,
+        entity_label=removed_label,
+        summary=f"member removed: {removed_label}",
         details={"removed_user_id": str(user_id)},
     )

@@ -42,7 +42,10 @@ async def create_project(
     )
     await project_repo.save(project)
 
-    await log_event(tenant_id, member.user_id, "project.created", "project", project.id)
+    await log_event(
+        tenant_id, member.user_id, "project.created", "project", project.id,
+        entity_label=project.name, summary="created",
+    )
 
     stats_dict = await project_repo.get_stats_batch([project.id])
     return _project_response(project, stats_dict)
@@ -98,7 +101,10 @@ async def update_project(
     if updates:
         await project.set(updates)
 
-    await log_event(tenant_id, member.user_id, "project.updated", "project", project.id)
+    await log_event(
+        tenant_id, member.user_id, "project.updated", "project", project.id,
+        entity_label=project.name, summary="updated",
+    )
     project = await project_repo.find_by_id(project_id)
     stats_dict = await project_repo.get_stats_batch([project.id])
     return _project_response(project, stats_dict)
@@ -118,7 +124,10 @@ async def archive_project(
     from app.models.project import Project
     await project.set({Project.archived_at: datetime.now(timezone.utc)})
 
-    await log_event(tenant_id, member.user_id, "project.archived", "project", project.id)
+    await log_event(
+        tenant_id, member.user_id, "project.archived", "project", project.id,
+        entity_label=project.name, summary="archived",
+    )
     project = await project_repo.find_by_id(project_id)
     stats_dict = await project_repo.get_stats_batch([project.id])
     return _project_response(project, stats_dict)
@@ -138,7 +147,10 @@ async def restore_project(
     from app.models.project import Project
     await project.set({Project.archived_at: None})
 
-    await log_event(tenant_id, member.user_id, "project.restored", "project", project.id)
+    await log_event(
+        tenant_id, member.user_id, "project.restored", "project", project.id,
+        entity_label=project.name, summary="restored",
+    )
     project = await project_repo.find_by_id(project_id)
     stats_dict = await project_repo.get_stats_batch([project.id])
     return _project_response(project, stats_dict)

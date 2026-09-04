@@ -48,7 +48,10 @@ async def create_api_key(
     )
     await api_key.insert()
 
-    await log_event(tenant_id, member.user_id, "api_key.created", "api_key", api_key.id)
+    await log_event(
+        tenant_id, member.user_id, "api_key.created", "api_key", api_key.id,
+        entity_label=api_key.name, summary="created",
+    )
 
     base = ApiKeyResponse.model_validate(api_key, from_attributes=True)
     return ApiKeyCreatedResponse(**base.model_dump(), full_key=raw_key)
@@ -81,4 +84,7 @@ async def revoke_api_key(
 
     await api_key.set({ApiKey.revoked_at: datetime.now(timezone.utc)})
 
-    await log_event(tenant_id, member.user_id, "api_key.revoked", "api_key", api_key.id)
+    await log_event(
+        tenant_id, member.user_id, "api_key.revoked", "api_key", api_key.id,
+        entity_label=api_key.name, summary="revoked",
+    )
