@@ -56,3 +56,35 @@ export function useMarkAllRead() {
     },
   });
 }
+
+// ---------------------------------------------------------------------------
+// Email notification preferences
+// ---------------------------------------------------------------------------
+
+export interface NotificationPreference {
+  event_type: string;
+  email_enabled: boolean;
+}
+
+export function useNotificationPreferences() {
+  return useQuery<NotificationPreference[]>({
+    queryKey: ['notification-preferences'],
+    queryFn: async () => {
+      const { data } = await api.get('/notifications/preferences');
+      return data;
+    },
+  });
+}
+
+export function useUpdateNotificationPreference() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { event_type: string; email_enabled: boolean }) => {
+      const { data } = await api.put('/notifications/preferences', payload);
+      return data as NotificationPreference;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notification-preferences'] });
+    },
+  });
+}

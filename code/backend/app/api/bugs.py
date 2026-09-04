@@ -26,6 +26,7 @@ from app.schemas.bugs import (
 from app.schemas.comments import CommentCreate, CommentResponse
 from app.services.assignment import apply_assignment, record_initial_assignment
 from app.services.audit import log_event
+from app.services.collab_notifications import notify_comment_added, notify_content_changed
 from app.services.notifications import create_notification
 from app.services.slug import assign_number_and_slug, slugify
 from app.services.users import ensure_tenant_member, resolve_user_briefs
@@ -47,6 +48,16 @@ async def _attach_users(responses: list[BugResponse], entities: list[Bug]) -> li
     for resp, e in zip(responses, entities):
         resp.author = users.get(e.author_id)
         resp.assignee = users.get(e.assignee_id) if e.assignee_id is not None else None
+    return responses
+
+
+async def _attach_comment_authors(comments: list[Comment]) -> list[CommentResponse]:
+    """Attach resolved author UserBrief to each comment (batch, no N+1)."""
+    author_ids = {c.author_id for c in comments}
+    users = await resolve_user_briefs(author_ids)
+    responses = [CommentResponse.model_validate(c) for c in comments]
+    for resp, c in zip(responses, comments):
+        resp.author = users.get(c.author_id)
     return responses
 
 
@@ -179,8 +190,30 @@ async def update_bug(
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Slug already in use")
         updates[Bug.slug] = new_slug
 
+    project = await _get_project(tenant_id, project_id)
+
+    # Detect real content changes (title/body) before applying updates:
+    # no-op saves must not trigger content_changed notifications.
+    changed_fields = []
+    if body.title is not None and body.title != bug.title:
+        changed_fields.append("title")
+    if body.body is not None and body.body != bug.body:
+        changed_fields.append("body")
+
     if updates:
         await bug.set(updates)
+
+    if changed_fields:
+        await log_event(
+            tenant_id, member.user_id, "bug.content_changed", "bug", bug.id,
+            entity_label=bug.title,
+            summary=f"changed {', '.join(changed_fields)}",
+            details={"changed_fields": changed_fields},
+        )
+        await notify_content_changed(
+            tenant_id, member.user_id, EntityType.bug.value,
+            bug, changed_fields, project_name=project.name,
+        )
 
     # Assignment changes are routed through the shared assignment flow
     # (validation, audit bug.assigned, notification, history) — PATCH keeps
@@ -304,7 +337,8 @@ async def list_comments(
 ):
     await _get_project(tenant_id, project_id)
     comment_repo = CommentRepository()
-    return await comment_repo.find_by_entity(EntityType.bug.value, bug_id)
+    comments = await comment_repo.find_by_entity(EntityType.bug.value, bug_id)
+    return await _attach_comment_authors(comments)
 
 
 @router.post("/{bug_id}/comments", response_model=CommentResponse, status_code=status.HTTP_201_CREATED)
@@ -315,7 +349,7 @@ async def add_comment(
     body: CommentCreate,
     member: TenantMember = Depends(get_current_tenant_member),
 ):
-    await _get_project(tenant_id, project_id)
+    project = await _get_project(tenant_id, project_id)
     bug_repo = BugRepository()
     bug = await bug_repo.find_by_id(bug_id)
     if bug is None or bug.project_id != project_id:
@@ -329,9 +363,15 @@ async def add_comment(
     )
     await comment.insert()
 
-    if bug.author_id != member.user_id:
-        await create_notification(
-            bug.author_id, tenant_id, "comment.added",
-            "bug", bug.id, f"New comment on bug: {bug.title}",
-        )
-    return comment
+    await log_event(
+        tenant_id, member.user_id, "bug.commented", "bug", bug.id,
+        entity_label=bug.title, summary="commented",
+    )
+
+    # Notify all actors (author, assignee, previous commenters except the
+    # comment author) in-app, plus emails per preference. Best-effort.
+    await notify_comment_added(
+        tenant_id, member.user_id, EntityType.bug.value,
+        bug, comment, project_name=project.name,
+    )
+    return (await _attach_comment_authors([comment]))[0]

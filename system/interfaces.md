@@ -2,8 +2,8 @@
 title: "API Interfaces"
 status: synced
 author: ""
-last-modified: "2026-04-01T00:00:00.000Z"
-version: "2.2"
+last-modified: "2026-07-17T00:00:00.000Z"
+version: "2.3"
 ---
 
 # API Interfaces
@@ -310,6 +310,8 @@ Update a CR. The `slug` field is ignored if sent — it is immutable after creat
 **Body:** `{ title?, body?, target_files?, assignee_id? }`
 **Response:** `200` `{ ..., number, formatted_number, slug }`
 
+Side effects: if the title or body actually changed (no-op saves trigger nothing), writes a `cr.content_changed` audit entry and dispatches `content_changed` in-app notifications to the item's actors. Emails go only to actors with the `content_changed` email preference enabled (default off). Dispatch failures never fail the request.
+
 ### POST .../crs/:cr_id/transition
 
 Change CR status.
@@ -357,6 +359,8 @@ Update a bug. The `slug` field is ignored if sent — it is immutable after crea
 **Body:** `{ title?, body?, severity?, assignee_id? }`
 **Response:** `200` `{ ..., number, formatted_number, slug }`
 
+Side effects: if the title or body actually changed (no-op saves trigger nothing), writes a `bug.content_changed` audit entry and dispatches `content_changed` in-app notifications to the item's actors. Emails go only to actors with the `content_changed` email preference enabled (default off). Dispatch failures never fail the request.
+
 ### POST .../bugs/:bug_id/transition
 
 Change bug status.
@@ -394,6 +398,8 @@ Add a comment.
 
 **Body:** `{ body }`
 **Response:** `201` `{ id, body, author, created_at }`
+
+Side effects: writes a `cr.commented`/`bug.commented` audit entry and dispatches `comment_added` in-app notifications to the item's actors (author, assignee, previous commenters — excluding the comment author and inactive members). Emails are sent to actors with the `comment_added` email preference enabled (default on); comments on the same item within a 5-minute window are coalesced into one email per recipient. Dispatch failures never fail the request.
 
 ### PATCH .../comments/:comment_id
 
@@ -507,6 +513,23 @@ Mark a notification as read.
 Mark all notifications as read.
 
 **Response:** `200`
+
+### GET /notifications/preferences
+
+List the current user's email notification preferences.
+
+**Response:** `200` `[{ event_type, email_enabled }]`
+
+Returns one entry per supported event type (`assigned`, `status_changed`, `comment_added`, `content_changed`, `mentioned`) — stored records merged with defaults (`comment_added` on, others off) for event types with no record.
+
+### PUT /notifications/preferences
+
+Set the email preference for one event type. Upsert: creates or updates the `NotificationPreference` record, which overrides the default.
+
+**Body:** `{ event_type, email_enabled }`
+**Response:** `200` `{ event_type, email_enabled }`
+
+Errors: unknown `event_type` → `422`.
 
 ---
 

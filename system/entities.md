@@ -2,8 +2,8 @@
 title: "Data Entities"
 status: synced
 author: ""
-last-modified: "2026-03-31T00:00:00.000Z"
-version: "1.7"
+last-modified: "2026-07-17T00:00:00.000Z"
+version: "1.8"
 ---
 
 # Data Entities
@@ -234,7 +234,7 @@ A notification for a user. Inherits `ImmutableDocument` — no `updated_at`.
 | id | UUID | Primary key |
 | user_id | UUID | Reference → User |
 | tenant_id | UUID | Reference → Tenant |
-| event_type | string | e.g. `assigned`, `status_changed`, `mentioned` |
+| event_type | string | e.g. `assigned`, `status_changed`, `comment_added`, `content_changed`, `mentioned` |
 | entity_type | string | e.g. `change_request`, `bug` |
 | entity_id | UUID | Reference to the related entity |
 | title | string | Short notification text |
@@ -251,12 +251,14 @@ Per-user email notification settings.
 |-------|------|-------------|
 | id | UUID | Primary key |
 | user_id | UUID | Reference → User |
-| event_type | string | e.g. `assigned`, `status_changed` |
+| event_type | string | `assigned`, `status_changed`, `comment_added`, `content_changed`, `mentioned` |
 | email_enabled | boolean | Whether to send email for this event type |
 | created_at | datetime | Creation time |
 | updated_at | datetime | Last update |
 
 Indexes: `(user_id, event_type)` (unique compound)
+
+**Defaults when no preference record exists:** `comment_added` is enabled; every other event type is disabled. An explicit record always overrides the default.
 
 ### Worker
 

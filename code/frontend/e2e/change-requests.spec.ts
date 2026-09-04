@@ -127,4 +127,43 @@ test.describe('Change Requests', () => {
       timeout: 10_000,
     });
   });
+
+  test('scroll-to-comments button scrolls to the comments section', async ({ page }) => {
+    // Create a CR with a long body so the comments section ends up below the fold.
+    const projectBase = await goToCRList(page);
+    await page.getByRole('link', { name: /New CR/i }).click();
+    await page.waitForURL('**/crs/new');
+
+    const title = `E2E Long CR ${Date.now()}`;
+    await page.getByPlaceholder('Brief description of the change').fill(title);
+    const longBody = Array.from({ length: 80 }, (_, i) => `Paragraph ${i + 1}: lorem ipsum dolor sit amet.`).join('\n\n');
+    await page.locator('.w-md-editor-text-input').fill(longBody);
+    await page.getByRole('button', { name: 'Create change request' }).click();
+    await page.waitForURL('**/crs/**', { timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: title })).toBeVisible({ timeout: 10_000 });
+
+    const commentsSection = page.locator('#comments');
+    await expect(commentsSection).toBeAttached({ timeout: 10_000 });
+
+    const fab = page.getByRole('button', { name: 'Scroll to comments' });
+    const scrollToTop = () =>
+      page.evaluate(() => {
+        // The app scrolls inside <main> (overflow-y-auto), not the window.
+        document.querySelector('main')?.scrollTo(0, 0);
+        window.scrollTo(0, 0);
+      });
+
+    // At the top of a long page the comments are below the fold: FAB fades in.
+    await scrollToTop();
+    await expect(fab).toHaveClass(/opacity-100/, { timeout: 5_000 });
+
+    // Click: the page lands on the comments section and the FAB fades out.
+    await fab.click();
+    await expect(commentsSection).toBeInViewport({ timeout: 5_000 });
+    await expect(fab).toHaveClass(/opacity-0/, { timeout: 5_000 });
+
+    // Scrolling back up brings the FAB back.
+    await scrollToTop();
+    await expect(fab).toHaveClass(/opacity-100/, { timeout: 5_000 });
+  });
 });

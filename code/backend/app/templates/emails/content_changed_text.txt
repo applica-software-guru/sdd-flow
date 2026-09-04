@@ -1,0 +1,12 @@
+Hello,
+
+{{ editor_name }} updated {{ noun }} {{ number }} in project "{{ project_name }}".
+
+{{ item_title }}
+
+Changed fields: {{ changed_fields }}
+
+View the {{ noun }}:
+{{ cta_url }}
+
+You are receiving this email because you enabled notifications for content changes on items you are involved in. You can disable these emails from your notification preferences.

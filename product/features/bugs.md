@@ -2,8 +2,8 @@
 title: "Bug Tracking"
 status: synced
 author: ""
-last-modified: "2026-04-01T00:00:00.000Z"
-version: "1.3"
+last-modified: "2026-09-04T00:00:00.000Z"
+version: "1.5"
 ---
 
 # Bug Tracking
@@ -58,14 +58,24 @@ open → in-progress → resolved → closed
 - Shared markdown viewer with GFM support (tables, task lists, syntax-highlighted code blocks, heading anchors)
 - Status badge and transition buttons
 - Severity indicator
-- Assignment
+- **Transition & assignment band**: AUTHOR, ASSIGNEE, and ASSIGN TO are shown in the same section as the "Transition to" controls (no separate card). Assignment history remains available as an expandable block inside the same band.
 - Activity log
-- Comments are rendered with the same shared markdown viewer for consistent formatting
+- Comments are rendered with the same shared markdown viewer for consistent formatting; each comment shows the commenter's avatar initials, display name, and a date + time timestamp.
+- The comments section has an anchor (`id="comments"`); a **floating action button** appears at the bottom-right of the viewport while the comments section is below the fold. It shows the comment count as a badge and, on click, smooth-scrolls to the comments and focuses the comment input. The button hides automatically when the comments section is already visible. Supports dark mode and is accessible (`aria-label`).
 
 ### Bug Assignment
 
 - Assign a bug to a team member
 - Assignee receives a notification
+
+### Bug Comment & Content-Change Notifications
+
+- When a comment is added, all **actors** of the bug — author, current assignee (if any), and all distinct previous commenters, excluding the comment author and inactive tenant members — receive an in-app notification (`comment_added`) and, by default (email preference on), an email with a deep link to the bug's comments section
+- When a comment is added, the event is recorded in the audit log as `bug.commented`
+- When a bug's title or body is actually modified (no-op saves trigger nothing), all actors receive an in-app notification (`content_changed`); email is sent only to actors who explicitly enabled the `content_changed` email preference (default: off)
+- The content change is recorded in the audit log as `bug.content_changed` with the changed fields in the details
+- Notification/email dispatch failures never fail the triggering action
+- Multiple comments on the same bug within a 5-minute window are coalesced into a single email per recipient
 
 ## Agent Notes
 

@@ -22,3 +22,13 @@ class NotificationResponse(BaseModel):
 
 class NotificationListResponse(PaginatedResponse[NotificationResponse]):
     pass
+
+
+class NotificationPreferenceResponse(BaseModel):
+    event_type: str
+    email_enabled: bool
+
+
+class NotificationPreferenceUpdate(BaseModel):
+    event_type: str
+    email_enabled: bool

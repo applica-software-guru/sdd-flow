@@ -1,16 +1,18 @@
-import { useState, useMemo, FormEvent } from 'react';
+import { useState, useMemo, useRef, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useChangeRequest, useTransitionCR, useUpdateCR, useAssignCR, useCRAssignments } from '../../hooks/useChangeRequests';
 import { useComments, useAddComment } from '../../hooks/useComments';
 import { useWorkers } from '../../hooks/useWorkers';
 import { useDocs } from '../../hooks/useDocs';
 import { useTenantMembers } from '../../hooks/useTenants';
-import AssignmentPanel from '../../components/AssignmentPanel';
+import AssignmentPanel, { AssignmentHistory } from '../../components/AssignmentPanel';
 import PageContainer from '../../components/PageContainer';
 import StatusBadge from '../../components/StatusBadge';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
 import MarkdownEditor from '../../components/MarkdownEditor';
 import JobOptionsDialog from '../../components/JobOptionsDialog';
+import ScrollToCommentsButton from '../../components/ScrollToCommentsButton';
+import CommentHeader from '../../components/CommentHeader';
 import type { CRStatus, JobType } from '../../types';
 
 const EDITABLE_STATUSES: CRStatus[] = ['draft', 'pending'];
@@ -39,6 +41,8 @@ export default function DetailPage() {
   const docsRouteBase = `/tenants/${tenantId}/projects/${projectId}/docs`;
   const navigate = useNavigate();
   const [commentBody, setCommentBody] = useState('');
+  const commentsSectionRef = useRef<HTMLDivElement>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
   const [jobDialog, setJobDialog] = useState<{ jobType: JobType } | null>(null);
   const hasOnlineWorker = workers?.some((w) => w.is_online) ?? false;
   const [editing, setEditing] = useState(false);
@@ -186,26 +190,43 @@ export default function DetailPage() {
           </>
         )}
 
-        {/* Status transitions */}
-        {availableTransitions.length > 0 && (
-          <div className="border-t border-slate-200 px-6 py-4 dark:border-slate-700">
-            <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-              Transition to:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {availableTransitions.map((status) => (
-                <button
-                  key={status}
-                  onClick={() => handleTransition(status)}
-                  disabled={transitionCR.isPending}
-                  className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                >
-                  {status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
-                </button>
-              ))}
+        {/* Transition & assignment band */}
+        <div className="border-t border-slate-200 px-6 py-4 dark:border-slate-700">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div>
+              <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                Transition to:
+              </p>
+              {availableTransitions.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {availableTransitions.map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => handleTransition(status)}
+                      disabled={transitionCR.isPending}
+                      className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                    >
+                      {status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-400 dark:text-slate-500">No transition available</p>
+              )}
+            </div>
+            <div className="lg:border-l lg:border-slate-200 lg:pl-6 dark:lg:border-slate-700">
+              <AssignmentPanel
+                author={cr.author}
+                assigneeId={cr.assignee_id ?? null}
+                members={members ?? []}
+                history={assignmentHistory}
+                onAssign={(assigneeId) => assignCR.mutate({ assignee_id: assigneeId })}
+                assigning={assignCR.isPending}
+              />
             </div>
           </div>
-        )}
+          <AssignmentHistory history={assignmentHistory} entityLabel={cr.title} />
+        </div>
 
         {/* Enrich on Worker */}
         {cr.status === 'draft' && hasOnlineWorker && (
@@ -224,17 +245,6 @@ export default function DetailPage() {
 
       </div>
 
-      {/* Author, assignee and assignment history */}
-      <AssignmentPanel
-        author={cr.author}
-        assigneeId={cr.assignee_id ?? null}
-        members={members ?? []}
-        history={assignmentHistory}
-        onAssign={(assigneeId) => assignCR.mutate({ assignee_id: assigneeId })}
-        assigning={assignCR.isPending}
-        entityLabel={cr.title}
-      />
-
       {jobDialog && (
         <JobOptionsDialog
           tenantId={tenantId!}
@@ -251,7 +261,11 @@ export default function DetailPage() {
       )}
 
       {/* Comments */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div
+        id="comments"
+        ref={commentsSectionRef}
+        className="scroll-mt-20 rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800"
+      >
         <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
           <h2 className="font-semibold text-slate-900 dark:text-slate-100">
             Comments ({comments?.length || 0})
@@ -262,15 +276,8 @@ export default function DetailPage() {
           <div className="divide-y divide-slate-100 dark:divide-slate-700">
             {comments.map((comment) => (
               <div key={comment.id} className="px-6 py-4">
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100 text-[10px] font-semibold text-blue-700">
-                    ?
-                  </div>
-                  <span className="text-slate-400">
-                    {new Date(comment.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-                <div className="mt-2 pl-8">
+                <CommentHeader comment={comment} />
+                <div className="mt-2 pl-9">
                   <MarkdownRenderer content={comment.body} basePath="change-requests" docs={docs} docsRouteBase={docsRouteBase} />
                 </div>
               </div>
@@ -288,6 +295,7 @@ export default function DetailPage() {
           className="border-t border-slate-200 px-6 py-4 dark:border-slate-700"
         >
           <textarea
+            ref={commentInputRef}
             value={commentBody}
             onChange={(e) => setCommentBody(e.target.value)}
             placeholder="Write a comment..."
@@ -305,6 +313,11 @@ export default function DetailPage() {
           </div>
         </form>
       </div>
+      <ScrollToCommentsButton
+        targetRef={commentsSectionRef}
+        commentCount={comments?.length || 0}
+        inputRef={commentInputRef}
+      />
     </PageContainer>
   );
 }

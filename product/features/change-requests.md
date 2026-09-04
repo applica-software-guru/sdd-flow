@@ -2,8 +2,8 @@
 title: "Change Request Management"
 status: synced
 author: ""
-last-modified: "2026-04-01T00:00:00.000Z"
-version: "1.3"
+last-modified: "2026-09-04T00:00:00.000Z"
+version: "1.5"
 ---
 
 # Change Request Management
@@ -58,9 +58,10 @@ draft → approved → applied → closed
 - Full markdown body rendered
 - Shared markdown viewer with GFM support (tables, task lists, syntax-highlighted code blocks, heading anchors)
 - Status badge and transition buttons
-- Assignment (who should review/apply)
+- **Transition & assignment band**: AUTHOR, ASSIGNEE, and ASSIGN TO are shown in the same section as the "Transition to" controls (no separate card). Assignment history remains available as an expandable block inside the same band.
 - Activity log (status changes, comments)
-- Comments are rendered with the same shared markdown viewer for consistent formatting
+- Comments are rendered with the same shared markdown viewer for consistent formatting; each comment shows the commenter's avatar initials, display name, and a date + time timestamp.
+- The comments section has an anchor (`id="comments"`); a **floating action button** appears at the bottom-right of the viewport while the comments section is below the fold. It shows the comment count as a badge and, on click, smooth-scrolls to the comments and focuses the comment input. The button hides automatically when the comments section is already visible. Supports dark mode and is accessible (`aria-label`).
 
 ### CR Review
 
@@ -72,6 +73,15 @@ draft → approved → applied → closed
 
 - Assign a CR to a team member for review or implementation
 - Assignee receives a notification
+
+### CR Comment & Content-Change Notifications
+
+- When a comment is added, all **actors** of the CR — author, current assignee (if any), and all distinct previous commenters, excluding the comment author and inactive tenant members — receive an in-app notification (`comment_added`) and, by default (email preference on), an email with a deep link to the CR's comments section
+- When a comment is added, the event is recorded in the audit log as `cr.commented`
+- When a CR's title or body is actually modified (no-op saves trigger nothing), all actors receive an in-app notification (`content_changed`); email is sent only to actors who explicitly enabled the `content_changed` email preference (default: off)
+- The content change is recorded in the audit log as `cr.content_changed` with the changed fields in the details
+- Notification/email dispatch failures never fail the triggering action
+- Multiple comments on the same CR within a 5-minute window are coalesced into a single email per recipient
 
 ## Agent Notes
 

@@ -16,6 +16,7 @@ from app.models.comment import Comment
 from app.models.audit_log_entry import AuditLogEntry
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
+from app.models.notification_email_log import NotificationEmailLog
 from app.models.refresh_token import RefreshToken
 from app.models.password_reset_token import PasswordResetToken
 from app.models.worker import Worker
@@ -55,6 +56,7 @@ async def init_db(mongodb_url: str, default_db: str = "sdd"):
             AssignmentHistory,
             Notification,
             NotificationPreference,
+            NotificationEmailLog,
             RefreshToken,
             PasswordResetToken,
             Worker,

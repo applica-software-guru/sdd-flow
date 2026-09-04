@@ -1,0 +1,14 @@
+Hello,
+
+{{ comment_author }} commented on {{ noun }} {{ number }} in project "{{ project_name }}".
+
+{{ item_title }}
+
+---
+{{ comment_excerpt }}
+---
+
+View the discussion:
+{{ cta_url }}
+
+You are receiving this email because you are involved in this {{ noun }} (author, assignee, or previous commenter). You can disable these emails from your notification preferences.

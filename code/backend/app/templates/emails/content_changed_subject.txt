@@ -1,0 +1,1 @@
+[{{ project_name }}] {{ noun }} {{ number }} content changed by {{ editor_name }}

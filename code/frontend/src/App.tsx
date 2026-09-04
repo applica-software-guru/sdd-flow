@@ -9,6 +9,7 @@ import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import TenantDashboardPage from './pages/tenant/DashboardPage';
 import TenantCreatePage from './pages/tenant/CreatePage';
 import TenantSettingsPage from './pages/tenant/SettingsPage';
+import NotificationPreferencesPage from './pages/system/NotificationPreferencesPage';
 import InvitationAcceptPage from './pages/tenant/InvitationAcceptPage';
 import ProjectCreatePage from './pages/project/CreatePage';
 import ProjectDashboardPage from './pages/project/DashboardPage';
@@ -68,6 +69,10 @@ export default function App() {
             <Route
               path="/tenants/:tenantId/settings"
               element={<TenantSettingsPage />}
+            />
+            <Route
+              path="/settings/notifications"
+              element={<NotificationPreferencesPage />}
             />
             <Route
               path="/invitations/:token"
