@@ -1,9 +1,11 @@
 import { useState, useMemo, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useBug, useTransitionBug, useUpdateBug } from '../../hooks/useBugs';
+import { useBug, useTransitionBug, useUpdateBug, useAssignBug, useBugAssignments } from '../../hooks/useBugs';
 import { useComments, useAddComment } from '../../hooks/useComments';
 import { useWorkers } from '../../hooks/useWorkers';
 import { useDocs } from '../../hooks/useDocs';
+import { useTenantMembers } from '../../hooks/useTenants';
+import AssignmentPanel from '../../components/AssignmentPanel';
 import PageContainer from '../../components/PageContainer';
 import StatusBadge from '../../components/StatusBadge';
 import SeverityBadge from '../../components/SeverityBadge';
@@ -34,6 +36,9 @@ export default function DetailPage() {
   const docsRouteBase = `/tenants/${tenantId}/projects/${projectId}/docs`;
   const transitionBug = useTransitionBug(tenantId!, projectId!, bugId!);
   const updateBug = useUpdateBug(tenantId!, projectId!, bugId!);
+  const assignBug = useAssignBug(tenantId!, projectId!, bugId!);
+  const { data: members } = useTenantMembers(tenantId);
+  const { data: assignmentHistory } = useBugAssignments(tenantId, projectId, bugId);
   const addComment = useAddComment(tenantId!, projectId!, 'bugs', bugId!);
   const [commentBody, setCommentBody] = useState('');
   const [showEnrichDialog, setShowEnrichDialog] = useState(false);
@@ -216,6 +221,17 @@ export default function DetailPage() {
         )}
 
       </div>
+
+      {/* Author, assignee and assignment history */}
+      <AssignmentPanel
+        author={bug.author}
+        assigneeId={bug.assignee_id ?? null}
+        members={members ?? []}
+        history={assignmentHistory}
+        onAssign={(assigneeId) => assignBug.mutate({ assignee_id: assigneeId })}
+        assigning={assignBug.isPending}
+        entityLabel={bug.title}
+      />
 
       {/* Comments */}
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">

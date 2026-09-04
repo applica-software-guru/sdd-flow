@@ -3,6 +3,7 @@ from beanie import init_beanie
 from pymongo import AsyncMongoClient
 
 from app.models.user import User
+from app.models.assignment_history import AssignmentHistory
 from app.models.tenant import Tenant
 from app.models.tenant_member import TenantMember
 from app.models.tenant_invitation import TenantInvitation
@@ -51,6 +52,7 @@ async def init_db(mongodb_url: str, default_db: str = "sdd"):
             Bug,
             Comment,
             AuditLogEntry,
+            AssignmentHistory,
             Notification,
             NotificationPreference,
             RefreshToken,

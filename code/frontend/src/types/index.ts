@@ -64,6 +64,21 @@ export type CRStatus =
   | 'closed'
   | 'deleted';
 
+export interface UserBrief {
+  id: string;
+  display_name: string;
+  email: string;
+}
+
+export interface AssignmentHistoryEntry {
+  id: string;
+  assignee_id: string | null;
+  assignee: UserBrief | null;
+  assigned_by: string | null;
+  assigned_by_name: string | null;
+  created_at: string;
+}
+
 export interface ChangeRequest {
   id: string;
   project_id: string;
@@ -75,6 +90,8 @@ export interface ChangeRequest {
   status: CRStatus;
   author_id: string;
   assignee_id?: string;
+  author?: UserBrief | null;
+  assignee?: UserBrief | null;
   target_files?: string[];
   closed_at?: string;
   created_at: string;
@@ -105,6 +122,8 @@ export interface Bug {
   severity: BugSeverity;
   author_id: string;
   assignee_id?: string;
+  author?: UserBrief | null;
+  assignee?: UserBrief | null;
   closed_at?: string;
   created_at: string;
   updated_at: string;

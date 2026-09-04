@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import { useToast } from '../context/ToastContext';
-import type { Bug, PaginatedResponse } from '../types';
+import type { AssignmentHistoryEntry, Bug, PaginatedResponse } from '../types';
 
 interface BugFilters {
   status?: string;
@@ -140,5 +140,48 @@ export function useTransitionBug(
     onError: () => {
       addToast('Failed to update status', 'error');
     },
+  });
+}
+
+export function useAssignBug(tenantId: string, projectId: string, bugId: string) {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: async (payload: { assignee_id: string | null }) => {
+      const { data } = await api.post(
+        `/tenants/${tenantId}/projects/${projectId}/bugs/${bugId}/assign`,
+        payload
+      );
+      return data as Bug;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['tenants', tenantId, 'projects', projectId, 'bugs'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['tenants', tenantId, 'projects', projectId, 'bugs', bugId, 'assignments'],
+      });
+      addToast('Assignee updated', 'success');
+    },
+    onError: () => {
+      addToast('Failed to update assignee', 'error');
+    },
+  });
+}
+
+export function useBugAssignments(
+  tenantId: string | undefined,
+  projectId: string | undefined,
+  bugId: string | undefined
+) {
+  return useQuery<AssignmentHistoryEntry[]>({
+    queryKey: ['tenants', tenantId, 'projects', projectId, 'bugs', bugId, 'assignments'],
+    queryFn: async () => {
+      const { data } = await api.get(
+        `/tenants/${tenantId}/projects/${projectId}/bugs/${bugId}/assignments`
+      );
+      return data;
+    },
+    enabled: !!tenantId && !!projectId && !!bugId,
   });
 }

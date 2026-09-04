@@ -3,7 +3,7 @@ title: "API Interfaces"
 status: synced
 author: ""
 last-modified: "2026-04-01T00:00:00.000Z"
-version: "2.1"
+version: "2.2"
 ---
 
 # API Interfaces
@@ -281,14 +281,27 @@ Create a CR.
 
 List CRs.
 
-**Query:** `status`, `author_id`, `assignee_id`, `page`, `per_page`
-**Response:** `200` `{ items: [{ ..., number, formatted_number, slug }], total, page, per_page }`
+**Query:** `status`, `author_id`, `assignee_id`, `page`, `page_size`
+**Response:** `200` `{ items: [{ ..., number, formatted_number, slug, author: { id, display_name, email }, assignee: { id, display_name, email } | null }], total, page, page_size }`
 
 ### GET .../crs/:cr_id
 
 Get CR details.
 
-**Response:** `200` `{ id, number, formatted_number, slug, title, body, status, author, assignee, target_files, comments, created_at, updated_at }`
+**Response:** `200` `{ id, number, formatted_number, slug, title, body, status, author_id, assignee_id, author: { id, display_name, email }, assignee: { id, display_name, email } | null, target_files, comments, created_at, updated_at }`
+
+### POST .../crs/:cr_id/assign
+
+Assign the CR to a tenant member (or unassign with `assignee_id = null`). Any tenant member can assign. Assigning an invalid member returns `404`; assigning the same assignee is a no-op. Each change appends an `assignment_history` entry, writes a `cr.assigned` audit entry and notifies the new assignee (not on unassign/no-op).
+
+**Body:** `{ assignee_id: string | null }`
+**Response:** `200` CR with resolved `author`/`assignee`
+
+### GET .../crs/:cr_id/assignments
+
+Append-only assignment history, newest first.
+
+**Response:** `200` `[{ id, assignee_id, assignee: { id, display_name, email } | null, assigned_by, assigned_by_name, created_at }]
 
 ### PATCH .../crs/:cr_id
 
@@ -357,6 +370,19 @@ Allowed transitions:
 - `in-progress` → `resolved`, `open` (back to open)
 - `resolved` → `closed`
 - `wont-fix` → `closed`, `open` (reopen)
+
+### POST .../bugs/:bug_id/assign
+
+Assign the bug to a tenant member (or unassign with `assignee_id = null`). Same rules as CR assign: any tenant member, invalid member → `404`, same-assignee no-op, `bug.assigned` audit entry, history row and notification for the new assignee.
+
+**Body:** `{ assignee_id: string | null }`
+**Response:** `200` bug with resolved `author`/`assignee`
+
+### GET .../bugs/:bug_id/assignments
+
+Append-only assignment history, newest first.
+
+**Response:** `200` `[{ id, assignee_id, assignee: { id, display_name, email } | null, assigned_by, assigned_by_name, created_at }]
 
 ---
 

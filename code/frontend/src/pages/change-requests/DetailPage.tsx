@@ -1,9 +1,11 @@
 import { useState, useMemo, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useChangeRequest, useTransitionCR, useUpdateCR } from '../../hooks/useChangeRequests';
+import { useChangeRequest, useTransitionCR, useUpdateCR, useAssignCR, useCRAssignments } from '../../hooks/useChangeRequests';
 import { useComments, useAddComment } from '../../hooks/useComments';
 import { useWorkers } from '../../hooks/useWorkers';
 import { useDocs } from '../../hooks/useDocs';
+import { useTenantMembers } from '../../hooks/useTenants';
+import AssignmentPanel from '../../components/AssignmentPanel';
 import PageContainer from '../../components/PageContainer';
 import StatusBadge from '../../components/StatusBadge';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
@@ -28,6 +30,9 @@ export default function DetailPage() {
   const transitionCR = useTransitionCR(tenantId!, projectId!, crId!);
   const addComment = useAddComment(tenantId!, projectId!, 'change-requests', crId!);
   const updateCR = useUpdateCR(tenantId!, projectId!, crId!);
+  const assignCR = useAssignCR(tenantId!, projectId!, crId!);
+  const { data: members } = useTenantMembers(tenantId);
+  const { data: assignmentHistory } = useCRAssignments(tenantId, projectId, crId);
   const { data: workers } = useWorkers(tenantId, projectId);
   const { data: docsData } = useDocs(tenantId, projectId);
   const docs = useMemo(() => docsData ?? [], [docsData]);
@@ -218,6 +223,17 @@ export default function DetailPage() {
         )}
 
       </div>
+
+      {/* Author, assignee and assignment history */}
+      <AssignmentPanel
+        author={cr.author}
+        assigneeId={cr.assignee_id ?? null}
+        members={members ?? []}
+        history={assignmentHistory}
+        onAssign={(assigneeId) => assignCR.mutate({ assignee_id: assigneeId })}
+        assigning={assignCR.isPending}
+        entityLabel={cr.title}
+      />
 
       {jobDialog && (
         <JobOptionsDialog

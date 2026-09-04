@@ -7,6 +7,7 @@ from app.repositories.change_request_repository import ChangeRequestRepository
 from app.repositories.bug_repository import BugRepository
 from app.repositories.comment_repository import CommentRepository
 from app.repositories.audit_repository import AuditRepository
+from app.repositories.assignment_repository import AssignmentRepository
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.auth_repository import AuthRepository
 from app.repositories.worker_repository import WorkerRepository
@@ -21,6 +22,7 @@ __all__ = [
     "BugRepository",
     "CommentRepository",
     "AuditRepository",
+    "AssignmentRepository",
     "NotificationRepository",
     "AuthRepository",
     "WorkerRepository",

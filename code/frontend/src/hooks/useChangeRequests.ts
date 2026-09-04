@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import { useToast } from '../context/ToastContext';
-import type { ChangeRequest, PaginatedResponse } from '../types';
+import type { AssignmentHistoryEntry, ChangeRequest, PaginatedResponse } from '../types';
 
 interface CRFilters {
   status?: string;
@@ -136,5 +136,48 @@ export function useTransitionCR(
     onError: () => {
       addToast('Failed to update status', 'error');
     },
+  });
+}
+
+export function useAssignCR(tenantId: string, projectId: string, crId: string) {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+  return useMutation({
+    mutationFn: async (payload: { assignee_id: string | null }) => {
+      const { data } = await api.post(
+        `/tenants/${tenantId}/projects/${projectId}/change-requests/${crId}/assign`,
+        payload
+      );
+      return data as ChangeRequest;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['tenants', tenantId, 'projects', projectId, 'crs'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['tenants', tenantId, 'projects', projectId, 'crs', crId, 'assignments'],
+      });
+      addToast('Assignee updated', 'success');
+    },
+    onError: () => {
+      addToast('Failed to update assignee', 'error');
+    },
+  });
+}
+
+export function useCRAssignments(
+  tenantId: string | undefined,
+  projectId: string | undefined,
+  crId: string | undefined
+) {
+  return useQuery<AssignmentHistoryEntry[]>({
+    queryKey: ['tenants', tenantId, 'projects', projectId, 'crs', crId, 'assignments'],
+    queryFn: async () => {
+      const { data } = await api.get(
+        `/tenants/${tenantId}/projects/${projectId}/change-requests/${crId}/assignments`
+      );
+      return data;
+    },
+    enabled: !!tenantId && !!projectId && !!crId,
   });
 }

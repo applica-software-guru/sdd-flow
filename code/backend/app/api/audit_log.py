@@ -11,19 +11,14 @@ from app.models.audit_log_entry import AuditLogEntry
 from app.models.tenant_member import TenantMember
 from app.models.user import User
 from app.models.tenant_member import MemberRole
-
-
-class AuditUserResponse(BaseModel):
-    id: uuid.UUID
-    display_name: str
-    email: str
+from app.schemas.users import UserBrief
 
 
 class AuditLogResponse(BaseModel):
     id: uuid.UUID
     tenant_id: uuid.UUID
     user_id: uuid.UUID | None = None
-    user: AuditUserResponse | None = None
+    user: UserBrief | None = None
     event_type: str
     action: str = ""  # mirrors event_type; set explicitly after model_validate
     entity_type: str | None = None
@@ -100,7 +95,7 @@ async def list_audit_log(
         resp = AuditLogResponse.model_validate(i)
         resp.action = i.event_type
         resp.user = (
-            AuditUserResponse(id=u.id, display_name=u.display_name, email=u.email)
+            UserBrief(id=u.id, display_name=u.display_name, email=u.email)
             if u is not None
             else None
         )

@@ -6,6 +6,7 @@ import StatusBadge from '../../components/StatusBadge';
 import SeverityBadge from '../../components/SeverityBadge';
 import Pagination from '../../components/Pagination';
 import EmptyState from '../../components/EmptyState';
+import UserCell from '../../components/UserCell';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All statuses' },
@@ -165,11 +166,11 @@ export default function ListPage() {
                     <td className="px-6 py-4">
                       <StatusBadge status={bug.status} />
                     </td>
-                    <td className="hidden px-6 py-4 text-sm text-slate-500 sm:table-cell dark:text-slate-400">
-                      {'--'}
+                    <td className="hidden px-6 py-4 sm:table-cell">
+                      <UserCell user={bug.author} />
                     </td>
-                    <td className="hidden px-6 py-4 text-sm text-slate-500 md:table-cell dark:text-slate-400">
-                      {'--'}
+                    <td className="hidden px-6 py-4 md:table-cell">
+                      <UserCell user={bug.assignee} fallback="Unassigned" />
                     </td>
                     <td className="hidden px-6 py-4 text-sm text-slate-500 lg:table-cell dark:text-slate-400">
                       {new Date(bug.created_at).toLocaleString()}

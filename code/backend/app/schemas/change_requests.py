@@ -5,6 +5,11 @@ from pydantic import BaseModel, computed_field
 
 from app.models.change_request import CRStatus
 from app.schemas.common import PaginatedResponse
+from app.schemas.users import UserBrief
+
+
+class AssignCR(BaseModel):
+    assignee_id: uuid.UUID | None = None
 
 
 class CRCreate(BaseModel):
@@ -38,6 +43,8 @@ class CRResponse(BaseModel):
     status: CRStatus
     author_id: uuid.UUID
     assignee_id: uuid.UUID | None = None
+    author: UserBrief | None = None
+    assignee: UserBrief | None = None
     target_files: list[str] | None = None
     closed_at: datetime | None = None
     created_at: datetime
@@ -53,6 +60,19 @@ class CRResponse(BaseModel):
 
 class CRListResponse(PaginatedResponse[CRResponse]):
     pass
+
+
+class AssignmentEntryResponse(BaseModel):
+    """One entry of the append-only assignment history."""
+
+    id: uuid.UUID
+    assignee_id: uuid.UUID | None = None
+    assignee: UserBrief | None = None
+    assigned_by: uuid.UUID | None = None
+    assigned_by_name: str | None = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class CREnrichRequest(BaseModel):

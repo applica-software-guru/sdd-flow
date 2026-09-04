@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { DetailsCell, describeAction, humanizeKey } from '../components/AuditDetailsCell';
+import { DetailsCell } from '../components/AuditDetailsCell';
+import { describeAction, humanizeKey } from '../lib/auditDetails';
 import type { AuditLogEntry } from '../types';
 
 function makeEntry(overrides: Partial<AuditLogEntry> = {}): AuditLogEntry {

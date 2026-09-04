@@ -8,17 +8,46 @@ from app.middleware.auth import get_current_tenant_member
 from app.models.bug import Bug, BugSeverity, BugStatus
 from app.models.comment import Comment, EntityType
 from app.models.tenant_member import TenantMember
-from app.repositories import BugRepository, CommentRepository, ProjectRepository
-from app.schemas.bugs import BugCreate, BugListResponse, BugResponse, BugTransition, BugUpdate
+from app.repositories import (
+    AssignmentRepository,
+    BugRepository,
+    CommentRepository,
+    ProjectRepository,
+)
+from app.schemas.bugs import (
+    AssignBug,
+    AssignmentEntryResponse,
+    BugCreate,
+    BugListResponse,
+    BugResponse,
+    BugTransition,
+    BugUpdate,
+)
 from app.schemas.comments import CommentCreate, CommentResponse
+from app.services.assignment import apply_assignment, record_initial_assignment
 from app.services.audit import log_event
 from app.services.notifications import create_notification
 from app.services.slug import assign_number_and_slug, slugify
+from app.services.users import ensure_tenant_member, resolve_user_briefs
 
 router = APIRouter(
     prefix="/tenants/{tenant_id}/projects/{project_id}/bugs",
     tags=["bugs"],
 )
+
+
+async def _attach_users(responses: list[BugResponse], entities: list[Bug]) -> list[BugResponse]:
+    """Attach resolved author/assignee UserBrief objects (batch, no N+1)."""
+    user_ids: set[uuid.UUID] = set()
+    for e in entities:
+        user_ids.add(e.author_id)
+        if e.assignee_id is not None:
+            user_ids.add(e.assignee_id)
+    users = await resolve_user_briefs(user_ids)
+    for resp, e in zip(responses, entities):
+        resp.author = users.get(e.author_id)
+        resp.assignee = users.get(e.assignee_id) if e.assignee_id is not None else None
+    return responses
 
 
 async def _get_project(tenant_id: uuid.UUID, project_id: uuid.UUID):
@@ -37,6 +66,8 @@ async def create_bug(
     member: TenantMember = Depends(get_current_tenant_member),
 ):
     await _get_project(tenant_id, project_id)
+    if body.assignee_id is not None:
+        await ensure_tenant_member(tenant_id, body.assignee_id)
     bug_repo = BugRepository()
     bug = Bug(
         project_id=project_id,
@@ -54,6 +85,7 @@ async def create_bug(
         tenant_id, member.user_id, "bug.created", "bug", bug.id,
         entity_label=bug.title, summary="created",
     )
+    await record_initial_assignment(tenant_id, member.user_id, bug, "bug")
 
     if body.assignee_id and body.assignee_id != member.user_id:
         await create_notification(
@@ -71,6 +103,8 @@ async def list_bugs(
     page_size: int = Query(20, ge=1, le=100),
     status_filter: BugStatus | None = Query(None, alias="status"),
     severity_filter: BugSeverity | None = Query(None, alias="severity"),
+    author_id: uuid.UUID | None = Query(None),
+    assignee_id: uuid.UUID | None = Query(None),
     member: TenantMember = Depends(get_current_tenant_member),
 ):
     await _get_project(tenant_id, project_id)
@@ -82,13 +116,18 @@ async def list_bugs(
 
     if severity_filter is not None:
         query["severity"] = severity_filter.value
+    if author_id is not None:
+        query["authorId"] = author_id
+    if assignee_id is not None:
+        query["assigneeId"] = assignee_id
 
     total = await Bug.find(query).count()
     skip = (page - 1) * page_size
     items = await Bug.find(query).sort([("number", -1)]).skip(skip).limit(page_size).to_list()
 
+    responses = await _attach_users([BugResponse.model_validate(i) for i in items], items)
     return BugListResponse(
-        items=[BugResponse.model_validate(i) for i in items],
+        items=responses,
         total=total,
         page=page,
         page_size=page_size,
@@ -108,7 +147,8 @@ async def get_bug(
     bug = await bug_repo.find_by_id(bug_id)
     if bug is None or bug.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
-    return bug
+    resp = BugResponse.model_validate(bug)
+    return (await _attach_users([resp], [bug]))[0]
 
 
 @router.patch("/{bug_id}", response_model=BugResponse)
@@ -132,8 +172,6 @@ async def update_bug(
         updates[Bug.body] = body.body
     if body.severity is not None:
         updates[Bug.severity] = body.severity
-    if body.assignee_id is not None:
-        updates[Bug.assignee_id] = body.assignee_id
     if body.slug is not None:
         new_slug = slugify(body.slug)
         existing = await bug_repo.find_by_slug(project_id, new_slug)
@@ -144,12 +182,78 @@ async def update_bug(
     if updates:
         await bug.set(updates)
 
+    # Assignment changes are routed through the shared assignment flow
+    # (validation, audit bug.assigned, notification, history) — PATCH keeps
+    # supporting assignee_id for backwards compatibility; None means "not
+    # provided" (use POST /assign to unassign).
+    if body.assignee_id is not None:
+        await apply_assignment(tenant_id, member.user_id, bug, "bug", body.assignee_id)
+
     await log_event(
         tenant_id, member.user_id, "bug.updated", "bug", bug.id,
         entity_label=bug.title, summary="updated",
     )
     bug = await bug_repo.find_by_id(bug_id)
-    return bug
+    resp = BugResponse.model_validate(bug)
+    return (await _attach_users([resp], [bug]))[0]
+
+
+@router.post("/{bug_id}/assign", response_model=BugResponse)
+async def assign_bug(
+    tenant_id: uuid.UUID,
+    project_id: uuid.UUID,
+    bug_id: uuid.UUID,
+    body: AssignBug,
+    member: TenantMember = Depends(get_current_tenant_member),
+):
+    """Assign the bug to a tenant member (or unassign with assignee_id=null)."""
+    await _get_project(tenant_id, project_id)
+    bug_repo = BugRepository()
+    bug = await bug_repo.find_by_id(bug_id)
+    if bug is None or bug.project_id != project_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
+
+    await apply_assignment(tenant_id, member.user_id, bug, "bug", body.assignee_id)
+
+    bug = await bug_repo.find_by_id(bug_id)
+    resp = BugResponse.model_validate(bug)
+    return (await _attach_users([resp], [bug]))[0]
+
+
+@router.get("/{bug_id}/assignments", response_model=list[AssignmentEntryResponse])
+async def list_bug_assignments(
+    tenant_id: uuid.UUID,
+    project_id: uuid.UUID,
+    bug_id: uuid.UUID,
+    member: TenantMember = Depends(get_current_tenant_member),
+):
+    """Append-only assignment history for the bug (newest first)."""
+    await _get_project(tenant_id, project_id)
+    bug_repo = BugRepository()
+    bug = await bug_repo.find_by_id(bug_id)
+    if bug is None or bug.project_id != project_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
+
+    entries = await AssignmentRepository().find_by_entity("bug", bug_id)
+    user_ids: set[uuid.UUID] = set()
+    for e in entries:
+        if e.assignee_id is not None:
+            user_ids.add(e.assignee_id)
+        if e.assigned_by is not None:
+            user_ids.add(e.assigned_by)
+    users = await resolve_user_briefs(user_ids)
+
+    return [
+        AssignmentEntryResponse(
+            id=e.id,
+            assignee_id=e.assignee_id,
+            assignee=users.get(e.assignee_id) if e.assignee_id is not None else None,
+            assigned_by=e.assigned_by,
+            assigned_by_name=(users[e.assigned_by].display_name if e.assigned_by in users else None),
+            created_at=e.created_at,
+        )
+        for e in entries
+    ]
 
 
 @router.post("/{bug_id}/transition", response_model=BugResponse)

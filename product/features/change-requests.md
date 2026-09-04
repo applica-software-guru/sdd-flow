@@ -2,8 +2,8 @@
 title: "Change Request Management"
 status: synced
 author: ""
-last-modified: "2026-03-31T00:00:00.000Z"
-version: "1.2"
+last-modified: "2026-04-01T00:00:00.000Z"
+version: "1.3"
 ---
 
 # Change Request Management
@@ -38,9 +38,17 @@ draft → approved → applied → closed
 - Author is set automatically to the current user
 - A **progressive number** (scoped to the project, zero-padded to 3 digits, e.g. `001`) and an immutable **slug** (derived from the title) are assigned automatically at creation. Neither can be changed afterwards.
 
+### Assign CR
+
+- Any tenant member can assign or unassign a CR, at creation and at any time afterwards
+- Assignment is only possible to active tenant members
+- Every assignment change appends an entry to the append-only **assignment history** (who was assigned, by whom, when), visible on the CR detail page
+- The new assignee receives a notification; the change is recorded in the audit log as `cr.assigned` with previous and new assignee
+
 ### CR List & Filtering
 
-- List CRs with filters: status, author, date range
+- List CRs with filters: status, author, assignee, date range
+- Each entry shows author and assignee display names
 - Search by title or body text
 - Sort by progressive number descending by default (newest first); also supports created date, last modified, status
 - Date fields display both date and time
