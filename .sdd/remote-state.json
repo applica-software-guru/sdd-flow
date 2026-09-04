@@ -14,21 +14,21 @@
     },
     "product/features/auth.md": {
       "remoteId": "e1f8b354-c406-47bb-a783-950de105b75c",
-      "remoteVersion": 1,
-      "localHash": "0da0b3aa5dc1fdf947782c16cdc6902be1412db3af0ea17c144ad045ea948276",
-      "lastSynced": "2026-09-04T12:31:37.008Z"
+      "remoteVersion": 2,
+      "localHash": "a773121e491e6d425ec38165e27c13d649dbdfad88b9b48cf2d765c5322566fb",
+      "lastSynced": "2026-09-04T17:58:34.582Z"
     },
     "product/features/bugs.md": {
       "remoteId": "0f24ceeb-e9b6-4d50-aa57-1da73630e388",
-      "remoteVersion": 3,
-      "localHash": "be167df2c8bdf74f9c562779a529fdd58823bb4b2d5f41763b6c95014a913a4b",
-      "lastSynced": "2026-09-04T12:31:37.008Z"
+      "remoteVersion": 4,
+      "localHash": "1985fbc77e98a9e99a4948ce1b7d51b0cd9ef04521ad93a1c131e3cce53f1326",
+      "lastSynced": "2026-09-04T17:58:34.582Z"
     },
     "product/features/change-requests.md": {
       "remoteId": "f21ab635-8b73-49ed-9cd0-42b4c12610a9",
-      "remoteVersion": 3,
-      "localHash": "15ebeb26f2f3cc27db06c1537a3536f83269a2602d76dc83a485a0b59bcc6fbd",
-      "lastSynced": "2026-09-04T12:31:37.008Z"
+      "remoteVersion": 4,
+      "localHash": "143638db1dabb380384c92f2a2c77db8e915d660fa65aba7fb92b1af9f7b2bdd",
+      "lastSynced": "2026-09-04T17:58:34.583Z"
     },
     "product/features/dashboard.md": {
       "remoteId": "a9fd0d3a-49f7-43be-9414-5d5c5ef76e76",
@@ -44,9 +44,9 @@
     },
     "product/features/notifications.md": {
       "remoteId": "9a297012-18a2-40ba-b6c9-d3d5c3c2d30e",
-      "remoteVersion": 2,
-      "localHash": "407357919d0a4567e11b9320527fbf2e93b5b287beb6e094fc3347c18b25bde0",
-      "lastSynced": "2026-09-04T12:31:37.009Z"
+      "remoteVersion": 3,
+      "localHash": "290e3bf4cbe47ff41b8762a476f4a0caf2d229b6a3c575a9720f26672e36aaa0",
+      "lastSynced": "2026-09-04T17:58:34.583Z"
     },
     "product/features/projects.md": {
       "remoteId": "99d9a8dd-b3ca-40ec-9ee6-1e1cc502c283",
@@ -104,9 +104,9 @@
     },
     "system/architecture.md": {
       "remoteId": "d21da59b-a42c-40a7-bdd6-da06536b3759",
-      "remoteVersion": 2,
-      "localHash": "19f5e070b24e351b8f918ff134c3dec472bd10e13cd2ccc7f4ee16399bcdaa01",
-      "lastSynced": "2026-09-04T12:31:37.011Z"
+      "remoteVersion": 3,
+      "localHash": "31d89a6c36c72b7760e04c81fd6a0db8b64f65623e18186b3a16ca4679747dbc",
+      "lastSynced": "2026-09-04T17:58:34.583Z"
     },
     "system/ci-pipeline.md": {
       "remoteId": "50e72fd7-5f17-432a-b683-ad8be7b1730d",
@@ -122,9 +122,9 @@
     },
     "system/interfaces.md": {
       "remoteId": "6cae2fee-4f99-4618-87f4-30b909772159",
-      "remoteVersion": 3,
-      "localHash": "f01a584513ebd52ef96069a6757ed972f91b0ebc0b531d5e5ad502b689a9f13a",
-      "lastSynced": "2026-09-04T12:31:37.012Z"
+      "remoteVersion": 4,
+      "localHash": "e299fbda915100a8d7ee2c37235d5e08792287a56353da753f55e2c50c62ce27",
+      "lastSynced": "2026-09-04T17:58:34.583Z"
     },
     "system/tech-stack.md": {
       "remoteId": "f1cbc84d-6d73-44d7-b540-94e4c705dc2f",
@@ -181,8 +181,8 @@
     },
     "change-requests/CR-010-fix-cli-push-docs-missinggreenlet-500.md": {
       "remoteId": "b2b2c2b9-30b4-47f6-86c3-ed948584f5f6",
-      "localHash": "ba01240c8b88ab99c51e2a6bc719346ebfb0cdb2509f89762047f40a9fe9e3a3",
-      "lastSynced": "2026-09-04T12:31:37.283Z"
+      "localHash": "8ca1398997cd0621e8a281c57d3ec0b059d43b23552cfcc0701a030c0d477d73",
+      "lastSynced": "2026-09-04T17:58:34.747Z"
     },
     "change-requests/CR-011-cli-sync-path-and-status-preservation.md": {
       "remoteId": "59d27a0c-dc3e-4263-bdfc-5e5b7875c93b",
@@ -291,8 +291,8 @@
     },
     "change-requests/CR-032-custom-slug-on-cr-and-bug-creation.md": {
       "remoteId": "d188f5bf-e547-4c12-b204-1d7dd3c32f58",
-      "localHash": "ccc33fbde6087885f57018dd9212821af73cf36b4fabc107735561edf74b370d",
-      "lastSynced": "2026-09-04T12:31:37.283Z"
+      "localHash": "325814fc81bb7cddc3ad41290d5d929599ee092cdc028249534b66ccdac04b4f",
+      "lastSynced": "2026-09-04T17:58:34.747Z"
     },
     "change-requests/CR-033-comment-ux-and-email-notifications.md": {
       "remoteId": "488bdcec-18b0-4c88-8faf-10a80322447a",
@@ -303,6 +303,16 @@
       "remoteId": "ba69dec9-b890-458a-82ba-c4423f40c801",
       "localHash": "16fd5b31f372019bfcc259bc503cf29caab5705f951afd8713f7d60e0f5ac9e3",
       "lastSynced": "2026-09-04T10:24:43.464Z"
+    },
+    "change-requests/CR-035-user-profile-panel-and-name-display-fixes.md": {
+      "remoteId": "4f776ebd-9eb1-4129-bc58-b31be56f568e",
+      "localHash": "4bb55191476bcb3c9429c11fe0510f2e16a3c9f82efbe29183b856a8ea623e4f",
+      "lastSynced": "2026-09-04T17:58:34.747Z"
+    },
+    "change-requests/CR-036-backend-service-layer-refactor.md": {
+      "remoteId": "7b3a1d22-83ef-44d4-adaa-8685b98e1163",
+      "localHash": "d1037be7376cb0567cdb56d5c27591924afaf4b1dd0b9ac75ba7afc9911b500c",
+      "lastSynced": "2026-09-04T17:58:34.747Z"
     }
   },
   "bugs": {
@@ -350,8 +360,13 @@
       "remoteId": "e1757172-2473-4187-860c-2b0f97ee3b5b",
       "localHash": "fb6db11bdc58c0ebe148792f353e44415f7e077fe1178fc6e0c7e22d124a0f5b",
       "lastSynced": "2026-09-04T10:24:43.671Z"
+    },
+    "bugs/BUG-010-dashboard-cr-bug-overview-empty-author-date-and-comment-count.md": {
+      "remoteId": "ed2bec94-7981-49e3-aefb-57ac8cd29713",
+      "localHash": "6f872b28964042d867e9d7ffea7867d1d93f20b997fbca53152b9d460dd11f1e",
+      "lastSynced": "2026-09-04T17:58:34.861Z"
     }
   },
-  "lastPush": "2026-09-04T10:24:43.671Z",
+  "lastPush": "2026-09-04T17:58:34.861Z",
   "lastPull": "2026-09-04T12:31:37.012Z"
 }

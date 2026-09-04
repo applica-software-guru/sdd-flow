@@ -42,7 +42,7 @@ def verify_password(plain: str, stored: str) -> bool:
         return False
     try:
         return bcrypt.checkpw(plain.encode("utf-8"), stored.encode("utf-8"))
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         # Malformed stored hash (e.g. seed/test data) — treat as no match
         return False
 
@@ -283,7 +283,7 @@ class AuthService:
                 uid = user_id.as_uuid(uuid_representation=UuidRepresentation.STANDARD)
             else:
                 uid = uuid.UUID(str(user_id))
-        except ValueError, AttributeError:
+        except (ValueError, AttributeError):
             return False
 
         user = await self._user_repo.find_by_id(uid)

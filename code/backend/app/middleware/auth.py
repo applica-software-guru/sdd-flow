@@ -32,7 +32,7 @@ async def get_current_user(
                 detail="Invalid token",
             )
         user_id = uuid.UUID(sub)
-    except JWTError, ValueError:
+    except (JWTError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
