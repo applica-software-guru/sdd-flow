@@ -52,6 +52,35 @@ export function useLogout() {
   });
 }
 
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { display_name: string }) => {
+      const { data } = await api.patch('/auth/me', payload);
+      return data as User;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    },
+  });
+}
+
+export function useChangePassword() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: {
+      current_password?: string;
+      new_password: string;
+    }) => {
+      const { data } = await api.post('/auth/me/change-password', payload);
+      return data as { password_set: boolean };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    },
+  });
+}
+
 export function useForgotPassword() {
   return useMutation({
     mutationFn: async (payload: { email: string }) => {

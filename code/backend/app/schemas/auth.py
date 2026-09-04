@@ -24,12 +24,23 @@ class ResetPasswordRequest(BaseModel):
     new_password: str
 
 
+class UpdateProfileRequest(BaseModel):
+    display_name: str
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str | None = None
+    new_password: str
+
+
 class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
     display_name: str
     avatar_url: str | None = None
     email_verified: bool
+    has_password: bool = False
+    google_linked: bool = False
     created_at: datetime
 
     model_config = {"from_attributes": True}

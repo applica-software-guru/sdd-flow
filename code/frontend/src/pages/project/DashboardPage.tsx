@@ -193,9 +193,11 @@ export default function DashboardPage() {
                     {cr.title}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                    <span>by {cr.author?.display_name || 'Unknown'}</span>
-                    <span>&middot;</span>
-                    <span>{formatDateOnly(cr.created_at)}</span>
+                    <span className="min-w-0 max-w-[14rem] truncate" title={cr.author?.email}>
+                      by {cr.author?.display_name || 'Unknown'}
+                    </span>
+                    <span className="shrink-0">&middot;</span>
+                    <span className="shrink-0">{formatDateOnly(cr.created_at)}</span>
                     {typeof cr.comments_count === 'number' && cr.comments_count > 0 && (
                       <>
                         <span>&middot;</span>

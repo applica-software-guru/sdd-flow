@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -9,7 +9,7 @@ import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import TenantDashboardPage from './pages/tenant/DashboardPage';
 import TenantCreatePage from './pages/tenant/CreatePage';
 import TenantSettingsPage from './pages/tenant/SettingsPage';
-import NotificationPreferencesPage from './pages/system/NotificationPreferencesPage';
+import ProfilePage from './pages/system/ProfilePage';
 import InvitationAcceptPage from './pages/tenant/InvitationAcceptPage';
 import ProjectCreatePage from './pages/project/CreatePage';
 import ProjectDashboardPage from './pages/project/DashboardPage';
@@ -71,8 +71,13 @@ export default function App() {
               element={<TenantSettingsPage />}
             />
             <Route
+              path="/settings/profile"
+              element={<ProfilePage />}
+            />
+            {/* Backward compatibility: preferences moved into the Profile page */}
+            <Route
               path="/settings/notifications"
-              element={<NotificationPreferencesPage />}
+              element={<Navigate to="/settings/profile#notifications" replace />}
             />
             <Route
               path="/invitations/:token"

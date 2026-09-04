@@ -14,6 +14,16 @@ class User(BaseDocument):
     avatar_url: Optional[str] = Field(default=None, alias="avatarUrl")
     email_verified: bool = Field(default=False, alias="emailVerified")
 
+    @property
+    def has_password(self) -> bool:
+        """True when the account can log in with email/password."""
+        return self.password_hash is not None
+
+    @property
+    def google_linked(self) -> bool:
+        """True when the account is linked to a Google identity."""
+        return self.google_id is not None
+
     class Settings:
         name = "users"
         indexes = [

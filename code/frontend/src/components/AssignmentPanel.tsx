@@ -22,13 +22,16 @@ export default function AssignmentPanel({
   onAssign,
   assigning,
 }: AssignmentPanelProps) {
-  const [selected, setSelected] = useState(assigneeId ?? '');
+  // Normalize to a string so the comparison below can't mismatch types
+  // ('' !== null would be true forever → infinite render loop on unassigned items).
+  const normalizedAssigneeId = assigneeId ?? '';
+  const [selected, setSelected] = useState(normalizedAssigneeId);
   // Reset the local selection when the assignee changes externally
   // (render-time reset, see "You Might Not Need an Effect").
-  const [prevAssigneeId, setPrevAssigneeId] = useState(assigneeId ?? '');
-  if (prevAssigneeId !== assigneeId) {
-    setPrevAssigneeId(assigneeId ?? '');
-    setSelected(assigneeId ?? '');
+  const [prevAssigneeId, setPrevAssigneeId] = useState(normalizedAssigneeId);
+  if (prevAssigneeId !== normalizedAssigneeId) {
+    setPrevAssigneeId(normalizedAssigneeId);
+    setSelected(normalizedAssigneeId);
   }
 
   const currentAssigneeName =
@@ -46,7 +49,7 @@ export default function AssignmentPanel({
         <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
           Author
         </h3>
-        <p className="mt-1 text-sm text-slate-900 dark:text-slate-100">
+        <p className="mt-1 min-w-0 truncate text-sm text-slate-900 dark:text-slate-100" title={author?.email}>
           {author?.display_name ?? '--'}
         </p>
       </div>
@@ -54,7 +57,7 @@ export default function AssignmentPanel({
         <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
           Assignee
         </h3>
-        <p className="mt-1 text-sm text-slate-900 dark:text-slate-100">
+        <p className="mt-1 min-w-0 truncate text-sm text-slate-900 dark:text-slate-100">
           {currentAssigneeName ?? 'Unassigned'}
         </p>
       </div>
@@ -95,17 +98,17 @@ export function AssignmentHistory({
       </summary>
       <ul className="mt-3 space-y-2">
         {history.map((h) => (
-          <li key={h.id} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-            <span className="text-slate-400 dark:text-slate-500">
+          <li key={h.id} className="flex min-w-0 items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+            <span className="shrink-0 text-slate-400 dark:text-slate-500">
               {new Date(h.created_at).toLocaleString()}
             </span>
-            <span>
+            <span className="min-w-0 truncate">
               {h.assignee
                 ? `assigned to ${h.assignee.display_name}`
                 : 'unassigned'}
             </span>
             {h.assigned_by_name && (
-              <span className="text-slate-400 dark:text-slate-500">
+              <span className="min-w-0 truncate text-slate-400 dark:text-slate-500">
                 by {h.assigned_by_name}
               </span>
             )}

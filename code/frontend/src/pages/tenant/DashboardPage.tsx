@@ -1,4 +1,4 @@
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { useTenant, useTenants } from '../../hooks/useTenants';
 import { useProjects } from '../../hooks/useProjects';
 import EmptyState from '../../components/EmptyState';
@@ -6,7 +6,6 @@ import PageContainer from '../../components/PageContainer';
 
 export default function DashboardPage() {
   const { tenantId } = useParams();
-  const navigate = useNavigate();
   const { data: tenants, isLoading: tenantsLoading } = useTenants();
   const { data: tenant } = useTenant(tenantId);
   const { data: projects, isLoading: projectsLoading } = useProjects(tenantId);
@@ -53,10 +52,9 @@ export default function DashboardPage() {
       );
     }
 
-    // If single tenant, redirect
+    // If single tenant, redirect declaratively (no navigate-in-render)
     if (tenants.length === 1) {
-      navigate(`/tenants/${tenants[0].id}`, { replace: true });
-      return null;
+      return <Navigate to={`/tenants/${tenants[0].id}`} replace />;
     }
 
     return (

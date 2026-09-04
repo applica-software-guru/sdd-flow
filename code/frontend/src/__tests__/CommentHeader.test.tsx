@@ -55,6 +55,21 @@ describe('AssignmentPanel', () => {
     // No standalone card border / bottom margin wrapper.
     expect(markup).not.toContain('mb-6 rounded-lg border');
   });
+
+  it('does not loop infinitely when the item is unassigned (assigneeId null)', () => {
+    // Regression: comparing '' !== null during the render-time state reset
+    // used to trigger "Too many re-renders" (CR bug fix).
+    const markup = renderToStaticMarkup(
+      <AssignmentPanel
+        author={{ id: 'u1', display_name: 'Jane Doe', email: 'jane@example.com' }}
+        assigneeId={null}
+        members={members}
+        onAssign={() => {}}
+        assigning={false}
+      />
+    );
+    expect(markup).toContain('Unassigned');
+  });
 });
 
 describe('AssignmentHistory', () => {

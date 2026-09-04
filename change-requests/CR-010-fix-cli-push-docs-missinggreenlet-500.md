@@ -1,6 +1,6 @@
 ---
 title: "Fix CLI push-docs 500 caused by ORM serialization MissingGreenlet"
-status: draft
+status: pending
 author: "roberto"
 created-at: "2026-03-18T00:00:00.000Z"
 ---

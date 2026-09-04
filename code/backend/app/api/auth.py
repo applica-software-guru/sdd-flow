@@ -1,4 +1,5 @@
 import hashlib
+import logging
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
@@ -10,18 +11,26 @@ from app.middleware.auth import get_current_user
 from app.models.user import User
 from app.repositories import AuthRepository, UserRepository
 from app.schemas.auth import (
+    ChangePasswordRequest,
     ForgotPasswordRequest,
     LoginRequest,
     RegisterRequest,
     ResetPasswordRequest,
+    UpdateProfileRequest,
     UserResponse,
 )
 from app.services.auth import (
+    ProfileValidationError,
     authenticate_user,
+    change_own_password,
     create_tokens,
     create_user,
     refresh_access_token,
+    update_display_name,
 )
+from app.services.audit import log_event_for_user_tenants
+from app.services.email_templates import render_template
+from app.services.mailer import send_email
 from app.services.password_reset import request_password_reset, reset_password
 from fastapi import Cookie
 
@@ -34,6 +43,8 @@ def _get_real_ip(request: Request) -> str:
 
 
 limiter = Limiter(key_func=_get_real_ip, enabled=not settings.TESTING)
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -197,6 +208,84 @@ async def google_callback(code: str):
 @router.get("/me", response_model=UserResponse)
 async def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_me(
+    body: UpdateProfileRequest,
+    current_user: User = Depends(get_current_user),
+):
+    old_name = current_user.display_name
+    try:
+        user = await update_display_name(current_user, body.display_name)
+    except ProfileValidationError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+
+    # Profile-level event: recorded in every tenant the user belongs to
+    await log_event_for_user_tenants(
+        user_id=user.id,
+        event_type="user.profile_updated",
+        entity_type="user",
+        entity_id=user.id,
+        entity_label=user.email,
+        summary=f"{old_name} renamed to {user.display_name}",
+        details={"old_display_name": old_name, "new_display_name": user.display_name},
+    )
+    return user
+
+
+@router.post("/me/change-password")
+async def change_password_me(
+    body: ChangePasswordRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+):
+    keep_token_hash = None
+    raw_refresh = request.cookies.get("refresh_token")
+    if raw_refresh:
+        keep_token_hash = hashlib.sha256(raw_refresh.encode()).hexdigest()
+
+    try:
+        password_was_set = await change_own_password(
+            current_user,
+            body.current_password,
+            body.new_password,
+            keep_token_hash=keep_token_hash,
+        )
+    except ProfileValidationError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=exc.message)
+
+    # Fire-and-forget confirmation email (never fails the action)
+    context = {
+        "title": "Your password was changed",
+        "display_name": current_user.display_name,
+    }
+    try:
+        await send_email(
+            recipient_email=current_user.email,
+            subject=render_template("emails/password_changed_subject.txt", **context),
+            text_body=render_template("emails/password_changed_text.txt", **context),
+            html_body=render_template("emails/password_changed.html", **context),
+            log_label="Password changed",
+        )
+    except Exception:
+        logger.exception(
+            "Failed to send password-changed email to %s", current_user.email
+        )
+
+    await log_event_for_user_tenants(
+        user_id=current_user.id,
+        event_type="user.password_changed",
+        entity_type="user",
+        entity_id=current_user.id,
+        entity_label=current_user.email,
+        summary="Password changed"
+        if not password_was_set
+        else "Password set (previously Google-only account)",
+        details={"password_set": password_was_set},
+    )
+
+    return {"password_set": True}
 
 
 @router.post("/forgot-password")

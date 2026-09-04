@@ -27,6 +27,17 @@ class AuthRepository:
         result = await RefreshToken.find({"userId": user_id}).delete()
         return result.deleted_count if result else 0
 
+    async def revoke_other_refresh_tokens(self, user_id: UUID, keep_token_hash: str) -> int:
+        """Revoke all refresh tokens for the user except the given one.
+
+        Used after a password change so the current session stays alive while
+        every other device is signed out.
+        """
+        result = await RefreshToken.find(
+            {"userId": user_id, "tokenHash": {"$ne": keep_token_hash}}
+        ).delete()
+        return result.deleted_count if result else 0
+
     async def create_password_reset_token(
         self, prt: PasswordResetToken
     ) -> PasswordResetToken:

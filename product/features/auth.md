@@ -43,6 +43,21 @@ Users can sign up and log in via Google OAuth or email/password. Authorization i
 - Authenticated user email must match invitation target email
 - Mismatched email blocks acceptance with explicit forbidden response
 
+## Self-Service Profile
+
+Every user manages their own account from a unified **Profile page** (`/settings/profile`), reachable from the header user menu. The page has three sections:
+
+- **Account**: avatar (initials, or `avatar_url` image when present), email (read-only, with verified badge), and an editable display name saved via `PATCH /auth/me`
+- **Security**: password change for password users (current password required); Google-only users can set an initial password to enable hybrid login (Google or email/password). Changing the password revokes all other sessions
+- **Notification preferences**: per-event-type email toggles (see Notifications)
+
+Rules:
+
+- Email address cannot be changed from the profile (future feature)
+- Avatar upload is not available (avatar is shown when `avatar_url` exists, e.g. from Google)
+- Profile updates and password changes are audit-logged
+- `/settings/notifications` redirects to `/settings/profile` for backward compatibility
+
 ## Authorization
 
 ### Roles

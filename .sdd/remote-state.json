@@ -4,133 +4,133 @@
       "remoteId": "3559424a-c07e-44dd-aa44-07db54c9a5bd",
       "remoteVersion": 1,
       "localHash": "a8f46a707e90aa099c53b5b7fa2c30c169e5c3ff326af629bb2c09888c5412cf",
-      "lastSynced": "2026-03-30T21:55:52.087Z"
+      "lastSynced": "2026-09-04T12:31:37.007Z"
     },
     "product/features/audit-log.md": {
       "remoteId": "1c089888-e818-45ee-8121-edcd8ecdfc49",
       "remoteVersion": 2,
       "localHash": "dbe41a71e9b1d92a87b276c220479b598596b026d8c2578103cf38285eedcac7",
-      "lastSynced": "2026-09-04T10:24:43.334Z"
+      "lastSynced": "2026-09-04T12:31:37.008Z"
     },
     "product/features/auth.md": {
       "remoteId": "e1f8b354-c406-47bb-a783-950de105b75c",
       "remoteVersion": 1,
       "localHash": "0da0b3aa5dc1fdf947782c16cdc6902be1412db3af0ea17c144ad045ea948276",
-      "lastSynced": "2026-03-30T21:55:52.088Z"
+      "lastSynced": "2026-09-04T12:31:37.008Z"
     },
     "product/features/bugs.md": {
       "remoteId": "0f24ceeb-e9b6-4d50-aa57-1da73630e388",
       "remoteVersion": 3,
       "localHash": "be167df2c8bdf74f9c562779a529fdd58823bb4b2d5f41763b6c95014a913a4b",
-      "lastSynced": "2026-09-04T10:24:43.335Z"
+      "lastSynced": "2026-09-04T12:31:37.008Z"
     },
     "product/features/change-requests.md": {
       "remoteId": "f21ab635-8b73-49ed-9cd0-42b4c12610a9",
       "remoteVersion": 3,
       "localHash": "15ebeb26f2f3cc27db06c1537a3536f83269a2602d76dc83a485a0b59bcc6fbd",
-      "lastSynced": "2026-09-04T10:24:43.335Z"
+      "lastSynced": "2026-09-04T12:31:37.008Z"
     },
     "product/features/dashboard.md": {
       "remoteId": "a9fd0d3a-49f7-43be-9414-5d5c5ef76e76",
       "remoteVersion": 1,
       "localHash": "aabf77924c7a594a61c296c710d5e072e1809ae73cdf63928cf5b86a618d1d49",
-      "lastSynced": "2026-03-30T21:55:52.088Z"
+      "lastSynced": "2026-09-04T12:31:37.009Z"
     },
     "product/features/docker-images-deployment.md": {
       "remoteId": "448dc615-c928-42c5-8558-87d7a2ad41b2",
       "remoteVersion": 1,
       "localHash": "23efbd50fe9b0185a98ebf65c155523d579b5b302848a70d0f74b6822a5eaafe",
-      "lastSynced": "2026-03-30T21:55:52.088Z"
+      "lastSynced": "2026-09-04T12:31:37.009Z"
     },
     "product/features/notifications.md": {
       "remoteId": "9a297012-18a2-40ba-b6c9-d3d5c3c2d30e",
       "remoteVersion": 2,
       "localHash": "407357919d0a4567e11b9320527fbf2e93b5b287beb6e094fc3347c18b25bde0",
-      "lastSynced": "2026-09-04T10:24:43.335Z"
+      "lastSynced": "2026-09-04T12:31:37.009Z"
     },
     "product/features/projects.md": {
       "remoteId": "99d9a8dd-b3ca-40ec-9ee6-1e1cc502c283",
       "remoteVersion": 1,
       "localHash": "df684e160c2b219ca0eb55400bb4e495e0db13e8ea055179992c55e68ee64d5e",
-      "lastSynced": "2026-03-30T21:55:52.089Z"
+      "lastSynced": "2026-09-04T12:31:37.010Z"
     },
     "product/features/remote-worker.md": {
       "remoteId": "f0514dff-39a9-4b15-91e1-ecbd1aebae3d",
       "remoteVersion": 1,
       "localHash": "2644f39b075032970ad384265fae4654390b7d2e62a9f6d3c06a0b8cf51d5baf",
-      "lastSynced": "2026-03-30T21:55:52.089Z"
+      "lastSynced": "2026-09-04T12:31:37.010Z"
     },
     "product/features/sdd-docs.md": {
       "remoteId": "ff0963ab-308a-4d06-8a03-fb3b3411287f",
       "remoteVersion": 1,
       "localHash": "5a96777cbdf5822351d7bfa974850942b92a575fadd8925731dc30c89a10b3d0",
-      "lastSynced": "2026-03-30T21:55:52.089Z"
+      "lastSynced": "2026-09-04T12:31:37.010Z"
     },
     "product/features/search.md": {
       "remoteId": "06ac40cd-5e15-4628-bdd0-954f3c980f74",
       "remoteVersion": 1,
       "localHash": "b26ff9934a946367da5a9de0e84b9e03df0ad1978c0616a4f8984995e3359a04",
-      "lastSynced": "2026-03-30T21:55:52.089Z"
+      "lastSynced": "2026-09-04T12:31:37.010Z"
     },
     "product/features/tenants.md": {
       "remoteId": "d7f6ef30-c60c-4a6b-b88a-a8038ef71e8b",
       "remoteVersion": 2,
       "localHash": "719db788a4157a3dc9270dab79aa5e5731ed64972c659fb5cc8612f0ed26dcb7",
-      "lastSynced": "2026-03-31T11:04:21.940Z"
+      "lastSynced": "2026-09-04T12:31:37.010Z"
     },
     "product/features/theme.md": {
       "remoteId": "0f5634b7-6649-4982-a446-bf6f88f7b360",
       "remoteVersion": 1,
       "localHash": "a7218997d1f523e156c08574a3dc8cfd2fd420a2c494ac9c382eb3a37e442d68",
-      "lastSynced": "2026-03-30T21:55:52.089Z"
+      "lastSynced": "2026-09-04T12:31:37.011Z"
     },
     "product/features/toasts.md": {
       "remoteId": "cd7e9394-2ba5-47ec-80cd-f0925045bd4c",
       "remoteVersion": 1,
       "localHash": "fadd50dfa68df5ec8e5a6e74ffb33f388748719514a14f269cc5f079bb312f4e",
-      "lastSynced": "2026-03-30T21:55:52.089Z"
+      "lastSynced": "2026-09-04T12:31:37.011Z"
     },
     "product/users.md": {
       "remoteId": "eacc1d9d-487f-4fae-9d1b-7731f8507a16",
       "remoteVersion": 1,
       "localHash": "a529690fda8155dfc894c7286c48e4b35591aee7fa2602e9ed966ad024e4e676",
-      "lastSynced": "2026-03-30T21:55:52.090Z"
+      "lastSynced": "2026-09-04T12:31:37.011Z"
     },
     "product/vision.md": {
       "remoteId": "a8064bed-14a0-4dab-9a44-ae3141ef0ce7",
       "remoteVersion": 1,
       "localHash": "1006e025be4265039d3e668dd10be863a3aaccd5c91162181d68416055ac3dbb",
-      "lastSynced": "2026-03-30T21:55:52.090Z"
+      "lastSynced": "2026-09-04T12:31:37.011Z"
     },
     "system/architecture.md": {
       "remoteId": "d21da59b-a42c-40a7-bdd6-da06536b3759",
       "remoteVersion": 2,
       "localHash": "19f5e070b24e351b8f918ff134c3dec472bd10e13cd2ccc7f4ee16399bcdaa01",
-      "lastSynced": "2026-04-30T10:49:21.822Z"
+      "lastSynced": "2026-09-04T12:31:37.011Z"
     },
     "system/ci-pipeline.md": {
       "remoteId": "50e72fd7-5f17-432a-b683-ad8be7b1730d",
       "remoteVersion": 1,
       "localHash": "751ab7aa1fd5a66da74df1ffe441648332cc79bad69fe7fb1633dab30086ee5e",
-      "lastSynced": "2026-03-30T21:55:52.090Z"
+      "lastSynced": "2026-09-04T12:31:37.011Z"
     },
     "system/entities.md": {
       "remoteId": "580cb027-2b26-44ff-9585-52ee1d8162a6",
       "remoteVersion": 3,
       "localHash": "46779b680389a827168b5e57fe6546cce33790f8c6230a2aa332b0a2b8e74264",
-      "lastSynced": "2026-09-04T10:24:43.335Z"
+      "lastSynced": "2026-09-04T12:31:37.012Z"
     },
     "system/interfaces.md": {
       "remoteId": "6cae2fee-4f99-4618-87f4-30b909772159",
       "remoteVersion": 3,
       "localHash": "f01a584513ebd52ef96069a6757ed972f91b0ebc0b531d5e5ad502b689a9f13a",
-      "lastSynced": "2026-09-04T10:24:43.335Z"
+      "lastSynced": "2026-09-04T12:31:37.012Z"
     },
     "system/tech-stack.md": {
       "remoteId": "f1cbc84d-6d73-44d7-b540-94e4c705dc2f",
       "remoteVersion": 1,
       "localHash": "aa50c3b7e84ac0f5c8b69f4089efae1e066db840391a0c56e7e8e7bed09f8ec2",
-      "lastSynced": "2026-03-30T21:55:52.091Z"
+      "lastSynced": "2026-09-04T12:31:37.012Z"
     }
   },
   "changeRequests": {
@@ -182,7 +182,7 @@
     "change-requests/CR-010-fix-cli-push-docs-missinggreenlet-500.md": {
       "remoteId": "b2b2c2b9-30b4-47f6-86c3-ed948584f5f6",
       "localHash": "ba01240c8b88ab99c51e2a6bc719346ebfb0cdb2509f89762047f40a9fe9e3a3",
-      "lastSynced": "2026-03-30T21:55:53.028Z"
+      "lastSynced": "2026-09-04T12:31:37.283Z"
     },
     "change-requests/CR-011-cli-sync-path-and-status-preservation.md": {
       "remoteId": "59d27a0c-dc3e-4263-bdfc-5e5b7875c93b",
@@ -292,7 +292,7 @@
     "change-requests/CR-032-custom-slug-on-cr-and-bug-creation.md": {
       "remoteId": "d188f5bf-e547-4c12-b204-1d7dd3c32f58",
       "localHash": "ccc33fbde6087885f57018dd9212821af73cf36b4fabc107735561edf74b370d",
-      "lastSynced": "2026-07-17T12:19:30.036Z"
+      "lastSynced": "2026-09-04T12:31:37.283Z"
     },
     "change-requests/CR-033-comment-ux-and-email-notifications.md": {
       "remoteId": "488bdcec-18b0-4c88-8faf-10a80322447a",
@@ -352,5 +352,6 @@
       "lastSynced": "2026-09-04T10:24:43.671Z"
     }
   },
-  "lastPush": "2026-09-04T10:24:43.671Z"
+  "lastPush": "2026-09-04T10:24:43.671Z",
+  "lastPull": "2026-09-04T12:31:37.012Z"
 }

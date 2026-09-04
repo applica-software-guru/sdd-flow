@@ -4,6 +4,8 @@ export interface User {
   display_name: string;
   avatar_url?: string;
   email_verified: boolean;
+  has_password?: boolean;
+  google_linked?: boolean;
   created_at: string;
   updated_at?: string;
 }

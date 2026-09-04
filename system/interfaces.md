@@ -127,7 +127,35 @@ Google OAuth callback. Sets JWT cookies and redirects to frontend.
 
 Get the current authenticated user.
 
-**Response:** `200` `{ id, email, display_name, avatar_url }`
+**Response:** `200` `{ id, email, display_name, avatar_url, has_password, google_linked }`
+
+`has_password` is `true` when the account has a password set (password or hybrid Google account); Google-only accounts that never set one get `false`. `google_linked` is `true` when the account is linked to a Google identity.
+
+### PATCH /auth/me
+
+Update the current user's own profile.
+
+**Body:** `{ display_name }` (trimmed, 1–80 chars)
+**Response:** `200` `{ id, email, display_name, avatar_url, has_password }`
+
+Validation and behavior:
+
+- Only `display_name` is mutable here; attempts to change `email`, `google_id`, or `email_verified` are rejected
+- Writes an audit log entry (`user.profile_updated`)
+
+### POST /auth/me/change-password
+
+Change or set the current user's own password.
+
+**Body:** `{ current_password?, new_password }` (min 8 chars)
+**Response:** `200` `{ password_set: true }`
+
+Validation and behavior:
+
+- Password users must provide a valid `current_password` (`400` otherwise)
+- Google-only users (no password yet) may omit `current_password` and set an initial password, enabling hybrid login
+- Revokes all other refresh tokens for the user (current session stays alive)
+- Writes an audit log entry (`user.password_changed`) and sends a fire-and-forget confirmation email
 
 ---
 

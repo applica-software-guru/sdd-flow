@@ -3,17 +3,8 @@ import { useParams } from 'react-router-dom';
 import { useAuditLog } from '../../hooks/useAuditLog';
 import Pagination from '../../components/Pagination';
 import EmptyState from '../../components/EmptyState';
+import UserName from '../../components/UserName';
 import { DetailsCell } from '../../components/AuditDetailsCell';
-
-function initialsOf(name: string): string {
-  return (
-    name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase() || '?'
-  );
-}
 
 export default function AuditLogPage() {
   const { tenantId } = useParams();
@@ -113,14 +104,7 @@ export default function AuditLogPage() {
                     </td>
                     <td className="px-6 py-3">
                       {entry.user ? (
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 text-[10px] font-semibold text-blue-700 dark:text-blue-400">
-                            {initialsOf(entry.user.display_name)}
-                          </div>
-                          <span className="truncate text-sm text-slate-900 dark:text-slate-100" title={entry.user.email}>
-                            {entry.user.display_name}
-                          </span>
-                        </div>
+                        <UserName name={entry.user.display_name} email={entry.user.email} />
                       ) : (
                         <span className="inline-flex rounded-full bg-slate-100 dark:bg-slate-700 px-2 py-0.5 text-xs font-medium italic text-slate-500 dark:text-slate-400">
                           System

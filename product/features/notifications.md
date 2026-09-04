@@ -43,7 +43,7 @@ The **actors** of a CR/bug are the union of its author, its current assignee (if
 
 ### Notification Preferences
 
-- Per-user settings in profile:
+- Managed in the user's **Profile page** (`/settings/profile`, notification preferences section):
   - In-app: always on
   - Email: toggle per event type
 - Defaults: `comment_added` email is **on** by default; all other event types default to **off** (`content_changed` in particular is strictly opt-in)
