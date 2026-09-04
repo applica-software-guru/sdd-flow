@@ -45,17 +45,24 @@ async def _get_project(tenant_id: uuid.UUID, project_id: uuid.UUID):
     return project
 
 
-async def _attach_users(responses: list[CRResponse], entities: list[ChangeRequest]) -> list[CRResponse]:
-    """Attach resolved author/assignee UserBrief objects (batch, no N+1)."""
+async def _enrich_responses(responses: list[CRResponse], entities: list[ChangeRequest]) -> list[CRResponse]:
+    """Attach resolved author/assignee UserBrief and batched comments_count (no N+1)."""
+    if not responses:
+        return responses
     user_ids: set[uuid.UUID] = set()
     for e in entities:
         user_ids.add(e.author_id)
         if e.assignee_id is not None:
             user_ids.add(e.assignee_id)
     users = await resolve_user_briefs(user_ids)
+
+    cr_ids = [e.id for e in entities]
+    comment_counts = await CommentRepository().count_by_entities(EntityType.change_request.value, cr_ids)
+
     for resp, e in zip(responses, entities):
         resp.author = users.get(e.author_id)
         resp.assignee = users.get(e.assignee_id) if e.assignee_id is not None else None
+        resp.comments_count = comment_counts.get(e.id, 0)
     return responses
 
 
@@ -103,7 +110,8 @@ async def create_cr(
             body.assignee_id, tenant_id, "cr.assigned",
             "change_request", cr.id, f"You were assigned to CR: {cr.title}",
         )
-    return cr
+    resp = CRResponse.model_validate(cr)
+    return (await _enrich_responses([resp], [cr]))[0]
 
 
 @router.get("", response_model=CRListResponse)
@@ -132,7 +140,7 @@ async def list_crs(
     skip = (page - 1) * page_size
     items = await ChangeRequest.find(query).sort([("number", -1)]).skip(skip).limit(page_size).to_list()
 
-    responses = await _attach_users([CRResponse.model_validate(i) for i in items], items)
+    responses = await _enrich_responses([CRResponse.model_validate(i) for i in items], items)
     return CRListResponse(
         items=responses,
         total=total,
@@ -155,7 +163,7 @@ async def get_cr(
     if cr is None or cr.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Change request not found")
     resp = CRResponse.model_validate(cr)
-    return (await _attach_users([resp], [cr]))[0]
+    return (await _enrich_responses([resp], [cr]))[0]
 
 
 @router.patch("/{cr_id}", response_model=CRResponse)
@@ -224,7 +232,7 @@ async def update_cr(
     )
     cr = await cr_repo.find_by_id(cr_id)
     resp = CRResponse.model_validate(cr)
-    return (await _attach_users([resp], [cr]))[0]
+    return (await _enrich_responses([resp], [cr]))[0]
 
 
 @router.post("/{cr_id}/assign", response_model=CRResponse)
@@ -246,7 +254,7 @@ async def assign_cr(
 
     cr = await cr_repo.find_by_id(cr_id)
     resp = CRResponse.model_validate(cr)
-    return (await _attach_users([resp], [cr]))[0]
+    return (await _enrich_responses([resp], [cr]))[0]
 
 
 @router.get("/{cr_id}/assignments", response_model=list[AssignmentEntryResponse])
@@ -321,7 +329,8 @@ async def transition_cr(
             "change_request", cr.id, f"CR '{cr.title}' moved to {body.status.value}",
         )
     cr = await cr_repo.find_by_id(cr_id)
-    return cr
+    resp = CRResponse.model_validate(cr)
+    return (await _enrich_responses([resp], [cr]))[0]
 
 
 @router.get("/{cr_id}/comments", response_model=list[CommentResponse])

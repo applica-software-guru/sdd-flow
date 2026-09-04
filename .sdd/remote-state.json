@@ -8,9 +8,9 @@
     },
     "product/features/audit-log.md": {
       "remoteId": "1c089888-e818-45ee-8121-edcd8ecdfc49",
-      "remoteVersion": 1,
-      "localHash": "6d2f2f9c6b1b89e4a96d7c88f902adc3bddd040b8d2e7e1f24264e9f049408e0",
-      "lastSynced": "2026-03-30T21:55:52.088Z"
+      "remoteVersion": 2,
+      "localHash": "dbe41a71e9b1d92a87b276c220479b598596b026d8c2578103cf38285eedcac7",
+      "lastSynced": "2026-09-04T10:24:43.334Z"
     },
     "product/features/auth.md": {
       "remoteId": "e1f8b354-c406-47bb-a783-950de105b75c",
@@ -20,15 +20,15 @@
     },
     "product/features/bugs.md": {
       "remoteId": "0f24ceeb-e9b6-4d50-aa57-1da73630e388",
-      "remoteVersion": 2,
-      "localHash": "fa6e0ee0f7b29906c4b082c202fef40200b9cf811995481ace59bd6000d2cf89",
-      "lastSynced": "2026-04-30T10:49:21.820Z"
+      "remoteVersion": 3,
+      "localHash": "be167df2c8bdf74f9c562779a529fdd58823bb4b2d5f41763b6c95014a913a4b",
+      "lastSynced": "2026-09-04T10:24:43.335Z"
     },
     "product/features/change-requests.md": {
       "remoteId": "f21ab635-8b73-49ed-9cd0-42b4c12610a9",
-      "remoteVersion": 2,
-      "localHash": "95f79ee9a3247ff37d31b08da6dae1efdf2f7f483fdc23580eb65cf2250bb681",
-      "lastSynced": "2026-04-30T10:49:21.822Z"
+      "remoteVersion": 3,
+      "localHash": "15ebeb26f2f3cc27db06c1537a3536f83269a2602d76dc83a485a0b59bcc6fbd",
+      "lastSynced": "2026-09-04T10:24:43.335Z"
     },
     "product/features/dashboard.md": {
       "remoteId": "a9fd0d3a-49f7-43be-9414-5d5c5ef76e76",
@@ -44,9 +44,9 @@
     },
     "product/features/notifications.md": {
       "remoteId": "9a297012-18a2-40ba-b6c9-d3d5c3c2d30e",
-      "remoteVersion": 1,
-      "localHash": "01111d74f2f14bc4f0e3665d675e367bb51ee6c1d64f90b0a2c99b282681759a",
-      "lastSynced": "2026-03-30T21:55:52.088Z"
+      "remoteVersion": 2,
+      "localHash": "407357919d0a4567e11b9320527fbf2e93b5b287beb6e094fc3347c18b25bde0",
+      "lastSynced": "2026-09-04T10:24:43.335Z"
     },
     "product/features/projects.md": {
       "remoteId": "99d9a8dd-b3ca-40ec-9ee6-1e1cc502c283",
@@ -116,15 +116,15 @@
     },
     "system/entities.md": {
       "remoteId": "580cb027-2b26-44ff-9585-52ee1d8162a6",
-      "remoteVersion": 2,
-      "localHash": "3c241d473ed69ed43c5e90faa8bfb3ad3942c2321e171ff5ba51381dfded6623",
-      "lastSynced": "2026-03-31T11:04:21.947Z"
+      "remoteVersion": 3,
+      "localHash": "46779b680389a827168b5e57fe6546cce33790f8c6230a2aa332b0a2b8e74264",
+      "lastSynced": "2026-09-04T10:24:43.335Z"
     },
     "system/interfaces.md": {
       "remoteId": "6cae2fee-4f99-4618-87f4-30b909772159",
-      "remoteVersion": 2,
-      "localHash": "a628df31149e1c41efabd9bd95fbdab04f84c9b00ec9f4d61ae8a36696f080a6",
-      "lastSynced": "2026-03-31T11:04:21.947Z"
+      "remoteVersion": 3,
+      "localHash": "f01a584513ebd52ef96069a6757ed972f91b0ebc0b531d5e5ad502b689a9f13a",
+      "lastSynced": "2026-09-04T10:24:43.335Z"
     },
     "system/tech-stack.md": {
       "remoteId": "f1cbc84d-6d73-44d7-b540-94e4c705dc2f",
@@ -293,6 +293,16 @@
       "remoteId": "d188f5bf-e547-4c12-b204-1d7dd3c32f58",
       "localHash": "ccc33fbde6087885f57018dd9212821af73cf36b4fabc107735561edf74b370d",
       "lastSynced": "2026-07-17T12:19:30.036Z"
+    },
+    "change-requests/CR-033-comment-ux-and-email-notifications.md": {
+      "remoteId": "488bdcec-18b0-4c88-8faf-10a80322447a",
+      "localHash": "55a6e3b2df16e65c021eae6ed35c6b88b790933c040b9ae71d437f78662692a0",
+      "lastSynced": "2026-09-04T10:24:43.464Z"
+    },
+    "change-requests/CR-034-merge-assignment-and-enrich-comments.md": {
+      "remoteId": "ba69dec9-b890-458a-82ba-c4423f40c801",
+      "localHash": "16fd5b31f372019bfcc259bc503cf29caab5705f951afd8713f7d60e0f5ac9e3",
+      "lastSynced": "2026-09-04T10:24:43.464Z"
     }
   },
   "bugs": {
@@ -330,7 +340,17 @@
       "remoteId": "7064b8c2-b077-4eb9-a4f3-9567b3216c3e",
       "localHash": "f306efdc8175331f7fb851e1b925d06e0f9917d013ea61040a0d87f3141c17b4",
       "lastSynced": "2026-07-17T12:19:30.138Z"
+    },
+    "bugs/BUG-008-audit-log-author-action-empty-details-unreadable-entity-unclear.md": {
+      "remoteId": "cbcfc7aa-e4a3-45f4-8d4c-2cfefe7d38ae",
+      "localHash": "9c59cb793716b02e7d78267e83f84a7caa0a949f1fa52289fc41a01a0d5f7c7c",
+      "lastSynced": "2026-09-04T10:24:43.670Z"
+    },
+    "bugs/BUG-009-cr-list-author-assignee-empty-no-assignment-flow.md": {
+      "remoteId": "e1757172-2473-4187-860c-2b0f97ee3b5b",
+      "localHash": "fb6db11bdc58c0ebe148792f353e44415f7e077fe1178fc6e0c7e22d124a0f5b",
+      "lastSynced": "2026-09-04T10:24:43.671Z"
     }
   },
-  "lastPush": "2026-07-17T12:19:30.138Z"
+  "lastPush": "2026-09-04T10:24:43.671Z"
 }

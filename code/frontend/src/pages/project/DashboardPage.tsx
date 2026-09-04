@@ -9,6 +9,7 @@ import StatusBadge from '../../components/StatusBadge';
 import SeverityBadge from '../../components/SeverityBadge';
 import JobStatusBadge from '../../components/JobStatusBadge';
 import JobOptionsDialog from '../../components/JobOptionsDialog';
+import { formatDateOnly } from '../../lib/format';
 
 export default function DashboardPage() {
   const { tenantId, projectId } = useParams();
@@ -191,10 +192,22 @@ export default function DashboardPage() {
                   <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                     {cr.title}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    by on{' '}
-                    {new Date(cr.created_at).toLocaleDateString()}
-                  </p>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <span>by {cr.author?.display_name || 'Unknown'}</span>
+                    <span>&middot;</span>
+                    <span>{formatDateOnly(cr.created_at)}</span>
+                    {typeof cr.comments_count === 'number' && cr.comments_count > 0 && (
+                      <>
+                        <span>&middot;</span>
+                        <span className="inline-flex items-center gap-1">
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                          </svg>
+                          {cr.comments_count}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <StatusBadge status={cr.status} />
               </Link>
@@ -230,10 +243,22 @@ export default function DashboardPage() {
                   <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                     {bug.title}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    by on{' '}
-                    {new Date(bug.created_at).toLocaleDateString()}
-                  </p>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <span>by {bug.author?.display_name || 'Unknown'}</span>
+                    <span>&middot;</span>
+                    <span>{formatDateOnly(bug.created_at)}</span>
+                    {typeof bug.comments_count === 'number' && bug.comments_count > 0 && (
+                      <>
+                        <span>&middot;</span>
+                        <span className="inline-flex items-center gap-1">
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                          </svg>
+                          {bug.comments_count}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <SeverityBadge severity={bug.severity} />

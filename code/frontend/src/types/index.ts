@@ -96,6 +96,7 @@ export interface ChangeRequest {
   closed_at?: string;
   created_at: string;
   updated_at: string;
+  comments_count?: number;
   comments?: Comment[];
 }
 
@@ -127,6 +128,7 @@ export interface Bug {
   closed_at?: string;
   created_at: string;
   updated_at: string;
+  comments_count?: number;
   comments?: Comment[];
 }
 

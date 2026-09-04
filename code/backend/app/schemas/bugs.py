@@ -46,6 +46,7 @@ class BugResponse(BaseModel):
     assignee_id: uuid.UUID | None = None
     author: UserBrief | None = None
     assignee: UserBrief | None = None
+    comments_count: int = 0
     closed_at: datetime | None = None
     created_at: datetime
     updated_at: datetime

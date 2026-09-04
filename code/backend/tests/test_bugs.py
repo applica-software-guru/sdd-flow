@@ -247,3 +247,41 @@ async def test_add_and_list_bug_comments(client: AsyncClient, test_tenant, test_
     assert resp.status_code == 200
     assert len(resp.json()) >= 1
     assert resp.json()[0]["body"] == "I can reproduce this on Chrome"
+
+
+@pytest.mark.asyncio
+async def test_bug_comments_count(client: AsyncClient, test_tenant, test_project, bug_payload):
+    create_resp = await client.post(_base(test_tenant, test_project), json=bug_payload)
+    bug_id = create_resp.json()["id"]
+
+    # Initially comments_count is 0
+    get_resp = await client.get(f"{_base(test_tenant, test_project)}/{bug_id}")
+    assert get_resp.status_code == 200
+    assert get_resp.json()["comments_count"] == 0
+
+    list_resp = await client.get(_base(test_tenant, test_project))
+    assert list_resp.status_code == 200
+    item = next(i for i in list_resp.json()["items"] if i["id"] == bug_id)
+    assert item["comments_count"] == 0
+
+    # Add 2 comments
+    await client.post(
+        f"{_base(test_tenant, test_project)}/{bug_id}/comments",
+        json={"body": "Comment 1"},
+    )
+    await client.post(
+        f"{_base(test_tenant, test_project)}/{bug_id}/comments",
+        json={"body": "Comment 2"},
+    )
+
+    # Get should return comments_count == 2
+    get_resp = await client.get(f"{_base(test_tenant, test_project)}/{bug_id}")
+    assert get_resp.status_code == 200
+    assert get_resp.json()["comments_count"] == 2
+
+    # List should return comments_count == 2
+    list_resp = await client.get(_base(test_tenant, test_project))
+    assert list_resp.status_code == 200
+    item = next(i for i in list_resp.json()["items"] if i["id"] == bug_id)
+    assert item["comments_count"] == 2
+

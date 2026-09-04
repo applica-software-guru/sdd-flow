@@ -12,6 +12,24 @@ from app.repositories.base import BaseRepository
 class CommentRepository(BaseRepository[Comment]):
     model = Comment
 
+    async def count_by_entities(
+        self, entity_type: str, entity_ids: list[UUID]
+    ) -> dict[UUID, int]:
+        if not entity_ids:
+            return {}
+        id_bins = [uuid_to_bin(eid) for eid in entity_ids]
+        result: dict[UUID, int] = {eid: 0 for eid in entity_ids}
+        pipeline = [
+            {"$match": {"entityType": entity_type, "entityId": {"$in": id_bins}}},
+            {"$group": {"_id": "$entityId", "count": {"$sum": 1}}},
+        ]
+        col = Comment.get_pymongo_collection()
+        async for row in await col.aggregate(pipeline):
+            eid = bin_to_uuid(row["_id"])
+            if eid and eid in result:
+                result[eid] = row["count"]
+        return result
+
     async def find_by_entity(self, entity_type: str, entity_id: UUID) -> list[Comment]:
         return await Comment.find(
             {"entityType": entity_type, "entityId": entity_id}

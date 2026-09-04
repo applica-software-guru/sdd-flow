@@ -37,17 +37,24 @@ router = APIRouter(
 )
 
 
-async def _attach_users(responses: list[BugResponse], entities: list[Bug]) -> list[BugResponse]:
-    """Attach resolved author/assignee UserBrief objects (batch, no N+1)."""
+async def _enrich_responses(responses: list[BugResponse], entities: list[Bug]) -> list[BugResponse]:
+    """Attach resolved author/assignee UserBrief and batched comments_count (no N+1)."""
+    if not responses:
+        return responses
     user_ids: set[uuid.UUID] = set()
     for e in entities:
         user_ids.add(e.author_id)
         if e.assignee_id is not None:
             user_ids.add(e.assignee_id)
     users = await resolve_user_briefs(user_ids)
+
+    bug_ids = [e.id for e in entities]
+    comment_counts = await CommentRepository().count_by_entities(EntityType.bug.value, bug_ids)
+
     for resp, e in zip(responses, entities):
         resp.author = users.get(e.author_id)
         resp.assignee = users.get(e.assignee_id) if e.assignee_id is not None else None
+        resp.comments_count = comment_counts.get(e.id, 0)
     return responses
 
 
@@ -103,7 +110,8 @@ async def create_bug(
             body.assignee_id, tenant_id, "bug.assigned",
             "bug", bug.id, f"You were assigned to bug: {bug.title}",
         )
-    return bug
+    resp = BugResponse.model_validate(bug)
+    return (await _enrich_responses([resp], [bug]))[0]
 
 
 @router.get("", response_model=BugListResponse)
@@ -136,7 +144,7 @@ async def list_bugs(
     skip = (page - 1) * page_size
     items = await Bug.find(query).sort([("number", -1)]).skip(skip).limit(page_size).to_list()
 
-    responses = await _attach_users([BugResponse.model_validate(i) for i in items], items)
+    responses = await _enrich_responses([BugResponse.model_validate(i) for i in items], items)
     return BugListResponse(
         items=responses,
         total=total,
@@ -159,7 +167,7 @@ async def get_bug(
     if bug is None or bug.project_id != project_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bug not found")
     resp = BugResponse.model_validate(bug)
-    return (await _attach_users([resp], [bug]))[0]
+    return (await _enrich_responses([resp], [bug]))[0]
 
 
 @router.patch("/{bug_id}", response_model=BugResponse)
@@ -228,7 +236,7 @@ async def update_bug(
     )
     bug = await bug_repo.find_by_id(bug_id)
     resp = BugResponse.model_validate(bug)
-    return (await _attach_users([resp], [bug]))[0]
+    return (await _enrich_responses([resp], [bug]))[0]
 
 
 @router.post("/{bug_id}/assign", response_model=BugResponse)
@@ -250,7 +258,7 @@ async def assign_bug(
 
     bug = await bug_repo.find_by_id(bug_id)
     resp = BugResponse.model_validate(bug)
-    return (await _attach_users([resp], [bug]))[0]
+    return (await _enrich_responses([resp], [bug]))[0]
 
 
 @router.get("/{bug_id}/assignments", response_model=list[AssignmentEntryResponse])
@@ -325,7 +333,8 @@ async def transition_bug(
             "bug", bug.id, f"Bug '{bug.title}' moved to {body.status.value}",
         )
     bug = await bug_repo.find_by_id(bug_id)
-    return bug
+    resp = BugResponse.model_validate(bug)
+    return (await _enrich_responses([resp], [bug]))[0]
 
 
 @router.get("/{bug_id}/comments", response_model=list[CommentResponse])

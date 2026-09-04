@@ -7,6 +7,7 @@ import SeverityBadge from '../../components/SeverityBadge';
 import Pagination from '../../components/Pagination';
 import EmptyState from '../../components/EmptyState';
 import UserCell from '../../components/UserCell';
+import { formatDateOnly } from '../../lib/format';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'All statuses' },
@@ -144,6 +145,9 @@ export default function ListPage() {
                   <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 lg:table-cell dark:text-slate-400">
                     Created
                   </th>
+                  <th className="hidden px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-slate-500 lg:table-cell dark:text-slate-400">
+                    Comments
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -173,7 +177,19 @@ export default function ListPage() {
                       <UserCell user={bug.assignee} fallback="Unassigned" />
                     </td>
                     <td className="hidden px-6 py-4 text-sm text-slate-500 lg:table-cell dark:text-slate-400">
-                      {new Date(bug.created_at).toLocaleString()}
+                      {formatDateOnly(bug.created_at)}
+                    </td>
+                    <td className="hidden px-6 py-4 text-center text-sm text-slate-500 lg:table-cell dark:text-slate-400">
+                      {typeof bug.comments_count === 'number' && bug.comments_count > 0 ? (
+                        <span className="inline-flex items-center gap-1 font-medium text-slate-700 dark:text-slate-300">
+                          <svg className="h-4 w-4 text-slate-400 dark:text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+                          </svg>
+                          {bug.comments_count}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 dark:text-slate-600">&mdash;</span>
+                      )}
                     </td>
                   </tr>
                 ))}
