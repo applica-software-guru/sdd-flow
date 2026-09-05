@@ -3,7 +3,7 @@ title: "Authentication & Authorization"
 status: synced
 author: ""
 last-modified: "2026-09-05T08:25:00.000Z"
-version: "1.3"
+version: "1.4"
 ---
 
 # Authentication & Authorization
@@ -81,6 +81,25 @@ Roles are assigned **per tenant**. A user can have different roles in different 
 - **Admin** can create/delete projects, invite/remove members, manage API keys
 - **Member** can CRUD change requests, bugs, and documentation
 - **Viewer** can only read
+
+## Platform Authorization
+
+Platform authorization is independent from tenant authorization. Every user has a `platform_role`:
+
+| Platform role | Capability |
+|---------------|------------|
+| `user` | Standard access through tenant memberships |
+| `super_user` | Read-only access to the global `/admin` area and platform monitoring APIs |
+
+A tenant Owner/Admin is not automatically a `super_user`, and a `super_user` does not bypass tenant-scoped authorization or become a tenant member automatically. Backend `require_platform_role` checks protect all global endpoints.
+
+### Cloud Run SUPER_USER bootstrap
+
+Production supplies the intended account through the private GitHub Actions secret `CLOUDRUN_SUPER_USER_EMAIL`, injected into Cloud Run as `SUPER_USER_EMAIL`. On startup and after successful registration/login, the backend compares the normalized email case-insensitively and idempotently promotes the matching account. Missing accounts do not prevent startup, changing the variable does not demote an existing super user, and promotions are platform-audited.
+
+### Access monitoring
+
+The platform audit trail records safe events including successful/failed login, logout, password/profile changes, super-user promotion, and access to global admin views. Passwords, hashes, tokens, cookies, complete API keys, and OAuth tokens are never recorded.
 
 ## Default Admin Account
 

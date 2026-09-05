@@ -13,11 +13,13 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import bcrypt
+from bson.binary import Binary, UuidRepresentation
 from fastapi import HTTPException, status
 from jose import jwt
 
 from app.config import settings
 from app.models.base import utcnow
+from app.models.password_reset_token import PasswordResetToken
 from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.repositories import AuthRepository, UserRepository
@@ -236,8 +238,6 @@ class AuthService:
         if user is None or user.password_hash is None:
             return
 
-        from app.models.password_reset_token import PasswordResetToken
-
         raw_token = secrets.token_urlsafe(32)
         reset_token = PasswordResetToken(
             user_id=user.id,
@@ -275,8 +275,6 @@ class AuthService:
         user_id = reset_doc.get("userId")
         if user_id is None:
             return False
-
-        from bson.binary import Binary, UuidRepresentation
 
         try:
             if isinstance(user_id, Binary):

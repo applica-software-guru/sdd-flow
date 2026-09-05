@@ -12,7 +12,11 @@ from app.schemas.notifications import (
     NotificationPreferenceUpdate,
     NotificationResponse,
 )
-from app.services.notifications import NotificationService
+from app.services.notifications import (
+    SUPPORTED_EVENT_TYPES,
+    NotificationService,
+    default_email_enabled,
+)
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
 
@@ -81,11 +85,6 @@ async def get_preferences(
     Stored records are merged with defaults (comment_added on, others off)
     so clients always receive one entry per event type.
     """
-    from app.services.notifications import (
-        SUPPORTED_EVENT_TYPES,
-        default_email_enabled,
-    )
-
     stored = await svc.get_email_preferences(current_user.id)
     return [
         NotificationPreferenceResponse(

@@ -27,7 +27,7 @@ class AuditService:
 
     async def log_event(
         self,
-        tenant_id: uuid.UUID,
+        tenant_id: uuid.UUID | None,
         user_id: uuid.UUID | None,
         event_type: str,
         entity_type: str | None = None,

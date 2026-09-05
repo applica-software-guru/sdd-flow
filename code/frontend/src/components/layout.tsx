@@ -46,6 +46,7 @@ export default function Layout() {
     projectId,
     projectName: activeProject?.name,
     isAdmin,
+    isSuperUser: user?.platform_role === 'super_user',
   };
 
   return (

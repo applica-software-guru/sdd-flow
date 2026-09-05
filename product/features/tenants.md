@@ -3,7 +3,7 @@ title: "Multi-Tenancy & Organizations"
 status: synced
 author: ""
 last-modified: "2026-09-05T09:25:42.000Z"
-version: "1.3"
+version: "1.4"
 ---
 
 # Multi-Tenancy & Organizations
@@ -65,6 +65,10 @@ A tenant represents an organization. Each tenant has its own projects, members, 
 - Default role for new members (Member or Viewer)
 - Billing information (SaaS mode only)
 - Invitation management: send, cancel pending invitations, with clear success/error feedback
+
+## Platform administration boundary
+
+The global `SUPER_USER` capability is not a tenant role or membership. Super users do not appear automatically in tenant member lists and use dedicated read-only `/admin` APIs for global inventory and monitoring. Existing Owner/Admin/Member/Viewer checks remain authoritative for tenant operations.
 
 ## Agent Notes
 

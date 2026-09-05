@@ -3,7 +3,7 @@ title: "Architecture Decisions"
 status: synced
 author: ""
 last-modified: "2026-09-05T09:25:42.000Z"
-version: "2.6"
+version: "2.7"
 ---
 
 # Architecture Decisions
@@ -156,6 +156,12 @@ controllers (api/) → service classes (services/) → repositories (repositorie
 - A middleware extracts the current tenant from the JWT and injects it into all queries
 - No data should ever be returned without tenant scoping
 
+### Platform Administration Boundary
+
+`User.platform_role` (`user` or `super_user`) is independent from `TenantMember.role`. Dedicated `require_platform_role` authorization protects read-only `/admin/*` inventory and monitoring endpoints; it does not bypass tenant middleware or create tenant memberships. Platform audit events allow no tenant context and record authentication/security activity plus access to sensitive admin views without credentials or tokens.
+
+Cloud Run receives `SUPER_USER_EMAIL` from the private GitHub secret `CLOUDRUN_SUPER_USER_EMAIL`. Startup and successful registration/login perform a normalized, case-insensitive, idempotent promotion of the matching account. Missing accounts are logged without failing startup; configuration changes never implicitly demote an account.
+
 ### API Key Auth: Separate from User Auth
 
 - API keys use Bearer token auth but are handled by a separate middleware
@@ -209,7 +215,7 @@ controllers (api/) → service classes (services/) → repositories (repositorie
 
 ### Runtime Config
 
-- Canonical backend runtime variables: `MONGODB_URL`, `JWT_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+- Canonical backend runtime variables: `MONGODB_URL`, `JWT_SECRET`, `FRONTEND_URL`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`, `SUPER_USER_EMAIL`
 - `JWT_SECRET` is validated at startup: must be at least 32 characters and not a known weak default
 
 ### Frontend Runtime Injection

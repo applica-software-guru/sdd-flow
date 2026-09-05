@@ -3,7 +3,7 @@ title: "CI Pipeline"
 status: synced
 author: ""
 last-modified: "2026-09-04T20:30:00.000Z"
-version: "1.2"
+version: "1.3"
 ---
 
 # CI Pipeline
@@ -134,6 +134,7 @@ Backend:
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_REDIRECT_URI`
+- `SUPER_USER_EMAIL` (injected by the deploy workflow from private GitHub secret `CLOUDRUN_SUPER_USER_EMAIL`)
 - Optional: `AUTH_COOKIE_SECURE`, `AUTH_COOKIE_SAMESITE`
 
 Frontend (container runtime):
@@ -141,6 +142,10 @@ Frontend (container runtime):
 - `NGINX_SERVER_NAME`
 - `BACKEND_UPSTREAM`
 - Optional: `PUBLIC_APP_DOMAIN`
+
+### Cloud Run SUPER_USER secret
+
+`.github/workflows/cloudrun-deploy-backend.yml` requires the private GitHub Actions secret `CLOUDRUN_SUPER_USER_EMAIL`, fails fast when it is empty, and injects it only at deployment time as the backend runtime variable `SUPER_USER_EMAIL`. The value must never be a Docker build argument or be committed to environment files.
 
 ### Safety checks
 

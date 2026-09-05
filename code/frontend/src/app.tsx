@@ -5,10 +5,12 @@ import LoadingState from '@/components/shared/loading-state';
 
 const Layout = lazy(() => import('@/components/layout'));
 const ProtectedRoute = lazy(() => import('@/components/protected-route'));
+const SuperUserRoute = lazy(() => import('@/components/super-user-route'));
 const LoginPage = lazy(() => import('@/pages/auth/login-page'));
 const RegisterPage = lazy(() => import('@/pages/auth/register-page'));
 const ForgotPasswordPage = lazy(() => import('@/pages/auth/forgot-password-page'));
 const ResetPasswordPage = lazy(() => import('@/pages/auth/reset-password-page'));
+const AdminDashboardPage = lazy(() => import('@/pages/admin/dashboard-page'));
 const TenantDashboardPage = lazy(() => import('@/pages/tenant/dashboard-page'));
 const TenantCreatePage = lazy(() => import('@/pages/tenant/create-page'));
 const TenantSettingsPage = lazy(() => import('@/pages/tenant/settings-page'));
@@ -57,6 +59,14 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
+              <Route
+                path="/admin"
+                element={
+                  <SuperUserRoute>
+                    <AdminDashboardPage />
+                  </SuperUserRoute>
+                }
+              />
               <Route path="/tenants" element={<TenantDashboardPage />} />
               <Route path="/tenants/new" element={<TenantCreatePage />} />
               <Route path="/tenants/:tenantId" element={<TenantDashboardPage />} />

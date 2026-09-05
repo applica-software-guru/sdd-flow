@@ -3,6 +3,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, EmailStr
 
+from app.models.user import PlatformRole
+
 
 class RegisterRequest(BaseModel):
     email: EmailStr
@@ -41,6 +43,7 @@ class UserResponse(BaseModel):
     email_verified: bool
     has_password: bool = False
     google_linked: bool = False
+    platform_role: PlatformRole = PlatformRole.user
     created_at: datetime
 
     model_config = {"from_attributes": True}

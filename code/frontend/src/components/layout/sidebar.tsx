@@ -5,6 +5,7 @@ interface SidebarProps {
   projectId?: string;
   projectName?: string;
   isAdmin: boolean;
+  isSuperUser: boolean;
 }
 export default function Sidebar(props: SidebarProps) {
   return (

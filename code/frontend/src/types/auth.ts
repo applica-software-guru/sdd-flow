@@ -6,6 +6,7 @@ export interface User {
   email_verified: boolean;
   has_password?: boolean;
   google_linked?: boolean;
+  platform_role: 'user' | 'super_user';
   created_at: string;
   updated_at?: string;
 }

@@ -3,7 +3,7 @@ title: "API Interfaces"
 status: synced
 author: ""
 last-modified: "2026-09-05T09:25:42.000Z"
-version: "2.5"
+version: "2.6"
 ---
 
 # API Interfaces
@@ -34,6 +34,7 @@ Required:
 - `GOOGLE_REDIRECT_URI`
 - `MAIL_FROM_EMAIL`
 - `MAIL_FROM_NAME`
+- `SUPER_USER_EMAIL` (private Cloud Run runtime value injected from `secrets.CLOUDRUN_SUPER_USER_EMAIL`)
 
 Optional:
 
@@ -127,9 +128,9 @@ Google OAuth callback. Sets JWT cookies and redirects to frontend.
 
 Get the current authenticated user.
 
-**Response:** `200` `{ id, email, display_name, avatar_url, has_password, google_linked }`
+**Response:** `200` `{ id, email, display_name, avatar_url, has_password, google_linked, platform_role }`
 
-`has_password` is `true` when the account has a password set (password or hybrid Google account); Google-only accounts that never set one get `false`. `google_linked` is `true` when the account is linked to a Google identity.
+`platform_role` is `user` by default or `super_user` for a global platform operator. `has_password` is `true` when the account has a password set (password or hybrid Google account); Google-only accounts that never set one get `false`. `google_linked` is `true` when the account is linked to a Google identity.
 
 ### PATCH /auth/me
 
@@ -156,6 +157,20 @@ Validation and behavior:
 - Google-only users (no password yet) may omit `current_password` and set an initial password, enabling hybrid login
 - Revokes all other refresh tokens for the user (current session stays alive)
 - Writes an audit log entry (`user.password_changed`) and sends a fire-and-forget confirmation email
+
+---
+
+## Platform Admin
+
+All `/admin/*` endpoints require authentication and `platform_role=super_user`; tenant membership never substitutes for this authorization. Responses are paginated where applicable and contain operational metadata only.
+
+- `GET /admin/overview` — global user, tenant, project, recent login, failed-login, and recent-event aggregates.
+- `GET /admin/users?page&page_size&search&platform_role&email_verified` — safe account metadata and tenant counts; excludes credentials and tokens.
+- `GET /admin/tenants?page&page_size&search` — all tenants with member/project counts.
+- `GET /admin/projects?page&page_size&search&tenant_id&archived` — all projects with tenant context.
+- `GET /admin/audit-log?page&page_size&event_type&user_id&tenant_id&project_id&from&to` — global and contextual audit events.
+
+Opening each global admin view records a platform audit event. Authentication and platform audit events never include passwords, hashes, tokens, cookies, complete API keys, or OAuth tokens.
 
 ---
 

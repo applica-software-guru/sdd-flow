@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from beanie import SortDirection
+from bson.binary import Binary, UuidRepresentation
 
 from app.models.base import utcnow
 from app.models.notification import Notification
@@ -62,12 +63,10 @@ class NotificationRepository:
     async def upsert_preference(
         self, user_id: UUID, event_type: str, email_enabled: bool
     ) -> NotificationPreference:
-        import uuid as _uuid
-
         col = raw_collection(NotificationPreference)
         now = utcnow()
         uid_bin = uuid_to_bin(user_id)
-        new_id = uuid_to_bin(_uuid.uuid4())
+        new_id = uuid_to_bin(uuid4())
         await col.find_one_and_update(
             {"userId": uid_bin, "eventType": event_type},
             {
@@ -87,8 +86,6 @@ class NotificationRepository:
 
     async def delete_by_entity_ids(self, tenant_id: UUID, entity_ids: list[UUID]) -> int:
         """Delete notifications linked to the given entity ids (project reset)."""
-        from bson.binary import Binary, UuidRepresentation
-
         entity_bins = [
             Binary.from_uuid(i, uuid_representation=UuidRepresentation.STANDARD) for i in entity_ids
         ]

@@ -7,6 +7,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from app.api import (
+    admin,
     api_keys,
     audit_log,
     auth,
@@ -23,11 +24,12 @@ from app.api import (
 )
 from app.config import settings
 from app.db.mongodb import init_db
+from app.repositories.worker_repository import WorkerRepository
+from app.services.seed import seed_admin_user
+from app.services.super_user import promote_configured_super_user
 
 
 async def _monitor_stale_workers():
-    from app.repositories.worker_repository import WorkerRepository
-
     repo = WorkerRepository()
     while True:
         await asyncio.sleep(30)
@@ -42,9 +44,8 @@ async def _monitor_stale_workers():
 async def lifespan(app: FastAPI):
     client = await init_db(settings.MONGODB_URL)
     app.state.mongodb_client = client
-    from app.services.seed import seed_admin_user
-
     await seed_admin_user()
+    await promote_configured_super_user()
     monitor_task = asyncio.create_task(_monitor_stale_workers())
     yield
     monitor_task.cancel()
@@ -72,6 +73,7 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")
 app.include_router(tenants.router, prefix="/api/v1")
 app.include_router(projects.router, prefix="/api/v1")
 app.include_router(change_requests.router, prefix="/api/v1")

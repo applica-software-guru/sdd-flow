@@ -78,6 +78,7 @@ describe('ProfilePage', () => {
     email: 'jane@example.com',
     display_name: 'Jane Doe',
     email_verified: true,
+    platform_role: 'user',
     has_password: true,
     google_linked: false,
     created_at: '2026-09-04T00:00:00Z',

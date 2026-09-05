@@ -8,7 +8,7 @@ from app.models.base import ImmutableDocument
 
 
 class AuditLogEntry(ImmutableDocument):
-    tenant_id: UUID = Field()
+    tenant_id: UUID | None = Field(default=None)
     user_id: UUID | None = Field(default=None)
     event_type: str = Field()
     entity_type: str | None = Field(default=None)
@@ -22,4 +22,5 @@ class AuditLogEntry(ImmutableDocument):
         indexes = [
             IndexModel([("tenantId", 1), ("createdAt", 1)]),
             IndexModel([("tenantId", 1), ("eventType", 1)]),
+            IndexModel([("createdAt", -1), ("eventType", 1)]),
         ]

@@ -14,6 +14,7 @@ describe('CommentHeader', () => {
       email: 'jane@example.com',
       display_name: 'Jane Doe',
       email_verified: true,
+      platform_role: 'user',
       created_at: '2026-09-04T00:00:00Z',
     },
     entity_type: 'bug',

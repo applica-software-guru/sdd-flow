@@ -19,6 +19,7 @@ from app.models.base import utcnow
 from app.models.bug import BugStatus
 from app.models.change_request import ChangeRequest, CRStatus
 from app.models.document_file import DocStatus, DocumentFile
+from app.models.user import User
 from app.models.worker import Worker, WorkerStatus
 from app.models.worker_job import JobStatus, JobType, WorkerJob
 from app.models.worker_job_message import MessageKind, WorkerJobMessage
@@ -84,8 +85,6 @@ class WorkerJobService:
 
         # Batch-load authors to avoid N+1
         user_ids = list({str(c.author_id) for c in comments})
-        from app.models.user import User
-
         users = await User.find({"_id": {"$in": user_ids}}).to_list()
         users_by_id = {str(u.id): u for u in users}
 

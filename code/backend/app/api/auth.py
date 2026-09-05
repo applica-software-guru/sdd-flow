@@ -23,6 +23,9 @@ from app.schemas.auth import (
 )
 from app.services.audit import AuditService
 from app.services.auth import AuthService, ProfileValidationError
+from app.services.email_templates import render_template
+from app.services.mailer import send_email
+from app.services.super_user import promote_configured_super_user
 
 logger = logging.getLogger(__name__)
 
@@ -89,6 +92,7 @@ async def register(
 ) -> UserResponse:
     await svc.ensure_email_available(body.email)
     user = await svc.create_user(body.email, body.password, body.display_name)
+    await promote_configured_super_user(user)
     access_token, refresh_token = await svc.create_tokens(user.id)
 
     _set_auth_cookie_pair(response, access_token, refresh_token)
@@ -102,11 +106,29 @@ async def login(
     body: LoginRequest,
     response: Response,
     svc: AuthService = Depends(get_auth_service),
+    audit: AuditService = Depends(get_audit_service),
 ) -> UserResponse:
     user = await svc.authenticate_user(body.email, body.password)
     if user is None:
+        await audit.log_event(
+            tenant_id=None,
+            user_id=None,
+            event_type="auth.login_failed",
+            summary="Invalid credentials",
+            details={},
+        )
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
+    await promote_configured_super_user(user)
+    await audit.log_event(
+        tenant_id=None,
+        user_id=user.id,
+        event_type="auth.login_success",
+        entity_type="user",
+        entity_id=user.id,
+        summary="Login successful",
+        details={},
+    )
     access_token, refresh_token = await svc.create_tokens(user.id)
     _set_auth_cookie_pair(response, access_token, refresh_token)
     return UserResponse.model_validate(user)
@@ -213,6 +235,7 @@ async def google_callback(
         google_user = userinfo_resp.json()
 
     user = await svc.get_or_create_google_user(google_user)
+    await promote_configured_super_user(user)
     access_token, refresh_tok = await svc.create_tokens(user.id)
 
     redirect = RedirectResponse(url="/tenants", status_code=302)
@@ -280,9 +303,6 @@ async def change_password_me(
         "display_name": current_user.display_name,
     }
     try:
-        from app.services.email_templates import render_template
-        from app.services.mailer import send_email
-
         await send_email(
             recipient_email=current_user.email,
             subject=render_template("emails/password_changed_subject.txt", **context),

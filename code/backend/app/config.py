@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     MAIL_SMTP_PASSWORD: str = ""
     MAIL_SMTP_USE_TLS: bool = True
     BREVO_API_KEY: str = ""
+    SUPER_USER_EMAIL: str = ""
 
     @field_validator("JWT_SECRET")
     @classmethod

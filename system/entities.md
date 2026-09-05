@@ -3,7 +3,7 @@ title: "Data Entities"
 status: synced
 author: ""
 last-modified: "2026-09-05T09:10:00.000Z"
-version: "1.9"
+version: "2.0"
 ---
 
 # Data Entities
@@ -23,6 +23,7 @@ Represents an authenticated user of the platform.
 | google_id | string? | Google OAuth subject ID |
 | avatar_url | string? | Profile picture URL |
 | email_verified | boolean | Whether email has been verified |
+| platform_role | enum | `user` (default) or global `super_user` |
 | created_at | datetime | Account creation time |
 | updated_at | datetime | Last profile update |
 
@@ -208,12 +209,12 @@ Indexes: `entity_id`, `(entity_type, entity_id)` compound
 
 ### AuditLogEntry
 
-Immutable record of a system event. Inherits `ImmutableDocument` — no `updated_at`.
+Immutable record of a tenant or platform event. Inherits `ImmutableDocument` — no `updated_at`. Platform events allow `tenant_id` to be null so authentication failures, super-user promotion, and global admin access can be audited outside tenant context.
 
 | Field | Type | Description |
 |-------|------|-------------|
 | id | UUID | Primary key |
-| tenant_id | UUID | Reference → Tenant |
+| tenant_id | UUID? | Reference → Tenant; null for platform-level events |
 | user_id | UUID? | Reference → User (null for system events) |
 | event_type | string | e.g. `cr.created`, `bug.status_changed`, `invitation.created`, `invitation.cancelled` |
 | entity_type | string? | e.g. `change_request`, `bug`, `project` |

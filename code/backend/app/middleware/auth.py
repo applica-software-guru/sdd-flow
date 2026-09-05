@@ -11,7 +11,7 @@ from app.models.api_key import ApiKey
 from app.models.base import utcnow
 from app.models.project import Project
 from app.models.tenant_member import MemberRole, TenantMember
-from app.models.user import User
+from app.models.user import PlatformRole, User
 
 
 async def get_current_user(
@@ -58,6 +58,18 @@ async def get_current_tenant_member(
             detail="Not a member of this tenant",
         )
     return member
+
+
+def require_platform_role(*roles: PlatformRole) -> Callable[..., Any]:
+    async def dependency(current_user: User = Depends(get_current_user)) -> User:
+        if current_user.platform_role not in roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Platform role not authorized",
+            )
+        return current_user
+
+    return dependency
 
 
 def require_role(*roles: MemberRole) -> Callable[..., Any]:

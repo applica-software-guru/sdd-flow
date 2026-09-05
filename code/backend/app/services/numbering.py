@@ -4,6 +4,7 @@ Shared by `BugService`, `ChangeRequestService` and `SyncService`; the caller
 passes the repository that owns the target document type.
 """
 
+import time
 import uuid
 
 from pymongo.errors import DuplicateKeyError
@@ -86,8 +87,6 @@ class NumberingService:
                 suffix += 1
 
         # Final fallback: try once more with timestamp-based uniqueness
-        import time
-
         slug = f"{base_slug}-{int(time.time())}"
         doc.number = number
         doc.slug = slug

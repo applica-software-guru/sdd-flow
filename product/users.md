@@ -3,10 +3,20 @@ title: "User Personas"
 status: synced
 author: ""
 last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.0"
+version: "1.1"
 ---
 
 # User Personas
+
+### Platform Operator / Super User
+
+A trusted installation operator responsible for global support, security, and operational oversight. Their `super_user` platform role is independent from tenant membership and provides a dedicated read-only administration area.
+
+- Views all registered users, tenants, and projects through safe operational metadata
+- Monitors authentication, platform security, and global audit events
+- Does not automatically become a member, Owner, or Admin of any tenant
+- Cannot modify tenant/project content or impersonate users in the first iteration
+
 
 ### Tenant Owner
 

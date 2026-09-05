@@ -3,7 +3,7 @@ title: "Dashboard"
 status: synced
 author: ""
 last-modified: "2026-09-05T09:25:42.000Z"
-version: "1.2"
+version: "1.3"
 ---
 
 # Dashboard
@@ -87,6 +87,10 @@ Count semantics:
 - **Distinct commenters**: distinct comment authors in the selected time window.
 - **Activity events**: meaningful tenant audit-log entries in the selected time window, exposed only as an aggregate KPI count in this first dashboard version.
 - **Workers online**: workers whose computed `is_online` value is true across active projects.
+
+### Global Admin Dashboard
+
+`SUPER_USER` accounts have a separate `/admin` dashboard outside tenant context. It provides read-only platform totals, recent login/security signals, and paginated/filterable Users, Tenants, Projects, and Access & Audit views. The UI clearly identifies global context, exposes no credentials or project content, and does not grant tenant mutation capabilities.
 
 ### Project Dashboard
 

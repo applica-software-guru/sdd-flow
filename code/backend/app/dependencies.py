@@ -17,6 +17,7 @@ from app.repositories import (
     CommentRepository,
     DocumentFileRepository,
     NotificationRepository,
+    PlatformAdminRepository,
     ProjectRepository,
     TenantRepository,
     UserRepository,
@@ -32,6 +33,7 @@ from app.services.collab_notifications import CollaborationService
 from app.services.documents import DocumentService
 from app.services.notifications import NotificationService
 from app.services.numbering import NumberingService
+from app.services.platform_admin import PlatformAdminService
 from app.services.project_reset import ProjectResetService
 from app.services.projects import ProjectService
 from app.services.search import SearchService
@@ -88,6 +90,10 @@ def get_auth_repository() -> AuthRepository:
     return AuthRepository()
 
 
+def get_platform_admin_repository() -> PlatformAdminRepository:
+    return PlatformAdminRepository()
+
+
 def get_worker_repository() -> WorkerRepository:
     return WorkerRepository()
 
@@ -118,6 +124,13 @@ def get_notification_service(
     notification_repo: NotificationRepository = Depends(get_notification_repository),
 ) -> NotificationService:
     return NotificationService(notification_repo)
+
+
+def get_platform_admin_service(
+    repository: PlatformAdminRepository = Depends(get_platform_admin_repository),
+    audit_service: AuditService = Depends(get_audit_service),
+) -> PlatformAdminService:
+    return PlatformAdminService(repository=repository, audit_service=audit_service)
 
 
 def get_assignment_service(

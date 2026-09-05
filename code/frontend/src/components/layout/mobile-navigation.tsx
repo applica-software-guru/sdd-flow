@@ -15,6 +15,7 @@ interface MobileNavigationProps {
   projectId?: string;
   projectName?: string;
   isAdmin: boolean;
+  isSuperUser: boolean;
 }
 export default function MobileNavigation(props: MobileNavigationProps) {
   return (
@@ -39,6 +40,7 @@ export default function MobileNavigation(props: MobileNavigationProps) {
             projectId={props.projectId}
             projectName={props.projectName}
             isAdmin={props.isAdmin}
+            isSuperUser={props.isSuperUser}
             onNavigate={() => props.onOpenChange(false)}
           />
         </div>

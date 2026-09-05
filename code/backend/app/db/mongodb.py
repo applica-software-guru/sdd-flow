@@ -1,3 +1,5 @@
+import typing
+
 import certifi
 from beanie import (
     init_beanie,  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
@@ -27,8 +29,6 @@ from app.models.worker_job_message import WorkerJobMessage
 
 
 async def init_db(mongodb_url: str, default_db: str = "sdd"):
-    import typing
-
     tls_kwargs: dict[str, typing.Any] = (
         {"tlsCAFile": certifi.where()} if mongodb_url.startswith("mongodb+srv://") else {}
     )

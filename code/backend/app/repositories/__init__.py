@@ -8,6 +8,7 @@ from app.repositories.change_request_repository import ChangeRequestRepository
 from app.repositories.comment_repository import CommentRepository
 from app.repositories.document_file_repository import DocumentFileRepository
 from app.repositories.notification_repository import NotificationRepository
+from app.repositories.platform_admin_repository import PlatformAdminRepository
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.tenant_repository import TenantRepository
 from app.repositories.user_repository import UserRepository
@@ -26,6 +27,7 @@ __all__ = [
     "AuditRepository",
     "AssignmentRepository",
     "NotificationRepository",
+    "PlatformAdminRepository",
     "AuthRepository",
     "WorkerRepository",
 ]

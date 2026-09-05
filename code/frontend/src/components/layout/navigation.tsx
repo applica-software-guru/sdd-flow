@@ -1,4 +1,13 @@
-import { Bug, FileText, Gauge, ScrollText, Settings, UsersRound, Workflow } from 'lucide-react';
+import {
+  Bug,
+  FileText,
+  Gauge,
+  ScrollText,
+  Settings,
+  Shield,
+  UsersRound,
+  Workflow,
+} from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -7,6 +16,7 @@ interface NavigationProps {
   projectId?: string;
   projectName?: string;
   isAdmin: boolean;
+  isSuperUser: boolean;
   onNavigate?: () => void;
 }
 
@@ -25,10 +35,22 @@ export default function Navigation({
   projectId,
   projectName,
   isAdmin,
+  isSuperUser,
   onNavigate,
 }: NavigationProps) {
+  const adminLink = isSuperUser ? (
+    <NavLink to="/admin" className={linkClass} onClick={onNavigate}>
+      <Shield aria-hidden="true" />
+      Platform Admin
+    </NavLink>
+  ) : null;
   if (!tenantId)
-    return <p className="px-3 py-2 text-sm text-muted-foreground">Select a tenant to continue.</p>;
+    return (
+      <nav aria-label="Main navigation" className="flex flex-col gap-1">
+        {adminLink}
+        <p className="px-3 py-2 text-sm text-muted-foreground">Select a tenant to continue.</p>
+      </nav>
+    );
 
   const tenantItems = [
     { to: `/tenants/${tenantId}`, label: 'Dashboard', Icon: Gauge, end: true, visible: true },
@@ -70,6 +92,8 @@ export default function Navigation({
 
   return (
     <nav aria-label="Main navigation" className="flex flex-col gap-1">
+      {adminLink}
+      {adminLink && <div className="my-2 border-t" />}
       {tenantItems
         .filter((item) => item.visible)
         .map(({ to, label, Icon, end }) => (

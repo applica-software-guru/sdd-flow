@@ -5,6 +5,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any, Literal, cast
 
 from beanie import Document
+from fastapi import HTTPException, status
 
 from app.models.bug import Bug, BugSeverity, BugStatus
 from app.models.change_request import ChangeRequest, CRStatus
@@ -53,8 +54,6 @@ class TenantDashboardService:
         if tenant is None:
             # The auth dependency normally guarantees membership to an existing
             # tenant, but keep a safe fallback for tests/direct calls.
-            from fastapi import HTTPException, status
-
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")
 
         now = datetime.now(UTC)
