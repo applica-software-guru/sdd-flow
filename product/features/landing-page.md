@@ -2,8 +2,8 @@
 title: "Public Landing Page"
 status: synced
 author: ""
-last-modified: "2026-09-05T08:50:00.000Z"
-version: "1.1"
+last-modified: "2026-09-05T09:35:00.000Z"
+version: "1.2"
 ---
 
 # Public Landing Page
@@ -22,11 +22,12 @@ The public landing page presents SDD Flow accurately to anonymous and authentica
 
 ## Product Presentation
 
-- The hero shows the tenant dashboard users reach through Open app: tenant context, tenant navigation, project list, and project creation action
+- The hero shows the tenant dashboard users reach through Open app: tenant context, tenant navigation, KPI cards, a strong KPI-to-projects divider, compact project search/sort controls, project list, and project creation action
 - A separate preview shows the project overview that appears only after selecting a project, including project navigation, summary metrics, recent Change Requests, and recent Bugs
 - Primary visual examples cover the tenant dashboard, selected-project overview, shared work-item collaboration, and remote workers
 - Documentation and audit-log behavior may appear as compact supporting examples
 - Preview content uses current labels, statuses, severity, metadata, comment counts, assignment behavior, and expandable audit details
+- The tenant-dashboard preview must stay aligned with the implemented tenant dashboard layout: header, KPI cards, divider, then projects. It must not show removed first-version panels such as projects-needing-attention, recent-activity details, or worker sidebars.
 - Marketing copy must not claim functionality that is absent from the current product
 
 ## Design System

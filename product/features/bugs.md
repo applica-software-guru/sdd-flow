@@ -2,8 +2,8 @@
 title: "Bug Tracking"
 status: synced
 author: ""
-last-modified: "2026-09-04T00:00:00.000Z"
-version: "1.6"
+last-modified: "2026-09-05T09:10:00.000Z"
+version: "1.7"
 ---
 
 # Bug Tracking
@@ -15,7 +15,7 @@ Bugs describe defects found in a project. They mirror the `bugs/` directory in t
 ## Bug Lifecycle
 
 ```
-open → in-progress → resolved → closed
+open → in_progress → resolved → closed
   │                               ▲
   └──── wont-fix ─────────────────┘
 ```
@@ -23,7 +23,7 @@ open → in-progress → resolved → closed
 | Status | Description |
 |--------|-------------|
 | **open** | Bug reported, not yet being worked on |
-| **in-progress** | Someone is actively fixing it |
+| **in_progress** | Someone is actively fixing it |
 | **resolved** | Fix has been applied |
 | **wont-fix** | Decided not to fix |
 | **closed** | Bug is complete (auto-set after resolved, or manually after wont-fix) |
@@ -79,6 +79,6 @@ open → in-progress → resolved → closed
 
 ## Agent Notes
 
-- The SDD CLI uses only `open` and `resolved` statuses. The additional statuses are for the web workflow. When the CLI fetches open bugs via API, it should receive bugs with status `open` or `in-progress`.
+- The SDD CLI uses only `open` and `resolved` statuses. The additional statuses are for the web workflow. When the CLI fetches open bugs via API, it should receive bugs with status `open` or `in_progress`.
 - Bug body format must be compatible with the SDD CLI frontmatter format.
 - `number` and `slug` are server-generated at creation and immutable after creation. The create form may expose an optional slug field that auto-fills from the title until the user edits it; the backend sanitises it via `slugify`. Do not expose a slug edit field after creation. `formatted_number` is `number` zero-padded to at least 3 digits and is computed, not stored.

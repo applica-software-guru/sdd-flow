@@ -2,8 +2,8 @@
 title: "API Interfaces"
 status: synced
 author: ""
-last-modified: "2026-07-17T00:00:00.000Z"
-version: "2.3"
+last-modified: "2026-09-05T09:10:00.000Z"
+version: "2.4"
 ---
 
 # API Interfaces
@@ -181,6 +181,88 @@ List tenants the current user belongs to.
 Get tenant details.
 
 **Response:** `200` `{ id, name, slug, default_role, created_at }`
+
+### GET /tenants/:tenant_id/dashboard
+
+Get the tenant-level dashboard summary shown before a project is selected. The response is a compact, frontend-ready aggregate scoped to the current tenant and to the resources the authenticated user may access.
+
+**Query:**
+
+- `window`: optional activity window preset. Supported values: `last_7_days`, `last_30_days`, `last_90_days`. Default: `last_30_days`.
+- `include_archived`: optional boolean. Default: `false`; archived projects are excluded from primary KPI aggregates and project portfolio unless explicitly requested.
+
+**Response:** `200`
+
+```json
+{
+  "tenant": { "id": "...", "name": "Acme", "slug": "acme" },
+  "window": {
+    "preset": "last_30_days",
+    "from": "2026-08-06T00:00:00Z",
+    "to": "2026-09-05T00:00:00Z"
+  },
+  "kpis": {
+    "active_projects": 6,
+    "archived_projects": 1,
+    "documents_total": 148,
+    "documents_synced": 132,
+    "documents_pending": 16,
+    "docs_sync_percentage": 89,
+    "open_bugs": 12,
+    "critical_bugs": 2,
+    "major_bugs": 5,
+    "active_crs": 21,
+    "review_queue_crs": 8,
+    "comments_in_window": 94,
+    "distinct_commenters_in_window": 7,
+    "activity_events_in_window": 240,
+    "workers_online": 3,
+    "workers_total": 5
+  },
+  "projects": [
+    {
+      "id": "...",
+      "name": "Web App",
+      "slug": "web-app",
+      "description": "...",
+      "archived_at": null,
+      "stats": {
+        "documents_total": 34,
+        "documents_synced": 29,
+        "documents_pending": 5,
+        "open_bugs": 4,
+        "critical_bugs": 1,
+        "major_bugs": 2,
+        "active_crs": 6,
+        "review_queue_crs": 2,
+        "comments_in_window": 18,
+        "activity_events_in_window": 47,
+        "workers_online": 1,
+        "workers_total": 2,
+        "last_activity_at": "2026-09-05T08:45:00Z"
+      }
+    }
+  ]
+}
+```
+
+KPI semantics:
+
+- Active projects have `archived_at = null`; archived projects are excluded from primary KPI aggregates by default.
+- Total docs count non-deleted `DocumentFile` records for active projects.
+- Pending docs count `new`, `changed`, and `deleted` document statuses.
+- Open bugs count `open` and `in_progress` bugs; critical/major bug counts are severity breakdowns within those open bugs.
+- Active CRs count non-terminal workflow statuses, at minimum `draft`, `pending`, and `approved`; terminal/rejected/deleted records are excluded.
+- Review queue CRs count CRs waiting for review or agent application (`pending`/`approved`, according to the implemented web/CLI mapping).
+- Comment and activity counts use the selected time window.
+- Worker counts use the same computed online semantics as the project workers endpoint.
+
+Authorization and privacy:
+
+- The endpoint requires authenticated tenant membership.
+- The first dashboard version exposes audit information only as aggregate activity counts, not as event details.
+- The endpoint returns compact counts/project summaries only. It must not return full document, CR, bug, comment, or audit-log bodies.
+- Aggregates must be computed after tenant and role scoping; no cross-tenant data may leak through totals.
 
 ### PATCH /tenants/:tenant_id
 
@@ -398,10 +480,10 @@ Change bug status.
 
 Allowed transitions:
 
-- `open` → `in-progress`, `wont-fix`
-- `in-progress` → `resolved`, `open` (back to open)
+- `open` → `in_progress`, `wont_fix`
+- `in_progress` → `resolved`, `open` (back to open)
 - `resolved` → `closed`
-- `wont-fix` → `closed`, `open` (reopen)
+- `wont_fix` → `closed`, `open` (reopen)
 
 ### POST .../bugs/:bug_id/assign
 
@@ -668,7 +750,7 @@ Get draft/pending/approved CRs.
 
 ### GET /cli/open-bugs
 
-Get draft/open/in-progress bugs.
+Get draft/open/in_progress bugs.
 
 **Response:** `200` `[{ id, project_id, number, formatted_number, slug, path, title, body, status, severity, author_id, assignee_id, closed_at, created_at, updated_at }]`
 

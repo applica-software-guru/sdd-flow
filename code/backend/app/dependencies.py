@@ -36,6 +36,7 @@ from app.services.project_reset import ProjectResetService
 from app.services.projects import ProjectService
 from app.services.search import SearchService
 from app.services.sync import SyncService
+from app.services.tenant_dashboard import TenantDashboardService
 from app.services.tenants import TenantService
 from app.services.users import UserService
 from app.services.worker_jobs import WorkerJobService
@@ -269,6 +270,18 @@ def get_tenant_service(
         tenant_repo=tenant_repo,
         user_repo=user_repo,
         audit_service=audit_service,
+    )
+
+
+def get_tenant_dashboard_service(
+    tenant_repo: TenantRepository = Depends(get_tenant_repository),
+    project_repo: ProjectRepository = Depends(get_project_repository),
+    audit_repo: AuditRepository = Depends(get_audit_repository),
+) -> TenantDashboardService:
+    return TenantDashboardService(
+        tenant_repo=tenant_repo,
+        project_repo=project_repo,
+        audit_repo=audit_repo,
     )
 
 

@@ -8,10 +8,15 @@ from httpx import AsyncClient
 
 from app.main import app
 from app.middleware.auth import get_current_tenant_member, get_current_user
+from app.models.bug import Bug, BugSeverity, BugStatus
+from app.models.change_request import ChangeRequest, CRStatus
+from app.models.comment import Comment, EntityType
+from app.models.document_file import DocStatus, DocumentFile
 from app.models.tenant import Tenant
 from app.models.tenant_invitation import TenantInvitation
 from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
+from app.models.worker import Worker, WorkerStatus
 
 # ---------------------------------------------------------------------------
 # Create tenant
@@ -84,6 +89,80 @@ async def test_get_tenant_not_found(client: AsyncClient):
     fake_id = uuid.uuid4()
     resp = await client.get(f"/api/v1/tenants/{fake_id}")
     assert resp.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# Tenant dashboard
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_tenant_dashboard_aggregates_active_project_kpis(
+    client: AsyncClient,
+    test_tenant: Tenant,
+    test_project,
+    test_user: User,
+):
+    await DocumentFile(
+        project_id=test_project.id,
+        path="product/vision.md",
+        title="Vision",
+        status=DocStatus.synced,
+    ).insert()
+    await DocumentFile(
+        project_id=test_project.id,
+        path="product/features/auth.md",
+        title="Auth",
+        status=DocStatus.changed,
+    ).insert()
+    cr = ChangeRequest(
+        project_id=test_project.id,
+        number=1,
+        slug="dashboard-kpis",
+        title="Dashboard KPIs",
+        body="Add tenant KPIs",
+        status=CRStatus.approved,
+        author_id=test_user.id,
+    )
+    await cr.insert()
+    bug = Bug(
+        project_id=test_project.id,
+        number=1,
+        slug="critical-login",
+        title="Critical login bug",
+        body="Fails on redirect",
+        status=BugStatus.open,
+        severity=BugSeverity.critical,
+        author_id=test_user.id,
+    )
+    await bug.insert()
+    await Comment(
+        entity_type=EntityType.change_request,
+        entity_id=cr.id,
+        author_id=test_user.id,
+        body="Looks good",
+    ).insert()
+    await Worker(
+        project_id=test_project.id,
+        name="local-worker",
+        status=WorkerStatus.online,
+    ).insert()
+    resp = await client.get(f"/api/v1/tenants/{test_tenant.id}/dashboard")
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["tenant"]["id"] == str(test_tenant.id)
+    assert data["kpis"]["active_projects"] >= 1
+    assert data["kpis"]["documents_total"] == 2
+    assert data["kpis"]["documents_synced"] == 1
+    assert data["kpis"]["documents_pending"] == 1
+    assert data["kpis"]["open_bugs"] == 1
+    assert data["kpis"]["critical_bugs"] == 1
+    assert data["kpis"]["active_crs"] == 1
+    assert data["kpis"]["review_queue_crs"] == 1
+    assert data["kpis"]["comments_in_window"] == 1
+    assert data["kpis"]["workers_online"] == 1
+    assert data["projects"][0]["id"] == str(test_project.id)
 
 
 # ---------------------------------------------------------------------------

@@ -2,8 +2,8 @@
 title: "Architecture Decisions"
 status: synced
 author: ""
-last-modified: "2026-09-05T08:50:00.000Z"
-version: "2.4"
+last-modified: "2026-09-05T09:10:00.000Z"
+version: "2.5"
 ---
 
 # Architecture Decisions
@@ -104,6 +104,7 @@ controllers (api/) → service classes (services/) → repositories (repositorie
 - Pure utilities stay stateless function modules: `slug.py` (`slugify`, `parse_path_prefix`), `email_templates.py`, `mailer.py`, `agent_models.py`, `seed.py` (startup-only)
 - **Tests substitute components correctly** via `app.dependency_overrides[get_bug_service] = lambda: FakeBugService()` — no monkey-patching of production modules
 - **HTTP contracts are frozen**: routes, request/response schemas, and status codes do not change during refactors; the integration test suite (black-box via the API) is the specification
+- **Tenant dashboard aggregates**: tenant-level dashboard KPIs are produced by a dedicated service/endpoint that returns compact, pre-shaped summaries for the current tenant. It uses repository-level grouped queries or MongoDB aggregation pipelines over projects, documents, CRs, bugs, comments, audit entries and workers, avoiding frontend N+1 list calls and never returning full document/work-item/comment/audit bodies for aggregate cards
 - **Toolchain**: `ruff` (E/F/I/UP/W + format, line-length 100) and strict `pyright` (0 errors on `app/`, see `pyrightconfig.json`), enforced via `cli.sh lint|format|typecheck|check`
 
 ### Frontend: React + Vite + Tailwind + React Query
@@ -119,6 +120,7 @@ controllers (api/) → service classes (services/) → repositories (repositorie
 - **Consistent content width**: authenticated pages use the shared `PageContainer` with default `max-w-5xl`, avoiding layout jumps
 - **Shared workflows**: Bugs and Change Requests reuse stable form, slug, table, comments, transition and assignment building blocks while domain rules remain explicit
 - **Public landing composition**: `components/landing/` composes semantic primitives through reusable containers, section headings, CTAs, feature cards and preview frames. Typed static fixtures feed compact previews of the tenant dashboard, selected-project overview, work items, docs, workers and audit behavior; tenant-level and project-level navigation remain distinct, and previews never mount routed pages or execute API hooks
+- **Tenant dashboard composition**: the authenticated tenant entry page consumes one typed tenant dashboard summary query and composes a focused sequence of header, KPI cards and searchable/sortable project rows from shared design-system primitives. No additional attention, recent-activity or worker side panels are shown in the first version. Client-side search/sort may operate on the compact summary payload; tenant-wide KPI reconstruction through multiple paginated list hooks is avoided
 - **Accessibility**: dialogs, alerts, selects and dropdowns use Radix/shadcn semantics; icon controls are labelled and keyboard/focus behaviour is covered by interaction tests
 - **Toolchain**: filename-convention validation, ESLint (type-aware plus JSX accessibility), strict TypeScript, Prettier with Tailwind class ordering, Vitest/Testing Library, Playwright and production build are exposed through `npm run check` and the frontend `cli.sh`
 

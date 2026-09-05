@@ -3,7 +3,7 @@ import { queryKeys } from '../api/query-keys';
 import api from '../api/client';
 import { getApiErrorMessage } from '../api/errors';
 import { useToast } from '../context/toast';
-import type { Tenant, TenantInvitation, TenantMember } from '../types';
+import type { Tenant, TenantDashboardSummary, TenantInvitation, TenantMember } from '../types';
 
 export function useTenants() {
   return useQuery<Tenant[]>({
@@ -20,6 +20,17 @@ export function useTenant(tenantId: string | undefined) {
     queryKey: queryKeys.tenants.detail(tenantId),
     queryFn: async () => {
       const { data } = await api.get(`/tenants/${tenantId}`);
+      return data;
+    },
+    enabled: !!tenantId,
+  });
+}
+
+export function useTenantDashboard(tenantId: string | undefined) {
+  return useQuery<TenantDashboardSummary>({
+    queryKey: queryKeys.tenants.dashboard(tenantId),
+    queryFn: async () => {
+      const { data } = await api.get(`/tenants/${tenantId}/dashboard`);
       return data;
     },
     enabled: !!tenantId,

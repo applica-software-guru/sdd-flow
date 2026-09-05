@@ -10,8 +10,11 @@ describe('landing product previews', () => {
   it('represents the tenant dashboard shown before project selection', () => {
     const markup = renderToStaticMarkup(<DashboardPreview />);
     expect(markup).toContain('Tenant project dashboard preview');
-    expect(markup).toContain('Manage your projects and track progress');
+    expect(markup).toContain('Overview across all projects');
     expect(markup).toContain('Choose a project from the dashboard');
+    expect(markup).toContain('Documentation');
+    expect(markup).toContain('Projects');
+    expect(markup).toContain('Search projects');
     expect(markup).toContain('Hello Project');
     expect(markup).not.toContain('Change Requests');
   });

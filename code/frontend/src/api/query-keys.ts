@@ -7,6 +7,7 @@ export const queryKeys = {
   tenants: {
     all: ['tenants'] as const,
     detail: (tenantId?: string) => tenantRoot(tenantId),
+    dashboard: (tenantId?: string) => [...tenantRoot(tenantId), 'dashboard'] as const,
     members: (tenantId?: string) => [...tenantRoot(tenantId), 'members'] as const,
     invitations: (tenantId?: string) => [...tenantRoot(tenantId), 'invitations'] as const,
     invitation: (token?: string) => ['invitation-verify', token] as const,

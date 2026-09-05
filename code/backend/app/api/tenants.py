@@ -3,10 +3,11 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, status
 
-from app.dependencies import get_tenant_service
+from app.dependencies import get_tenant_dashboard_service, get_tenant_service
 from app.middleware.auth import get_current_tenant_member, get_current_user, require_role
 from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
+from app.schemas.tenant_dashboard import DashboardWindowPreset, TenantDashboardResponse
 from app.schemas.tenants import (
     InvitationCreate,
     InvitationListResponse,
@@ -16,6 +17,7 @@ from app.schemas.tenants import (
     TenantResponse,
     TenantUpdate,
 )
+from app.services.tenant_dashboard import TenantDashboardService
 from app.services.tenants import TenantService
 
 router = APIRouter(prefix="/tenants", tags=["tenants"])
@@ -46,6 +48,21 @@ async def get_tenant(
     svc: TenantService = Depends(get_tenant_service),
 ) -> TenantResponse:
     return TenantResponse.model_validate(await svc.get_tenant_or_404(tenant_id))
+
+
+@router.get("/{tenant_id}/dashboard", response_model=TenantDashboardResponse)
+async def get_tenant_dashboard(
+    tenant_id: uuid.UUID,
+    window: DashboardWindowPreset = "last_30_days",
+    include_archived: bool = False,
+    _member: TenantMember = Depends(get_current_tenant_member),
+    svc: TenantDashboardService = Depends(get_tenant_dashboard_service),
+) -> TenantDashboardResponse:
+    return await svc.get_dashboard(
+        tenant_id,
+        window_preset=window,
+        include_archived=include_archived,
+    )
 
 
 @router.patch("/{tenant_id}", response_model=TenantResponse)

@@ -2,8 +2,8 @@
 title: "Data Entities"
 status: synced
 author: ""
-last-modified: "2026-07-17T00:00:00.000Z"
-version: "1.8"
+last-modified: "2026-09-05T09:10:00.000Z"
+version: "1.9"
 ---
 
 # Data Entities
@@ -176,7 +176,7 @@ A bug report for a project.
 | path | string? | Local file path from CLI (e.g. `bugs/001-login-crash.md`) |
 | title | string | Bug title |
 | body | text | Markdown body |
-| status | enum | draft, open, in-progress, resolved, wont-fix, closed, **deleted** |
+| status | enum | draft, open, in_progress, resolved, wont_fix, closed, **deleted** |
 | severity | enum | critical, major, minor, trivial |
 | author_id | UUID | Reference → User |
 | assignee_id | UUID? | Reference → User |
@@ -309,7 +309,7 @@ Indexes: `(project_id, status)`
 
 **Job types:**
 - `enrich` — enriches a draft entity (CR/Bug/Document). Entity fields required.
-- `apply` — implements an approved CR or open/in-progress Bug. Entity fields required.
+- `apply` — implements an approved CR or open/in_progress Bug. Entity fields required.
 - `sync` — project-level sync: pull → sync → implement all pending → push. No entity fields.
 
 ### WorkerJobMessage
