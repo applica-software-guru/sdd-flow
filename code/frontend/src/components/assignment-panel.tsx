@@ -3,6 +3,7 @@ import { formatDateTime } from '@/lib/format';
 import { useState } from 'react';
 import { AssignmentHistoryEntry, UserBrief } from '../types';
 import { translate } from '@/i18n';
+import { compactUserDisplayLabel } from '@/utils/user';
 
 interface AssignmentPanelProps {
   author?: UserBrief | null;
@@ -94,8 +95,8 @@ export default function AssignmentPanel({
         >
           <option value="">{translate('common:auto.unassigned')}</option>
           {members.map((m) => (
-            <option key={m.user_id} value={m.user_id}>
-              {m.display_name}
+            <option key={m.user_id} value={m.user_id} title={m.display_name}>
+              {compactUserDisplayLabel({ display_name: m.display_name }, 40)}
             </option>
           ))}
         </select>

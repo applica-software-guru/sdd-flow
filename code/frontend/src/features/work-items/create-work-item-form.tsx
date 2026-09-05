@@ -16,6 +16,7 @@ import {
 import { useEditableSlug } from '@/hooks/use-editable-slug';
 import type { TenantMember } from '@/types';
 import { translate } from '@/i18n';
+import { compactUserDisplayLabel } from '@/utils/user';
 
 export interface WorkItemCreateValues {
   title: string;
@@ -133,8 +134,8 @@ export default function CreateWorkItemForm(props: CreateWorkItemFormProps) {
                 <SelectContent>
                   <SelectItem value="unassigned">{translate('common:auto.unassigned')}</SelectItem>
                   {props.members?.map((member) => (
-                    <SelectItem key={member.user_id} value={member.user_id}>
-                      {member.display_name}
+                    <SelectItem key={member.user_id} value={member.user_id} title={member.display_name}>
+                      {compactUserDisplayLabel({ display_name: member.display_name }, 40)}
                     </SelectItem>
                   ))}
                 </SelectContent>

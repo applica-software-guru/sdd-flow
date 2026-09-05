@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import UserName from '../components/user-name';
-import { initialsOf } from '../utils/user';
+import { compactUserLabel, initialsOf, userDisplayLabel } from '../utils/user';
 import UserCell from '../components/user-cell';
 import ProfilePage from '../pages/system/profile-page';
 import { ToastProvider } from '../context/toast-context';
@@ -14,10 +14,10 @@ describe('UserName', () => {
     const markup = renderToStaticMarkup(<UserName name="Jane Doe" email="jane@example.com" />);
     expect(markup).toContain('>JD<');
     expect(markup).toContain('Jane Doe');
-    // CR-035: email is only a tooltip, min-w-0 + truncate prevent overflow
+    // CR-035: min-w-0 + truncate prevent overflow; title exposes the full visible label
     expect(markup).toContain('min-w-0');
     expect(markup).toContain('truncate');
-    expect(markup).toContain('title="jane@example.com"');
+    expect(markup).toContain('title="Jane Doe"');
     expect(markup).not.toContain('>jane@example.com<');
   });
 
@@ -35,10 +35,11 @@ describe('UserName', () => {
     expect(markup).toContain('Jane Doe');
   });
 
-  it('falls back to email as visible text only when there is no name', () => {
-    const markup = renderToStaticMarkup(<UserName name={null} email="long.name@example.com" />);
+  it('falls back to email as visible text only when there is no usable name', () => {
+    const markup = renderToStaticMarkup(<UserName name="   " email="long.name@example.com" />);
     expect(markup).toContain('long.name@example.com');
     expect(markup).toContain('truncate');
+    expect(markup).toContain('title="long.name@example.com"');
   });
 
   it('renders the fallback (with ? avatar) when neither name nor email exist', () => {
@@ -56,7 +57,7 @@ describe('UserName', () => {
   });
 });
 
-describe('initialsOf', () => {
+describe('user label helpers', () => {
   it('returns initials for multi-word names', () => {
     expect(initialsOf('Jane Doe')).toBe('JD');
   });
@@ -64,6 +65,16 @@ describe('initialsOf', () => {
   it('returns ? for empty/missing names', () => {
     expect(initialsOf(null)).toBe('?');
     expect(initialsOf('')).toBe('?');
+  });
+
+  it('normalizes blank display names and falls back to email', () => {
+    expect(userDisplayLabel({ display_name: '   ', email: 'fallback@example.com' })).toBe(
+      'fallback@example.com'
+    );
+  });
+
+  it('compacts long labels for native option contexts', () => {
+    expect(compactUserLabel('abcdefghijklmnopqrstuvwxyz', 10)).toBe('abcdefghi…');
   });
 });
 

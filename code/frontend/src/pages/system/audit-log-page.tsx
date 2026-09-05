@@ -24,6 +24,7 @@ import { useTenantMembers } from '@/hooks/use-tenants';
 import { describeAction } from '@/lib/audit-details';
 import type { AuditLogEntry } from '@/types';
 import { translate } from '@/i18n';
+import { compactUserDisplayLabel } from '@/utils/user';
 
 const entityTypes = () =>
   [
@@ -134,8 +135,8 @@ export default function AuditLogPage() {
           >
             <SelectItem value="all">{translate('audit:auto.all_actors')}</SelectItem>
             {members?.map((member) => (
-              <SelectItem key={member.user_id} value={member.user_id}>
-                {member.display_name}
+              <SelectItem key={member.user_id} value={member.user_id} title={member.display_name}>
+                {compactUserDisplayLabel({ display_name: member.display_name }, 40)}
               </SelectItem>
             ))}
           </FilterSelect>

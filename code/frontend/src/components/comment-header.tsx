@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { formatDateTime } from '@/lib/format';
-import { initialsOf } from '../utils/user';
+import { initialsOf, userDisplayLabel, userLabelTitle } from '../utils/user';
 import type { Comment } from '../types';
 import { translate } from '@/i18n';
 
@@ -13,6 +13,8 @@ export default function CommentHeader({ comment }: { comment: Comment }) {
   const name = comment.author?.display_name ?? null;
   const email = comment.author?.email ?? null;
   const avatarUrl = comment.author?.avatar_url ?? null;
+  const label = userDisplayLabel({ display_name: name, email }, translate('common:fallback.unknown'));
+  const title = userLabelTitle({ display_name: name, email });
   const [imageFailed, setImageFailed] = useState(false);
   const shouldShowImage = Boolean(avatarUrl) && !imageFailed;
   return (
@@ -22,20 +24,20 @@ export default function CommentHeader({ comment }: { comment: Comment }) {
           src={avatarUrl ?? undefined}
           alt=""
           className="h-7 w-7 shrink-0 rounded-full object-cover"
-          title={email ?? undefined}
+          title={title}
           onError={() => setImageFailed(true)}
         />
       ) : (
         <span
           className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
-          title={email ?? undefined}
+          title={title}
         >
-          {initialsOf(name ?? email)}
+          {initialsOf(title ? label : null)}
         </span>
       )}
       <div className="min-w-0">
-        <p className="truncate text-slate-900 dark:text-slate-100" title={email ?? undefined}>
-          {name ?? translate('common:fallback.unknown')}
+        <p className="truncate text-slate-900 dark:text-slate-100" title={title}>
+          {label}
         </p>
         <p className="text-xs text-slate-400 dark:text-slate-500">
           {formatDateTime(comment.created_at)}

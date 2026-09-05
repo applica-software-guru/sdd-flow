@@ -15,6 +15,7 @@ import ConfirmDialog from '../../components/confirm-dialog';
 import PageContainer from '../../components/page-container';
 import { requireRouteParam } from '@/lib/route-params';
 import { translate } from '@/i18n';
+import { initialsOf, userDisplayLabel, userLabelTitle } from '@/utils/user';
 
 export default function SettingsPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
@@ -276,18 +277,14 @@ export default function SettingsPage() {
                 <div key={member.id} className="flex items-center justify-between px-6 py-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-                      {member.display_name
-                        ?.split(' ')
-                        .map((n: string) => n[0])
-                        .join('')
-                        .toUpperCase() || '?'}
+                      {initialsOf(userDisplayLabel(member))}
                     </div>
                     <div className="min-w-0">
                       <p
                         className="truncate text-sm font-medium text-slate-900 dark:text-slate-100"
-                        title={member.email}
+                        title={userLabelTitle(member)}
                       >
-                        {member.display_name}
+                        {userDisplayLabel(member)}
                       </p>
                       <p
                         className="truncate text-xs text-slate-500 dark:text-slate-400"

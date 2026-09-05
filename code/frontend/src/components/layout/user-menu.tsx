@@ -12,12 +12,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useLogout } from '@/hooks/use-auth';
 import type { User } from '@/types';
-import { initialsOf } from '@/utils/user';
+import { initialsOf, userDisplayLabel, userLabelTitle } from '@/utils/user';
 
 export default function UserMenu({ user }: { user?: User }) {
   const logout = useLogout();
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'navigation']);
+  const label = userDisplayLabel({ display_name: user?.display_name, email: user?.email });
+  const title = userLabelTitle({ display_name: user?.display_name, email: user?.email });
 
   async function handleLogout() {
     await logout.mutateAsync();
@@ -29,14 +31,14 @@ export default function UserMenu({ user }: { user?: User }) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" aria-label={t('navigation:openUserMenu')}>
           <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-            {initialsOf(user?.display_name)}
+            {initialsOf(label)}
           </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="min-w-0">
-          <p className="truncate font-medium" title={user?.display_name}>
-            {user?.display_name}
+          <p className="truncate font-medium" title={title}>
+            {label}
           </p>
           <p className="truncate text-xs font-normal text-muted-foreground" title={user?.email}>
             {user?.email}

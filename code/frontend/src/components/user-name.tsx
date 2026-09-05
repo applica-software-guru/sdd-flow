@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { initialsOf } from '../utils/user';
+import { initialsOf, userDisplayLabel, userLabelTitle } from '../utils/user';
 
 interface UserNameProps {
   /** Display name to render (falls back to email, truncated, when missing). */
@@ -29,8 +29,11 @@ export default function UserName({
   className = '',
 }: UserNameProps) {
   const [imageFailed, setImageFailed] = useState(false);
+  const label = userDisplayLabel({ name, email }, fallback);
+  const title = userLabelTitle({ name, email });
+  const hasIdentity = Boolean(title);
   const shouldShowImage = Boolean(avatarUrl) && !imageFailed;
-  if (!name && !email) {
+  if (!hasIdentity) {
     if (!showAvatar) {
       return <span className="text-slate-400 dark:text-slate-500">{fallback}</span>;
     }
@@ -43,7 +46,6 @@ export default function UserName({
       </span>
     );
   }
-  const label = name || email || fallback;
   return (
     <span className={`flex min-w-0 items-center gap-2 ${className}`}>
       {showAvatar &&
@@ -52,21 +54,18 @@ export default function UserName({
             src={avatarUrl ?? undefined}
             alt=""
             className="h-6 w-6 shrink-0 rounded-full object-cover"
-            title={email ?? undefined}
+            title={title}
             onError={() => setImageFailed(true)}
           />
         ) : (
           <span
             className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[10px] font-semibold text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-            title={email ?? undefined}
+            title={title}
           >
-            {initialsOf(name ?? email)}
+            {initialsOf(label)}
           </span>
         ))}
-      <span
-        className="truncate text-sm text-slate-900 dark:text-slate-100"
-        title={email ?? undefined}
-      >
+      <span className="truncate text-sm text-slate-900 dark:text-slate-100" title={title}>
         {label}
       </span>
     </span>
