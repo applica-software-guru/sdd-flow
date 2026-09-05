@@ -2,6 +2,7 @@ import { ArrowDown, Sparkles } from 'lucide-react';
 import LandingContainer from './landing-container';
 import LandingCta from './landing-cta';
 import DashboardPreview from './previews/dashboard-preview';
+import { translate } from '@/i18n';
 
 export default function HeroSection() {
   return (
@@ -12,24 +13,24 @@ export default function HeroSection() {
         <div className="mx-auto max-w-4xl text-center">
           <div className="animate-fade-in-up motion-reduce:animate-none">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-              <Sparkles className="h-4 w-4" aria-hidden="true" /> Open source
+              <Sparkles className="h-4 w-4" aria-hidden="true" />{' '}
+              {translate('landing:auto.open_source')}
             </span>
           </div>
           <h1
             className="animate-fade-in-up mt-6 text-4xl font-bold tracking-tight text-foreground motion-reduce:animate-none sm:text-5xl lg:text-6xl"
             style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
           >
-            Story Driven Development,{' '}
+            {translate('landing:auto.story_driven_development')}{' '}
             <span className="bg-gradient-to-r from-primary to-indigo-500 bg-clip-text text-transparent">
-              managed in the cloud
+              {translate('landing:auto.managed_in_the_cloud')}
             </span>
           </h1>
           <p
             className="animate-fade-in-up mx-auto mt-6 max-w-2xl text-lg text-muted-foreground motion-reduce:animate-none sm:text-xl"
             style={{ animationDelay: '0.2s', animationFillMode: 'both' }}
           >
-            Manage change requests, track bugs, collaborate with agents, and keep your SDD
-            documentation synchronized from one focused workspace.
+            {translate('landing:auto.manage_change_requests_track_bugs_collaborate_with')}
           </p>
           <div
             className="animate-fade-in-up mt-10 flex flex-col items-center justify-center gap-4 motion-reduce:animate-none sm:flex-row"
@@ -40,7 +41,8 @@ export default function HeroSection() {
               href="#features"
               className="inline-flex min-h-11 min-w-44 items-center justify-center gap-2 rounded-md border bg-card px-6 text-sm font-semibold text-foreground shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-accent motion-reduce:transform-none"
             >
-              Explore features <ArrowDown className="h-4 w-4" aria-hidden="true" />
+              {translate('landing:auto.explore_features')}
+              <ArrowDown className="h-4 w-4" aria-hidden="true" />
             </a>
           </div>
         </div>

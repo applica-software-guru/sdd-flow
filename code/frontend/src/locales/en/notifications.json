@@ -1,0 +1,9 @@
+{
+  "auto": {
+    "notifications": "Notifications",
+    "mark_all_read": "Mark all read",
+    "no_notifications": "No notifications"
+  },
+  "unread_one": "{{count}} unread notification",
+  "unread_other": "{{count}} unread notifications"
+}

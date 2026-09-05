@@ -1,3 +1,4 @@
+import { formatDateOnly } from '@/lib/format';
 import { useState, FormEvent } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDoc, useUpdateDoc, useDeleteDoc } from '../../hooks/use-docs';
@@ -9,13 +10,14 @@ import MarkdownEditor from '../../components/markdown-editor';
 import ConfirmDialog from '../../components/confirm-dialog';
 import JobOptionsDialog from '../../components/job-options-dialog';
 import { requireRouteParam } from '@/lib/route-params';
+import { translate } from '@/i18n';
 
 function PathBreadcrumb({ path, docsBase }: { path: string; docsBase: string }) {
   const parts = path.split('/').filter(Boolean);
   return (
     <nav className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
       <Link to={docsBase} className="hover:text-blue-600 dark:hover:text-blue-400">
-        Docs
+        {translate('docs:auto.docs')}
       </Link>
       {parts.map((part, i) => {
         const isLast = i === parts.length - 1;
@@ -131,7 +133,7 @@ export default function ViewPage() {
     return (
       <PageContainer>
         <div className="py-16 text-center text-sm text-slate-500 dark:text-slate-400">
-          Document not found
+          {translate('docs:auto.document_not_found')}
         </div>
       </PageContainer>
     );
@@ -158,7 +160,7 @@ export default function ViewPage() {
               d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
             />
           </svg>
-          Documentation
+          {translate('docs:auto.documentation')}
         </Link>
       </div>
 
@@ -187,20 +189,20 @@ export default function ViewPage() {
                       d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"
                     />
                   </svg>
-                  Enrich
+                  {translate('docs:auto.enrich')}
                 </button>
               )}
               <button
                 onClick={startEditing}
                 className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               >
-                Edit
+                {translate('docs:auto.edit')}
               </button>
               <button
                 onClick={() => setShowDeleteDialog(true)}
                 className="rounded-md border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-300 dark:bg-slate-800"
               >
-                Delete
+                {translate('docs:auto.delete')}
               </button>
             </div>
           )}
@@ -212,7 +214,7 @@ export default function ViewPage() {
             <form onSubmit={handleSave} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Title
+                  {translate('docs:auto.title')}
                 </label>
                 <input
                   type="text"
@@ -223,7 +225,7 @@ export default function ViewPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Path
+                  {translate('docs:auto.path')}
                 </label>
                 <input
                   type="text"
@@ -232,27 +234,27 @@ export default function ViewPage() {
                   className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                 />
                 <p className="mt-1 text-xs text-slate-400">
-                  E.g. <code>product/features/auth.md</code>
+                  E.g. <code>{translate('docs:auto.product_features_auth_md')}</code>
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Status
+                  {translate('docs:auto.status')}
                 </label>
                 <select
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value)}
                   className="sdd-select mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                 >
-                  <option value="new">New</option>
-                  <option value="changed">Changed</option>
-                  <option value="synced">Synced</option>
-                  <option value="deleted">Deleted</option>
+                  <option value="new">{translate('docs:auto.new')}</option>
+                  <option value="changed">{translate('docs:auto.changed')}</option>
+                  <option value="synced">{translate('docs:auto.synced')}</option>
+                  <option value="deleted">{translate('docs:auto.deleted')}</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Content
+                  {translate('docs:auto.content')}
                 </label>
                 <MarkdownEditor value={editContent} onChange={setEditContent} height={400} />
               </div>
@@ -262,14 +264,16 @@ export default function ViewPage() {
                   onClick={() => setEditing(false)}
                   className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
-                  Cancel
+                  {translate('docs:auto.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={updateDoc.isPending}
                   className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {updateDoc.isPending ? 'Saving…' : 'Save'}
+                  {updateDoc.isPending
+                    ? translate('docs:auto.saving')
+                    : translate('docs:auto.save')}
                 </button>
               </div>
             </form>
@@ -281,7 +285,7 @@ export default function ViewPage() {
                     {doc.title}
                   </h1>
                   <p className="mt-1 text-xs text-slate-400">
-                    Updated {new Date(doc.updated_at).toLocaleDateString()}
+                    {translate('docs:auto.updated')} {formatDateOnly(doc.updated_at)}
                     {' · '}v{doc.version}
                   </p>
                 </div>
@@ -292,7 +296,9 @@ export default function ViewPage() {
                 <MarkdownRenderer content={doc.content} />
               ) : (
                 <p className="text-sm italic text-slate-400">
-                  This document has no content yet. Click <strong>Edit</strong> to add content.
+                  {translate('docs:auto.this_document_has_no_content_yet_click')}
+                  <strong>{translate('docs:auto.edit')}</strong>{' '}
+                  {translate('docs:auto.to_add_content')}
                 </p>
               )}
             </>
@@ -302,10 +308,10 @@ export default function ViewPage() {
 
       <ConfirmDialog
         open={showDeleteDialog}
-        title="Delete document"
-        message="Are you sure you want to delete this document? This action cannot be undone."
+        title={translate('docs:auto.delete_document')}
+        message={translate('docs:auto.are_you_sure_you_want_to_delete_this_document_this_acti')}
         variant="danger"
-        confirmLabel="Delete"
+        confirmLabel={translate('docs:auto.delete')}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteDialog(false)}
       />

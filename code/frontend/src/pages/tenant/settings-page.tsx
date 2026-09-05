@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/lib/format';
 import { useState, FormEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import { useCurrentUser } from '../../hooks/use-auth';
@@ -13,6 +14,7 @@ import {
 import ConfirmDialog from '../../components/confirm-dialog';
 import PageContainer from '../../components/page-container';
 import { requireRouteParam } from '@/lib/route-params';
+import { translate } from '@/i18n';
 
 export default function SettingsPage() {
   const { tenantId } = useParams<{ tenantId: string }>();
@@ -75,29 +77,33 @@ export default function SettingsPage() {
   return (
     <PageContainer className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Tenant Settings</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+          {translate('tenants:auto.tenant_settings_2')}
+        </h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           {isAdmin
-            ? 'Manage your tenant configuration and members'
-            : 'View your tenant configuration'}
+            ? translate('tenants:auto.manage_your_tenant_configuration_and_members')
+            : translate('tenants:auto.view_your_tenant_configuration')}
         </p>
       </div>
 
       {/* General settings */}
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">General</h2>
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            {translate('tenants:auto.general')}
+          </h2>
         </div>
         {isAdmin ? (
           <form onSubmit={handleUpdateTenant} className="space-y-4 p-6">
             {updateTenant.isSuccess && (
               <div className="rounded-md bg-green-50 p-3 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                Tenant updated successfully
+                {translate('tenants:auto.tenant_updated_successfully')}
               </div>
             )}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Name
+                {translate('tenants:auto.name')}
               </label>
               <input
                 type="text"
@@ -108,7 +114,7 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Slug
+                {translate('tenants:auto.slug')}
               </label>
               <input
                 type="text"
@@ -123,7 +129,9 @@ export default function SettingsPage() {
                 disabled={updateTenant.isPending}
                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {updateTenant.isPending ? 'Saving...' : 'Save changes'}
+                {updateTenant.isPending
+                  ? translate('tenants:auto.saving')
+                  : translate('tenants:auto.save_changes')}
               </button>
             </div>
           </form>
@@ -131,13 +139,13 @@ export default function SettingsPage() {
           <div className="space-y-4 p-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Name
+                {translate('tenants:auto.name')}
               </label>
               <p className="mt-1 text-sm text-slate-900 dark:text-slate-100">{tenant?.name}</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Slug
+                {translate('tenants:auto.slug')}
               </label>
               <p className="mt-1 text-sm text-slate-900 dark:text-slate-100">{tenant?.slug}</p>
             </div>
@@ -149,7 +157,9 @@ export default function SettingsPage() {
       {isAdmin && (
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Members</h2>
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              {translate('tenants:auto.members')}
+            </h2>
           </div>
 
           {/* Invite form */}
@@ -160,29 +170,29 @@ export default function SettingsPage() {
             <div className="flex items-end gap-3">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Invite by email
+                  {translate('tenants:auto.invite_by_email')}
                 </label>
                 <input
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  placeholder="colleague@example.com"
+                  placeholder={translate('tenants:auto.colleague_example_com')}
                   className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                   required
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Role
+                  {translate('tenants:auto.role')}
                 </label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value)}
                   className="sdd-select mt-1 block rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                 >
-                  <option value="viewer">Viewer</option>
-                  <option value="member">Member</option>
-                  <option value="admin">Admin</option>
+                  <option value="viewer">{translate('tenants:auto.viewer')}</option>
+                  <option value="member">{translate('tenants:auto.member')}</option>
+                  <option value="admin">{translate('tenants:auto.admin')}</option>
                 </select>
               </div>
               <button
@@ -190,25 +200,29 @@ export default function SettingsPage() {
                 disabled={inviteMember.isPending}
                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                Invite
+                {translate('tenants:auto.invite')}
               </button>
             </div>
             {inviteMember.isError && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400">Failed to invite member</p>
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                {translate('tenants:auto.failed_to_invite_member')}
+              </p>
             )}
           </form>
 
           {/* Invitations list */}
           <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-700">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-              Invitations
+              {translate('tenants:auto.invitations')}
             </h3>
             {invitationsLoading ? (
               <div className="mt-3 flex items-center justify-center py-4">
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
               </div>
             ) : !invitations || invitations.length === 0 ? (
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">No invitations yet</p>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                {translate('tenants:auto.no_invitations_yet')}
+              </p>
             ) : (
               <div className="mt-3 space-y-2">
                 {invitations.map((invitation) => (
@@ -221,9 +235,9 @@ export default function SettingsPage() {
                         {invitation.email}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Role: {invitation.role} • Sent:{' '}
-                        {new Date(invitation.created_at).toLocaleString()} • Expires:{' '}
-                        {new Date(invitation.expires_at).toLocaleString()}
+                        {translate('tenants:auto.role_2')} {invitation.role}{' '}
+                        {translate('tenants:auto.sent')} {formatDateTime(invitation.created_at)}{' '}
+                        {translate('tenants:auto.expires')} {formatDateTime(invitation.expires_at)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -237,7 +251,7 @@ export default function SettingsPage() {
                           onClick={() => setCancellingInvitationId(invitation.id)}
                           className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                         >
-                          Cancel
+                          {translate('tenants:auto.cancel')}
                         </button>
                       )}
                     </div>
@@ -255,7 +269,7 @@ export default function SettingsPage() {
               </div>
             ) : !members || members.length === 0 ? (
               <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-                No members yet
+                {translate('tenants:auto.no_members_yet')}
               </div>
             ) : (
               members.map((member) => (
@@ -292,7 +306,7 @@ export default function SettingsPage() {
                         onClick={() => setRemovingMemberId(member.id)}
                         className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                       >
-                        Remove
+                        {translate('tenants:auto.remove')}
                       </button>
                     )}
                   </div>
@@ -305,10 +319,10 @@ export default function SettingsPage() {
 
       <ConfirmDialog
         open={!!cancellingInvitationId}
-        title="Cancel invitation"
-        message="The invitation link will stop working immediately."
+        title={translate('tenants:auto.cancel_invitation')}
+        message={translate('tenants:auto.the_invitation_link_will_stop_working_immediately')}
         variant="danger"
-        confirmLabel="Cancel invitation"
+        confirmLabel={translate('tenants:auto.cancel_invitation')}
         onConfirm={async () => {
           if (cancellingInvitationId) {
             await cancelInvitation.mutateAsync(cancellingInvitationId);
@@ -320,10 +334,10 @@ export default function SettingsPage() {
 
       <ConfirmDialog
         open={!!removingMemberId}
-        title="Remove member"
-        message="Are you sure you want to remove this member from the tenant?"
+        title={translate('tenants:auto.remove_member')}
+        message={translate('tenants:auto.are_you_sure_you_want_to_remove_this_member_from_the_te')}
         variant="danger"
-        confirmLabel="Remove"
+        confirmLabel={translate('tenants:auto.remove')}
         onConfirm={async () => {
           if (removingMemberId) {
             await removeMember.mutateAsync(removingMemberId);

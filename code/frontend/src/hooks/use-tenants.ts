@@ -3,6 +3,7 @@ import { queryKeys } from '../api/query-keys';
 import api from '../api/client';
 import { getApiErrorMessage } from '../api/errors';
 import { useToast } from '../context/toast';
+import { translate } from '@/i18n';
 import type {
   Tenant,
   TenantDashboardSummary,
@@ -63,10 +64,10 @@ export function useCreateTenant() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.tenants.all });
-      addToast('Tenant created successfully', 'success');
+      addToast(translate('common:auto.tenant_created_successfully'), 'success');
     },
     onError: () => {
-      addToast('Failed to create tenant', 'error');
+      addToast(translate('common:auto.failed_to_create_tenant'), 'error');
     },
   });
 }
@@ -81,10 +82,10 @@ export function useUpdateTenant(tenantId: string) {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.tenants.all });
-      addToast('Tenant settings saved', 'success');
+      addToast(translate('common:auto.tenant_settings_saved'), 'success');
     },
     onError: () => {
-      addToast('Failed to save tenant settings', 'error');
+      addToast(translate('common:auto.failed_to_save_tenant_settings'), 'error');
     },
   });
 }
@@ -126,10 +127,13 @@ export function useInviteMember(tenantId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.tenants.invitations(tenantId),
       });
-      addToast('Member invited successfully', 'success');
+      addToast(translate('common:auto.member_invited_successfully'), 'success');
     },
     onError: (error) => {
-      addToast(getApiErrorMessage(error, 'Failed to invite member'), 'error');
+      addToast(
+        getApiErrorMessage(error, translate('common:auto.failed_to_invite_member')),
+        'error'
+      );
     },
   });
 }
@@ -164,10 +168,13 @@ export function useAcceptInvitation(token: string) {
     },
     onSuccess: () => {
       void queryClient.refetchQueries({ queryKey: queryKeys.tenants.all });
-      addToast('Invitation accepted', 'success');
+      addToast(translate('common:auto.invitation_accepted'), 'success');
     },
     onError: (error) => {
-      addToast(getApiErrorMessage(error, 'Failed to accept invitation'), 'error');
+      addToast(
+        getApiErrorMessage(error, translate('common:auto.failed_to_accept_invitation')),
+        'error'
+      );
     },
   });
 }
@@ -183,10 +190,10 @@ export function useCancelInvitation(tenantId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.tenants.invitations(tenantId),
       });
-      addToast('Invitation cancelled', 'success');
+      addToast(translate('common:auto.invitation_cancelled'), 'success');
     },
     onError: () => {
-      addToast('Failed to cancel invitation', 'error');
+      addToast(translate('common:auto.failed_to_cancel_invitation'), 'error');
     },
   });
 }
@@ -202,10 +209,10 @@ export function useRemoveMember(tenantId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.tenants.members(tenantId),
       });
-      addToast('Member removed', 'success');
+      addToast(translate('common:auto.member_removed'), 'success');
     },
     onError: () => {
-      addToast('Failed to remove member', 'error');
+      addToast(translate('common:auto.failed_to_remove_member'), 'error');
     },
   });
 }

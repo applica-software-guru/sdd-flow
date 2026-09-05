@@ -3,6 +3,7 @@ import { queryKeys } from '../api/query-keys';
 import api from '../api/client';
 import { useToast } from '../context/toast';
 import type { Comment } from '../types';
+import { translate } from '@/i18n';
 
 export function useComments(
   tenantId: string | undefined,
@@ -42,10 +43,10 @@ export function useAddComment(
       void queryClient.invalidateQueries({
         queryKey: queryKeys.comments.all(tenantId, projectId, entityType, entityId),
       });
-      addToast('Comment added', 'success');
+      addToast(translate('common:auto.comment_added'), 'success');
     },
     onError: () => {
-      addToast('Failed to add comment', 'error');
+      addToast(translate('common:auto.failed_to_add_comment'), 'error');
     },
   });
 }
@@ -65,10 +66,10 @@ export function useUpdateComment(tenantId: string, projectId: string, commentId:
       void queryClient.invalidateQueries({
         queryKey: queryKeys.projects.detail(tenantId, projectId),
       });
-      addToast('Comment updated', 'success');
+      addToast(translate('common:auto.comment_updated'), 'success');
     },
     onError: () => {
-      addToast('Failed to update comment', 'error');
+      addToast(translate('common:auto.failed_to_update_comment'), 'error');
     },
   });
 }

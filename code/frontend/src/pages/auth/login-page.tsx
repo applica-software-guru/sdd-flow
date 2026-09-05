@@ -1,5 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '@/components/language-selector';
 import { useLogin } from '../../hooks/use-auth';
 
 export default function LoginPage() {
@@ -8,6 +10,7 @@ export default function LoginPage() {
   const login = useLogin();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation('auth');
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -25,25 +28,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-900">
+    <div className="relative flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-900">
+      <div className="absolute right-4 top-4">
+        <LanguageSelector />
+      </div>
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-xl font-bold text-white">
             S
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-            Sign in to SDD Flow
+            {t('login.title')}
           </h1>
-          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-            Manage your projects and track changes
-          </p>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">{t('login.subtitle')}</p>
         </div>
 
         <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <form onSubmit={handleSubmit} className="space-y-4">
             {login.isError && (
               <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                Invalid email or password. Please try again.
+                {t('login.invalid')}
               </div>
             )}
 
@@ -52,7 +56,7 @@ export default function LoginPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
-                Email
+                {t('email')}
               </label>
               <input
                 id="email"
@@ -61,7 +65,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm placeholder-slate-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-                placeholder="you@example.com"
+                placeholder={t('emailPlaceholder')}
               />
             </div>
 
@@ -70,7 +74,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-slate-700 dark:text-slate-300"
               >
-                Password
+                {t('password')}
               </label>
               <input
                 id="password"
@@ -79,14 +83,14 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm placeholder-slate-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-                placeholder="Enter your password"
+                placeholder={t('passwordPlaceholder')}
               />
               <div className="mt-2 text-right">
                 <Link
                   to="/forgot-password"
                   className="text-xs font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
                 >
-                  Forgot password?
+                  {t('login.forgot')}
                 </Link>
               </div>
             </div>
@@ -99,7 +103,7 @@ export default function LoginPage() {
               {login.isPending ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               ) : (
-                'Sign in'
+                t('login.submit')
               )}
             </button>
           </form>
@@ -111,7 +115,7 @@ export default function LoginPage() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="bg-white px-2 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                  or
+                  {t('separator')}
                 </span>
               </div>
             </div>
@@ -138,18 +142,18 @@ export default function LoginPage() {
                   fill="#EA4335"
                 />
               </svg>
-              Continue with Google
+              {t('login.google')}
             </a>
           </div>
         </div>
 
         <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
-          Don't have an account?{' '}
+          {t('login.noAccount')}{' '}
           <Link
             to="/register"
             className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
           >
-            Sign up
+            {t('register.submit')}
           </Link>
         </p>
       </div>

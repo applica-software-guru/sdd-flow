@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { useEditableSlug } from '@/hooks/use-editable-slug';
 import type { TenantMember } from '@/types';
+import { translate } from '@/i18n';
 
 export interface WorkItemCreateValues {
   title: string;
@@ -66,7 +67,7 @@ export default function CreateWorkItemForm(props: CreateWorkItemFormProps) {
             </Alert>
           )}
           <div className="space-y-1.5">
-            <Label htmlFor="work-item-title">Title</Label>
+            <Label htmlFor="work-item-title">{translate('common:auto.title')}</Label>
             <Input
               id="work-item-title"
               required
@@ -80,31 +81,35 @@ export default function CreateWorkItemForm(props: CreateWorkItemFormProps) {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="work-item-slug">
-              Slug <span className="font-normal text-muted-foreground">(optional)</span>
+              {translate('common:auto.slug')}
+              <span className="font-normal text-muted-foreground">
+                {translate('common:auto.optional')}
+              </span>
             </Label>
             <Input
               id="work-item-slug"
               value={slug.slug}
               onChange={(event) => slug.onSlugChange(event.target.value)}
-              placeholder="auto-generated from title"
+              placeholder={translate('common:auto.auto_generated_from_title')}
             />
             {slug.slug && (
               <p className="text-xs text-muted-foreground">
-                Filename:{' '}
+                {translate('common:auto.filename')}{' '}
                 <code>
-                  {props.filenamePrefix}/NNN-{slug.slug}.md
+                  {props.filenamePrefix}/NNN-{slug.slug}
+                  {translate('common:auto.md')}
                 </code>
               </p>
             )}
           </div>
           <div className="space-y-1.5">
-            <Label>Description</Label>
+            <Label>{translate('common:auto.description')}</Label>
             <MarkdownEditor value={body} onChange={setBody} height={300} />
           </div>
           <div className={props.withSeverity ? 'grid gap-4 sm:grid-cols-2' : ''}>
             {props.withSeverity && (
               <div className="space-y-1.5">
-                <Label htmlFor="work-item-severity">Severity</Label>
+                <Label htmlFor="work-item-severity">{translate('common:auto.severity')}</Label>
                 <Select value={severity} onValueChange={setSeverity}>
                   <SelectTrigger id="work-item-severity">
                     <SelectValue />
@@ -120,13 +125,13 @@ export default function CreateWorkItemForm(props: CreateWorkItemFormProps) {
               </div>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="work-item-assignee">Assignee</Label>
+              <Label htmlFor="work-item-assignee">{translate('common:auto.assignee')}</Label>
               <Select value={assigneeId} onValueChange={setAssigneeId}>
                 <SelectTrigger id="work-item-assignee">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  <SelectItem value="unassigned">{translate('common:auto.unassigned')}</SelectItem>
                   {props.members?.map((member) => (
                     <SelectItem key={member.user_id} value={member.user_id}>
                       {member.display_name}
@@ -138,7 +143,7 @@ export default function CreateWorkItemForm(props: CreateWorkItemFormProps) {
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button variant="outline" asChild>
-              <Link to={props.backTo}>Cancel</Link>
+              <Link to={props.backTo}>{translate('common:auto.cancel')}</Link>
             </Button>
             <Button type="submit" disabled={props.pending}>
               {props.pending ? props.pendingLabel : props.submitLabel}

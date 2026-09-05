@@ -2,8 +2,8 @@
 title: "Theme — Light / Dark Mode"
 status: synced
 author: "roberto"
-last-modified: "2026-09-04T20:30:00.000Z"
-version: "1.2"
+last-modified: "2026-09-05T12:37:13.000Z"
+version: "1.3"
 ---
 
 # Theme — Light / Dark Mode
@@ -71,7 +71,8 @@ The application supports light and dark color schemes with automatic OS preferen
 - File: `src/components/theme-toggle.tsx`
 - Dropdown with three options: Light (sun icon), Dark (moon icon), System (monitor icon)
 - Uses the shared shadcn/Radix dropdown primitive for keyboard navigation, focus management and Escape handling
-- Placed in the app-shell top bar
+- Placed in the app-shell top bar beside the independent language selector
+- Theme and language use separate state and persistence; changing either setting must not affect the other
 
 ### Tailwind Configuration
 

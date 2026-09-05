@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 interface PaginationProps {
   page: number;
   totalPages: number;
@@ -5,6 +7,7 @@ interface PaginationProps {
 }
 
 export default function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
+  const { t } = useTranslation('common');
   const safeTotalPages = Number.isFinite(totalPages) ? Math.max(0, Math.floor(totalPages)) : 0;
   if (safeTotalPages <= 1) return null;
 
@@ -33,14 +36,14 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
           disabled={safePage <= 1}
           className="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         >
-          Previous
+          {t('actions.previous')}
         </button>
         <button
           onClick={() => onPageChange(safePage + 1)}
           disabled={safePage >= safeTotalPages}
           className="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         >
-          Next
+          {t('actions.next')}
         </button>
       </div>
       <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-center">
@@ -48,6 +51,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
           <button
             onClick={() => onPageChange(safePage - 1)}
             disabled={safePage <= 1}
+            aria-label={t('pagination.previousPage')}
             className="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-500 dark:ring-slate-600 dark:hover:bg-slate-700"
           >
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -83,6 +87,7 @@ export default function Pagination({ page, totalPages, onPageChange }: Paginatio
           <button
             onClick={() => onPageChange(safePage + 1)}
             disabled={safePage >= safeTotalPages}
+            aria-label={t('pagination.nextPage')}
             className="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:text-slate-500 dark:ring-slate-600 dark:hover:bg-slate-700"
           >
             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

@@ -3,6 +3,7 @@ import { queryKeys } from '../api/query-keys';
 import api from '../api/client';
 import { useToast } from '../context/toast';
 import type { DocumentFile } from '../types';
+import { translate } from '@/i18n';
 
 export function useDocs(
   tenantId: string | undefined,
@@ -57,10 +58,10 @@ export function useCreateDoc(tenantId: string, projectId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.docs.all(tenantId, projectId),
       });
-      addToast('Document created', 'success');
+      addToast(translate('common:auto.document_created'), 'success');
     },
     onError: () => {
-      addToast('Failed to create document', 'error');
+      addToast(translate('common:auto.failed_to_create_document'), 'error');
     },
   });
 }
@@ -85,10 +86,10 @@ export function useUpdateDoc(tenantId: string, projectId: string, docId: string)
       void queryClient.invalidateQueries({
         queryKey: queryKeys.docs.all(tenantId, projectId),
       });
-      addToast('Document saved', 'success');
+      addToast(translate('common:auto.document_saved'), 'success');
     },
     onError: () => {
-      addToast('Failed to save document', 'error');
+      addToast(translate('common:auto.failed_to_save_document'), 'error');
     },
   });
 }
@@ -104,10 +105,10 @@ export function useDeleteDoc(tenantId: string, projectId: string, docId: string)
       void queryClient.invalidateQueries({
         queryKey: queryKeys.docs.all(tenantId, projectId),
       });
-      addToast('Document deleted', 'success');
+      addToast(translate('common:auto.document_deleted'), 'success');
     },
     onError: () => {
-      addToast('Failed to delete document', 'error');
+      addToast(translate('common:auto.failed_to_delete_document'), 'error');
     },
   });
 }

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { translate } from '@/i18n';
 
 export default function NotFoundPage() {
   return (
@@ -6,10 +7,10 @@ export default function NotFoundPage() {
       <div className="text-center">
         <p className="text-6xl font-bold text-blue-600 dark:text-blue-400">404</p>
         <h1 className="mt-4 text-2xl font-bold text-slate-900 dark:text-slate-100">
-          Page not found
+          {translate('common:auto.page_not_found')}
         </h1>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          The page you are looking for does not exist or has been moved.
+          {translate('common:auto.the_page_you_are_looking_for_does')}
         </p>
         <div className="mt-8">
           <Link
@@ -29,7 +30,7 @@ export default function NotFoundPage() {
                 d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
               />
             </svg>
-            Go to Dashboard
+            {translate('common:auto.go_to_dashboard')}
           </Link>
         </div>
       </div>

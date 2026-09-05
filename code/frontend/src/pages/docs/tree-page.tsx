@@ -1,9 +1,11 @@
+import { formatDateOnly } from '@/lib/format';
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDocs, useCreateDoc } from '../../hooks/use-docs';
 import PageContainer from '../../components/page-container';
 import StatusBadge from '../../components/status-badge';
 import { requireRouteParam } from '@/lib/route-params';
+import { translate } from '@/i18n';
 
 function FolderIcon({ className }: { className?: string }) {
   return (
@@ -112,9 +114,11 @@ export default function TreePage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Documentation</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            {translate('docs:auto.documentation')}
+          </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Browse and manage project documentation files
+            {translate('docs:auto.browse_and_manage_project_documentation_files')}
           </p>
         </div>
         <button
@@ -130,7 +134,7 @@ export default function TreePage() {
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          New Document
+          {translate('docs:auto.new_document')}
         </button>
       </div>
 
@@ -141,12 +145,12 @@ export default function TreePage() {
           className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20"
         >
           <p className="mb-3 text-sm font-medium text-slate-700 dark:text-slate-300">
-            New document
+            {translate('docs:auto.new_document_2')}
           </p>
           <div className="flex gap-3">
             <input
               type="text"
-              placeholder="Title"
+              placeholder={translate('docs:auto.title')}
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
@@ -154,7 +158,7 @@ export default function TreePage() {
             />
             <input
               type="text"
-              placeholder="Path (e.g. product/vision.md)"
+              placeholder={translate('docs:auto.path_e_g_product_vision_md')}
               value={newPath}
               onChange={(e) => setNewPath(e.target.value)}
               className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
@@ -164,14 +168,16 @@ export default function TreePage() {
               disabled={createDoc.isPending || !newTitle.trim() || !newPath.trim()}
               className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {createDoc.isPending ? 'Creating…' : 'Create'}
+              {createDoc.isPending
+                ? translate('docs:auto.creating')
+                : translate('docs:auto.create')}
             </button>
             <button
               type="button"
               onClick={() => setShowNewForm(false)}
               className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
             >
-              Cancel
+              {translate('docs:auto.cancel')}
             </button>
           </div>
         </form>
@@ -184,7 +190,7 @@ export default function TreePage() {
             onClick={() => navigateToFolder('')}
             className="font-medium text-blue-600 hover:underline dark:text-blue-400"
           >
-            Docs
+            {translate('docs:auto.docs')}
           </button>
           {breadcrumbs.map((part, i) => {
             const isLast = i === breadcrumbs.length - 1;
@@ -219,13 +225,13 @@ export default function TreePage() {
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-700/50">
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Name
+                  {translate('docs:auto.name')}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Status
+                  {translate('docs:auto.status')}
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Updated
+                  {translate('docs:auto.updated')}
                 </th>
               </tr>
             </thead>
@@ -290,7 +296,7 @@ export default function TreePage() {
                       <StatusBadge status={doc.status} />
                     </td>
                     <td className="px-6 py-3 text-right text-xs text-slate-400">
-                      {new Date(doc.updated_at).toLocaleDateString()}
+                      {formatDateOnly(doc.updated_at)}
                     </td>
                   </tr>
                 );
@@ -301,8 +307,8 @@ export default function TreePage() {
                 <tr>
                   <td colSpan={3} className="px-6 py-12 text-center text-sm text-slate-400">
                     {docs?.length === 0
-                      ? 'No documents yet. Click "New Document" to get started.'
-                      : 'This folder is empty.'}
+                      ? translate('docs:auto.no_documents_yet_click_new_document_to')
+                      : translate('docs:auto.this_folder_is_empty')}
                   </td>
                 </tr>
               )}

@@ -3,6 +3,7 @@ import { queryKeys } from '../api/query-keys';
 import api from '../api/client';
 import { useToast } from '../context/toast';
 import type { AssignmentHistoryEntry, Bug, PaginatedResponse } from '../types';
+import { translate } from '@/i18n';
 
 interface BugFilters {
   status?: string;
@@ -68,10 +69,10 @@ export function useCreateBug(tenantId: string, projectId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.bugs.all(tenantId, projectId),
       });
-      addToast('Bug reported successfully', 'success');
+      addToast(translate('common:auto.bug_reported_successfully'), 'success');
     },
     onError: () => {
-      addToast('Failed to report bug', 'error');
+      addToast(translate('common:auto.failed_to_report_bug'), 'error');
     },
   });
 }
@@ -97,10 +98,10 @@ export function useUpdateBug(tenantId: string, projectId: string, bugId: string)
       void queryClient.invalidateQueries({
         queryKey: queryKeys.bugs.all(tenantId, projectId),
       });
-      addToast('Bug updated', 'success');
+      addToast(translate('common:auto.bug_updated'), 'success');
     },
     onError: () => {
-      addToast('Failed to update bug', 'error');
+      addToast(translate('common:auto.failed_to_update_bug'), 'error');
     },
   });
 }
@@ -120,10 +121,10 @@ export function useTransitionBug(tenantId: string, projectId: string, bugId: str
       void queryClient.invalidateQueries({
         queryKey: queryKeys.bugs.all(tenantId, projectId),
       });
-      addToast('Status updated', 'success');
+      addToast(translate('common:auto.status_updated'), 'success');
     },
     onError: () => {
-      addToast('Failed to update status', 'error');
+      addToast(translate('common:auto.failed_to_update_status'), 'error');
     },
   });
 }
@@ -146,10 +147,10 @@ export function useAssignBug(tenantId: string, projectId: string, bugId: string)
       void queryClient.invalidateQueries({
         queryKey: queryKeys.bugs.assignments(tenantId, projectId, bugId),
       });
-      addToast('Assignee updated', 'success');
+      addToast(translate('common:auto.assignee_updated'), 'success');
     },
     onError: () => {
-      addToast('Failed to update assignee', 'error');
+      addToast(translate('common:auto.failed_to_update_assignee'), 'error');
     },
   });
 }

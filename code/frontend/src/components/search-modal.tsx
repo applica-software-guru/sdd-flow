@@ -14,14 +14,45 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { useSearch, type SearchTypeFilter } from '@/hooks/use-search';
 import { cn } from '@/lib/utils';
+import { translate } from '@/i18n';
 
 const TABS: { label: string; value: SearchTypeFilter | undefined }[] = [
-  { label: 'All', value: undefined },
-  { label: 'Projects', value: 'project' },
-  { label: 'Docs', value: 'doc' },
-  { label: 'CRs', value: 'cr' },
-  { label: 'Bugs', value: 'bug' },
-  { label: 'Audit Log', value: 'audit_log' },
+  {
+    get label() {
+      return translate('common:auto.all');
+    },
+    value: undefined,
+  },
+  {
+    get label() {
+      return translate('common:auto.projects');
+    },
+    value: 'project',
+  },
+  {
+    get label() {
+      return translate('common:auto.docs');
+    },
+    value: 'doc',
+  },
+  {
+    get label() {
+      return translate('common:auto.crs');
+    },
+    value: 'cr',
+  },
+  {
+    get label() {
+      return translate('common:auto.bugs');
+    },
+    value: 'bug',
+  },
+  {
+    get label() {
+      return translate('common:auto.audit_log');
+    },
+    value: 'audit_log',
+  },
 ];
 const icons: Record<string, LucideIcon> = {
   project: Folder,
@@ -66,25 +97,29 @@ export default function SearchModal() {
   return (
     <Dialog open={open} onOpenChange={changeOpen}>
       <DialogContent className="top-[20vh] translate-y-0 overflow-hidden border-border/80 bg-card p-0 shadow-2xl sm:max-w-lg">
-        <DialogTitle className="sr-only">Global search</DialogTitle>
+        <DialogTitle className="sr-only">{translate('common:auto.global_search')}</DialogTitle>
         <DialogDescription className="sr-only">
-          Search projects, change requests, bugs, documents and audit events.
+          {translate('common:auto.search_projects_change_requests_bugs_documents_and')}
         </DialogDescription>
         <div className="flex items-center border-b py-0 pl-4 pr-14">
           <Search className="h-5 w-5 text-muted-foreground" aria-hidden />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search projects, CRs, bugs, docs, audit log…"
-            aria-label="Search"
+            placeholder={translate('common:auto.search_projects_crs_bugs_docs_audit_log')}
+            aria-label={translate('common:auto.search')}
             className="flex-1 border-0 bg-transparent px-4 py-4 text-sm outline-none placeholder:text-muted-foreground"
             autoFocus
           />
           <kbd className="shrink-0 rounded border bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-            Esc
+            {translate('common:auto.esc')}
           </kbd>
         </div>
-        <div className="flex gap-1 border-b px-3 py-2" role="tablist" aria-label="Search type">
+        <div
+          className="flex gap-1 border-b px-3 py-2"
+          role="tablist"
+          aria-label={translate('common:auto.search_type')}
+        >
           {TABS.map((tab) => (
             <Button
               key={tab.label}
@@ -103,15 +138,18 @@ export default function SearchModal() {
           ))}
         </div>
         <div className="max-h-80 overflow-y-auto p-2">
-          {isLoading && query.length >= 2 && <LoadingState compact label="Searching" />}
+          {isLoading && query.length >= 2 && (
+            <LoadingState compact label={translate('common:auto.searching')} />
+          )}
           {!isLoading && results?.length === 0 && query.length >= 2 && (
             <div className="py-8 text-center text-sm text-muted-foreground">
-              No results found for “{query}”
+              {translate('common:auto.no_results_found_for')}
+              {query}”
             </div>
           )}
           {query.length < 2 && (
             <div className="py-8 text-center text-sm text-muted-foreground">
-              Type at least 2 characters to search
+              {translate('common:auto.type_at_least_2_characters_to_search')}
             </div>
           )}
           {results?.map((result) => (

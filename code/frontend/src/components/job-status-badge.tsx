@@ -1,6 +1,7 @@
 import { Badge } from './ui/badge';
 import { cn } from '../lib/utils';
 import type { JobStatus } from '../types';
+import { translate } from '@/i18n';
 
 const statusColors: Record<JobStatus, string> = {
   queued: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
@@ -12,7 +13,8 @@ const statusColors: Record<JobStatus, string> = {
 };
 
 function formatStatus(status: string): string {
-  return status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const fallback = status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return translate(`common:status.${status}`, { defaultValue: fallback });
 }
 
 export default function JobStatusBadge({ status }: { status: JobStatus }) {

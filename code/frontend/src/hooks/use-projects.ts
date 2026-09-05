@@ -3,6 +3,7 @@ import { queryKeys } from '../api/query-keys';
 import api from '../api/client';
 import { useToast } from '../context/toast';
 import type { Project } from '../types';
+import { translate } from '@/i18n';
 
 export function useProjects(tenantId: string | undefined) {
   return useQuery<Project[]>({
@@ -38,10 +39,10 @@ export function useCreateProject(tenantId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.projects.all(tenantId),
       });
-      addToast('Project created successfully', 'success');
+      addToast(translate('common:auto.project_created_successfully'), 'success');
     },
     onError: () => {
-      addToast('Failed to create project', 'error');
+      addToast(translate('common:auto.failed_to_create_project'), 'error');
     },
   });
 }
@@ -58,10 +59,10 @@ export function useUpdateProject(tenantId: string, projectId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.projects.all(tenantId),
       });
-      addToast('Project settings saved', 'success');
+      addToast(translate('common:auto.project_settings_saved'), 'success');
     },
     onError: () => {
-      addToast('Failed to save project settings', 'error');
+      addToast(translate('common:auto.failed_to_save_project_settings'), 'error');
     },
   });
 }
@@ -78,10 +79,10 @@ export function useArchiveProject(tenantId: string, projectId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.projects.all(tenantId),
       });
-      addToast('Project archived', 'success');
+      addToast(translate('common:auto.project_archived'), 'success');
     },
     onError: () => {
-      addToast('Failed to archive project', 'error');
+      addToast(translate('common:auto.failed_to_archive_project'), 'error');
     },
   });
 }
@@ -98,10 +99,10 @@ export function useRestoreProject(tenantId: string, projectId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.projects.all(tenantId),
       });
-      addToast('Project restored', 'success');
+      addToast(translate('common:auto.project_restored'), 'success');
     },
     onError: () => {
-      addToast('Failed to restore project', 'error');
+      addToast(translate('common:auto.failed_to_restore_project'), 'error');
     },
   });
 }

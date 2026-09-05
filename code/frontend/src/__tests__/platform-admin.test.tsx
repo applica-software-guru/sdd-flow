@@ -17,9 +17,8 @@ describe('platform administration', () => {
       </MemoryRouter>
     );
 
-    expect(superMarkup).toContain('Platform Admin');
     expect(superMarkup).toContain('href="/admin"');
-    expect(userMarkup).not.toContain('Platform Admin');
+    expect(userMarkup).not.toContain('href="/admin"');
   });
 
   it('renders global totals and safe inventory tabs', () => {

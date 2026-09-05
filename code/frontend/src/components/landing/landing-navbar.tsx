@@ -1,21 +1,24 @@
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '@/components/language-selector';
 import ThemeToggle from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/hooks/use-auth';
 import LandingContainer from './landing-container';
 
 const navLinks = [
-  { label: 'Features', href: '#features' },
-  { label: 'How it Works', href: '#how-it-works' },
-  { label: 'For Teams', href: '#for-teams' },
-  { label: 'Open Source', href: '#open-source' },
+  { labelKey: 'features' as const, href: '#features' },
+  { labelKey: 'howItWorks' as const, href: '#how-it-works' },
+  { labelKey: 'forTeams' as const, href: '#for-teams' },
+  { labelKey: 'openSource' as const, href: '#open-source' },
 ];
 
 export default function LandingNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: user, isLoading } = useCurrentUser();
+  const { t } = useTranslation('navigation');
   return (
     <header className="sticky top-0 z-50 border-b bg-background/85 backdrop-blur-lg">
       <LandingContainer className="flex h-14 items-center justify-between">
@@ -25,18 +28,19 @@ export default function LandingNavbar() {
           </span>
           <span className="text-lg font-bold">SDD Flow</span>
         </Link>
-        <nav className="hidden items-center gap-1 md:flex" aria-label="Landing page">
+        <nav className="hidden items-center gap-1 md:flex" aria-label={t('landing')}>
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
               className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
             >
-              {link.label}
+              {t(link.labelKey)}
             </a>
           ))}
         </nav>
         <div className="flex items-center gap-2">
+          <LanguageSelector />
           <ThemeToggle />
           <div className="hidden w-44 items-center justify-end gap-1 sm:flex">
             <SessionActions user={Boolean(user)} loading={isLoading} />
@@ -46,7 +50,7 @@ export default function LandingNavbar() {
             size="icon"
             className="md:hidden"
             onClick={() => setMobileOpen((open) => !open)}
-            aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
+            aria-label={mobileOpen ? t('close') : t('open')}
             aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
@@ -56,7 +60,7 @@ export default function LandingNavbar() {
       {mobileOpen && (
         <div className="border-t bg-background md:hidden">
           <LandingContainer className="flex flex-col gap-1 py-3">
-            <nav className="flex flex-col gap-1" aria-label="Mobile landing page">
+            <nav className="flex flex-col gap-1" aria-label={t('mobileLanding')}>
               {navLinks.map((link) => (
                 <a
                   key={link.href}
@@ -64,7 +68,7 @@ export default function LandingNavbar() {
                   onClick={() => setMobileOpen(false)}
                   className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </a>
               ))}
             </nav>
@@ -95,11 +99,12 @@ function SessionActions({
   mobile?: boolean;
   onNavigate?: () => void;
 }) {
+  const { t } = useTranslation(['common', 'navigation']);
   if (loading)
     return (
       <div
         role="status"
-        aria-label="Checking session"
+        aria-label={t('common:states.checkingSession')}
         className="h-9 w-28 animate-pulse rounded-lg bg-muted"
       />
     );
@@ -107,7 +112,7 @@ function SessionActions({
     return (
       <Button asChild className={mobile ? 'w-full' : undefined}>
         <Link to="/tenants" onClick={onNavigate}>
-          Open app
+          {t('navigation:openApp')}
         </Link>
       </Button>
     );
@@ -115,12 +120,12 @@ function SessionActions({
     <>
       <Button asChild variant="ghost" className={mobile ? 'w-full' : undefined}>
         <Link to="/login" onClick={onNavigate}>
-          Log in
+          {t('navigation:logIn')}
         </Link>
       </Button>
       <Button asChild className={mobile ? 'w-full' : undefined}>
         <Link to="/register" onClick={onNavigate}>
-          Sign Up
+          {t('navigation:signUp')}
         </Link>
       </Button>
     </>

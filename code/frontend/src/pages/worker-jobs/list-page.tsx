@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/lib/format';
 import { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useWorkerJobs, useWorkers } from '../../hooks/use-workers';
@@ -8,15 +9,51 @@ import Pagination from '../../components/pagination';
 import EmptyState from '../../components/empty-state';
 import JobOptionsDialog from '../../components/job-options-dialog';
 import { requireRouteParam } from '@/lib/route-params';
+import { translate } from '@/i18n';
 
 const STATUS_OPTIONS = [
-  { value: '', label: 'All statuses' },
-  { value: 'queued', label: 'Queued' },
-  { value: 'assigned', label: 'Assigned' },
-  { value: 'running', label: 'Running' },
-  { value: 'completed', label: 'Completed' },
-  { value: 'failed', label: 'Failed' },
-  { value: 'cancelled', label: 'Cancelled' },
+  {
+    value: '',
+    get label() {
+      return translate('workers:auto.all_statuses');
+    },
+  },
+  {
+    value: 'queued',
+    get label() {
+      return translate('workers:auto.queued');
+    },
+  },
+  {
+    value: 'assigned',
+    get label() {
+      return translate('workers:auto.assigned');
+    },
+  },
+  {
+    value: 'running',
+    get label() {
+      return translate('workers:auto.running');
+    },
+  },
+  {
+    value: 'completed',
+    get label() {
+      return translate('workers:auto.completed_2');
+    },
+  },
+  {
+    value: 'failed',
+    get label() {
+      return translate('workers:auto.failed');
+    },
+  },
+  {
+    value: 'cancelled',
+    get label() {
+      return translate('workers:auto.cancelled');
+    },
+  },
 ];
 
 export default function ListPage() {
@@ -40,9 +77,11 @@ export default function ListPage() {
     <PageContainer>
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Workers</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+            {translate('workers:auto.workers')}
+          </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Remote workers and job execution history
+            {translate('workers:auto.remote_workers_and_job_execution_history')}
           </p>
         </div>
         {onlineWorkers.length > 0 && (
@@ -64,7 +103,7 @@ export default function ListPage() {
                   d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z"
                 />
               </svg>
-              Custom Job
+              {translate('workers:auto.custom_job')}
             </button>
             <button
               onClick={() => setShowBuildDialog(true)}
@@ -83,7 +122,7 @@ export default function ListPage() {
                   d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
                 />
               </svg>
-              Build on Worker
+              {translate('workers:auto.build_on_worker')}
             </button>
           </div>
         )}
@@ -108,16 +147,17 @@ export default function ListPage() {
                 />
               </div>
               <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                Agent: {worker.agent}
+                {translate('workers:auto.agent')} {worker.agent}
                 {worker.branch && (
                   <span className="ml-2">
-                    Branch: <code className="font-mono">{worker.branch}</code>
+                    {translate('workers:auto.branch')}
+                    <code className="font-mono">{worker.branch}</code>
                   </span>
                 )}
               </div>
               {worker.last_heartbeat_at && (
                 <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-                  Last seen: {new Date(worker.last_heartbeat_at).toLocaleString()}
+                  {translate('workers:auto.last_seen')} {formatDateTime(worker.last_heartbeat_at)}
                 </div>
               )}
             </div>
@@ -128,17 +168,19 @@ export default function ListPage() {
       {workers && workers.length === 0 && (
         <div className="mb-6 rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            No workers registered. Run{' '}
+            {translate('workers:auto.no_workers_registered_run')}{' '}
             <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs dark:bg-slate-700">
-              sdd remote worker
+              {translate('workers:auto.sdd_remote_worker')}
             </code>{' '}
-            to connect a worker.
+            {translate('workers:auto.to_connect_a_worker')}
           </p>
         </div>
       )}
 
       {/* Jobs */}
-      <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">Jobs</h2>
+      <h2 className="mb-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
+        {translate('workers:auto.jobs')}
+      </h2>
 
       <div className="mb-4 flex items-center gap-3">
         <select
@@ -157,7 +199,8 @@ export default function ListPage() {
         </select>
         {data && (
           <span className="text-sm text-slate-500 dark:text-slate-400">
-            {data.total} result{data.total !== 1 ? 's' : ''}
+            {data.total} {translate('workers:auto.result')}
+            {data.total !== 1 ? 's' : ''}
           </span>
         )}
       </div>
@@ -195,11 +238,11 @@ export default function ListPage() {
           </div>
         ) : !data || data.items.length === 0 ? (
           <EmptyState
-            title="No jobs"
+            title={translate('workers:auto.no_jobs')}
             description={
               status
-                ? 'No jobs match the selected filter'
-                : 'Jobs will appear here when you apply a CR or bug on a worker'
+                ? translate('workers:auto.no_jobs_match_the_selected_filter')
+                : translate('workers:auto.jobs_will_appear_here_when_you_apply')
             }
           />
         ) : (
@@ -208,19 +251,19 @@ export default function ListPage() {
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-700/50">
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Entity
+                    {translate('workers:auto.entity')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Status
+                    {translate('workers:auto.status')}
                   </th>
                   <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 sm:table-cell">
-                    Worker
+                    {translate('workers:auto.worker')}
                   </th>
                   <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 md:table-cell">
-                    Agent
+                    {translate('workers:auto.agent_2')}
                   </th>
                   <th className="hidden px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 lg:table-cell">
-                    Created
+                    {translate('workers:auto.created_2')}
                   </th>
                 </tr>
               </thead>
@@ -237,14 +280,14 @@ export default function ListPage() {
                             {job.entity_type === 'change_request'
                               ? 'CR'
                               : job.entity_type === 'bug'
-                                ? 'Bug'
-                                : 'Doc'}
+                                ? translate('workers:auto.bug_2')
+                                : translate('workers:auto.doc')}
                           </span>
                         )}
                         {job.job_type === 'build'
-                          ? job.entity_title || 'Project Build'
+                          ? job.entity_title || translate('common:fallback.projectBuild')
                           : job.job_type === 'custom'
-                            ? 'Custom Job'
+                            ? translate('workers:auto.custom_job')
                             : job.entity_title ||
                               (job.entity_id ? job.entity_id.slice(0, 8) : job.job_type)}
                       </Link>
@@ -259,7 +302,7 @@ export default function ListPage() {
                       {job.agent}
                     </td>
                     <td className="hidden px-6 py-4 text-sm text-slate-500 dark:text-slate-400 lg:table-cell">
-                      {new Date(job.created_at).toLocaleString()}
+                      {formatDateTime(job.created_at)}
                     </td>
                   </tr>
                 ))}

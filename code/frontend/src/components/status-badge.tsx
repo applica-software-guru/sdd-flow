@@ -1,6 +1,7 @@
 import { Badge } from './ui/badge';
 import { cn } from '../lib/utils';
 import type { CRStatus, BugStatus, DocStatus } from '../types';
+import { translate } from '@/i18n';
 
 type Status = CRStatus | BugStatus | DocStatus;
 
@@ -21,7 +22,8 @@ const statusColors: Record<string, string> = {
 };
 
 function formatStatus(status: string): string {
-  return status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const fallback = status.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return translate(`common:status.${status}`, { defaultValue: fallback });
 }
 
 export default function StatusBadge({ status }: { status: Status }) {

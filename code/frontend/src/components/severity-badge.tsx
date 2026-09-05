@@ -1,6 +1,7 @@
 import { Badge } from './ui/badge';
 import { cn } from '../lib/utils';
 import type { BugSeverity } from '../types';
+import { translate } from '@/i18n';
 
 const severityColors: Record<BugSeverity, string> = {
   trivial: 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300',
@@ -12,8 +13,6 @@ const severityColors: Record<BugSeverity, string> = {
 export default function SeverityBadge({ severity }: { severity: BugSeverity }) {
   const color = severityColors[severity];
   return (
-    <Badge className={cn('border-0', color)}>
-      {severity.charAt(0).toUpperCase() + severity.slice(1)}
-    </Badge>
+    <Badge className={cn('border-0', color)}>{translate(`common:severity.${severity}`)}</Badge>
   );
 }

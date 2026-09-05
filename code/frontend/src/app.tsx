@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import LoadingState from '@/components/shared/loading-state';
 
 const Layout = lazy(() => import('@/components/layout'));
@@ -39,11 +40,14 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  const { t } = useTranslation('common');
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Suspense
-          fallback={<LoadingState label="Loading page" className="min-h-screen bg-background" />}
+          fallback={
+            <LoadingState label={t('states.loadingPage')} className="min-h-screen bg-background" />
+          }
         >
           <Routes>
             <Route path="/" element={<LandingPage />} />

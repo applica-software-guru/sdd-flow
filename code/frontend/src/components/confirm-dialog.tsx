@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { translate } from '@/i18n';
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -26,8 +27,8 @@ export default function ConfirmDialog({
   open,
   title,
   message,
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  confirmLabel = translate('common:auto.confirm'),
+  cancelLabel = translate('common:auto.cancel'),
   variant = 'default',
   onConfirm,
   onCancel,
@@ -44,7 +45,9 @@ export default function ConfirmDialog({
           <AlertDialogAction
             onClick={onConfirm}
             className={cn(
-              buttonVariants({ variant: variant === 'danger' ? 'destructive' : 'default' })
+              buttonVariants({
+                variant: variant === 'danger' ? 'destructive' : 'default',
+              })
             )}
           >
             {confirmLabel}

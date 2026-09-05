@@ -1,5 +1,7 @@
+import { formatDateTime } from '@/lib/format';
 import { initialsOf } from '../utils/user';
 import type { Comment } from '../types';
+import { translate } from '@/i18n';
 
 /**
  * Compact comment author header: avatar initials + display name + timestamp.
@@ -19,10 +21,10 @@ export default function CommentHeader({ comment }: { comment: Comment }) {
       </span>
       <div className="min-w-0">
         <p className="truncate text-slate-900 dark:text-slate-100" title={email ?? undefined}>
-          {name ?? 'Unknown'}
+          {name ?? translate('common:fallback.unknown')}
         </p>
         <p className="text-xs text-slate-400 dark:text-slate-500">
-          {new Date(comment.created_at).toLocaleString()}
+          {formatDateTime(comment.created_at)}
         </p>
       </div>
     </div>

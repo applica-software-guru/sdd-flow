@@ -1,3 +1,4 @@
+import { formatDateOnly } from '@/lib/format';
 import { useState, useMemo, useRef, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
@@ -22,6 +23,7 @@ import CommentsSection from '../../features/work-items/comments-section';
 import WorkItemWorkflow from '../../features/work-items/work-item-workflow';
 import type { BugStatus } from '../../types';
 import { requireRouteParam } from '@/lib/route-params';
+import { translate } from '@/i18n';
 
 const TRANSITIONS: Record<string, BugStatus[]> = {
   draft: ['open'],
@@ -87,7 +89,7 @@ export default function DetailPage() {
   if (!bug) {
     return (
       <div className="py-16 text-center text-sm text-slate-500 dark:text-slate-400">
-        Bug not found
+        {translate('bugs:auto.bug_not_found')}
       </div>
     );
   }
@@ -136,7 +138,7 @@ export default function DetailPage() {
               d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
             />
           </svg>
-          Back to Bugs
+          {translate('bugs:auto.back_to_bugs')}
         </Link>
       </div>
 
@@ -145,7 +147,7 @@ export default function DetailPage() {
           <form onSubmit={handleSave} className="space-y-4 p-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Title
+                {translate('bugs:auto.title')}
               </label>
               <input
                 type="text"
@@ -156,7 +158,7 @@ export default function DetailPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Slug
+                {translate('bugs:auto.slug')}
               </label>
               <input
                 type="text"
@@ -165,15 +167,17 @@ export default function DetailPage() {
                 className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
               />
               <p className="mt-1 text-xs text-slate-400">
-                Filename:{' '}
+                {translate('bugs:auto.filename')}{' '}
                 <code>
-                  bugs/{bug.formatted_number}-{editSlug}.md
+                  {translate('bugs:auto.bugs')}
+                  {bug.formatted_number}-{editSlug}
+                  {translate('bugs:auto.md')}
                 </code>
               </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Body
+                {translate('bugs:auto.body')}
               </label>
               <MarkdownEditor value={editBody} onChange={setEditBody} height={500} />
             </div>
@@ -183,14 +187,14 @@ export default function DetailPage() {
                 onClick={() => setEditing(false)}
                 className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               >
-                Cancel
+                {translate('bugs:auto.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={updateBug.isPending}
                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {updateBug.isPending ? 'Saving...' : 'Save'}
+                {updateBug.isPending ? translate('bugs:auto.saving') : translate('bugs:auto.save')}
               </button>
             </div>
           </form>
@@ -223,7 +227,7 @@ export default function DetailPage() {
                           d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"
                         />
                       </svg>
-                      Enrich on Worker
+                      {translate('bugs:auto.enrich_on_worker')}
                     </button>
                   )}
                   {canEdit && (
@@ -231,7 +235,7 @@ export default function DetailPage() {
                       onClick={startEditing}
                       className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                     >
-                      Edit
+                      {translate('bugs:auto.edit')}
                     </button>
                   )}
                   <SeverityBadge severity={bug.severity} />
@@ -239,7 +243,9 @@ export default function DetailPage() {
                 </div>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                <span>Created {new Date(bug.created_at).toLocaleDateString()}</span>
+                <span>
+                  {translate('bugs:auto.created')} {formatDateOnly(bug.created_at)}
+                </span>
               </div>
             </div>
 

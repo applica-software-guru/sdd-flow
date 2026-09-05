@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import type { Comment as WorkItemComment, DocumentFile } from '@/types';
+import { translate } from '@/i18n';
 
 interface CommentsSectionProps {
   comments?: WorkItemComment[];
@@ -30,7 +31,10 @@ export default function CommentsSection(props: CommentsSectionProps) {
   return (
     <Card id="comments" ref={props.sectionRef} className="scroll-mt-20">
       <div className="border-b px-6 py-4">
-        <h2 className="font-semibold">Comments ({props.comments?.length ?? 0})</h2>
+        <h2 className="font-semibold">
+          {translate('common:auto.comments_2')}
+          {props.comments?.length ?? 0})
+        </h2>
       </div>
       {props.comments?.length ? (
         <div className="divide-y">
@@ -49,20 +53,24 @@ export default function CommentsSection(props: CommentsSectionProps) {
           ))}
         </div>
       ) : (
-        <div className="px-6 py-8 text-center text-sm text-muted-foreground">No comments yet</div>
+        <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+          {translate('common:auto.no_comments_yet')}
+        </div>
       )}
       <form onSubmit={(event) => void handleSubmit(event)} className="border-t px-6 py-4">
         <Textarea
           ref={props.inputRef}
           value={body}
           onChange={(event) => setBody(event.target.value)}
-          placeholder="Write a comment…"
+          placeholder={translate('common:auto.write_a_comment')}
           rows={3}
           className="markdown-input"
         />
         <div className="mt-3 flex justify-end">
           <Button type="submit" disabled={props.submitting || !body.trim()}>
-            {props.submitting ? 'Posting…' : 'Add comment'}
+            {props.submitting
+              ? translate('common:auto.posting')
+              : translate('common:auto.add_comment')}
           </Button>
         </div>
       </form>

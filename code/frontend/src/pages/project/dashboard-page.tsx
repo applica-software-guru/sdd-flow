@@ -11,6 +11,7 @@ import JobStatusBadge from '../../components/job-status-badge';
 import JobOptionsDialog from '../../components/job-options-dialog';
 import { formatDateOnly } from '../../lib/format';
 import { requireRouteParam } from '@/lib/route-params';
+import { translate } from '@/i18n';
 
 export default function DashboardPage() {
   const { tenantId, projectId } = useParams();
@@ -75,7 +76,9 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalCRs}</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Change Requests</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {translate('projects:auto.change_requests')}
+              </p>
             </div>
           </div>
         </Link>
@@ -102,7 +105,9 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalBugs}</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Bugs</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {translate('projects:auto.bugs')}
+              </p>
             </div>
           </div>
         </Link>
@@ -129,7 +134,9 @@ export default function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{totalDocs}</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Documents</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {translate('projects:auto.documents')}
+              </p>
             </div>
           </div>
         </Link>
@@ -159,7 +166,9 @@ export default function DashboardPage() {
                 {onlineWorkers}
                 <span className="text-base font-normal text-slate-400">/{totalWorkers}</span>
               </p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">Workers Online</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {translate('projects:auto.workers_online')}
+              </p>
             </div>
           </div>
         </Link>
@@ -169,18 +178,18 @@ export default function DashboardPage() {
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
           <h2 className="font-semibold text-slate-900 dark:text-slate-100">
-            Recent Change Requests
+            {translate('projects:auto.recent_change_requests')}
           </h2>
           <Link
             to={`/tenants/${tenantId}/projects/${projectId}/crs`}
             className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
           >
-            View all
+            {translate('projects:auto.view_all')}
           </Link>
         </div>
         {crs.length === 0 ? (
           <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-            No change requests yet
+            {translate('projects:auto.no_change_requests_yet')}
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -196,13 +205,14 @@ export default function DashboardPage() {
                   </p>
                   <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     <span className="min-w-0 max-w-[14rem] truncate" title={cr.author?.email}>
-                      by {cr.author?.display_name || 'Unknown'}
+                      {translate('projects:auto.by')}{' '}
+                      {cr.author?.display_name || translate('common:fallback.unknown')}
                     </span>
-                    <span className="shrink-0">&middot;</span>
+                    <span className="shrink-0">{translate('projects:auto.middot')}</span>
                     <span className="shrink-0">{formatDateOnly(cr.created_at)}</span>
                     {typeof cr.comments_count === 'number' && cr.comments_count > 0 && (
                       <>
-                        <span>&middot;</span>
+                        <span>{translate('projects:auto.middot')}</span>
                         <span className="inline-flex items-center gap-1">
                           <svg
                             className="h-3.5 w-3.5"
@@ -233,17 +243,19 @@ export default function DashboardPage() {
       {/* Recent Bugs */}
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-          <h2 className="font-semibold text-slate-900 dark:text-slate-100">Recent Bugs</h2>
+          <h2 className="font-semibold text-slate-900 dark:text-slate-100">
+            {translate('projects:auto.recent_bugs')}
+          </h2>
           <Link
             to={`/tenants/${tenantId}/projects/${projectId}/bugs`}
             className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
           >
-            View all
+            {translate('projects:auto.view_all')}
           </Link>
         </div>
         {bugs.length === 0 ? (
           <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-            No bugs reported yet
+            {translate('projects:auto.no_bugs_reported_yet')}
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -258,12 +270,15 @@ export default function DashboardPage() {
                     {bug.title}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                    <span>by {bug.author?.display_name || 'Unknown'}</span>
-                    <span>&middot;</span>
+                    <span>
+                      {translate('projects:auto.by')}{' '}
+                      {bug.author?.display_name || translate('common:fallback.unknown')}
+                    </span>
+                    <span>{translate('projects:auto.middot')}</span>
                     <span>{formatDateOnly(bug.created_at)}</span>
                     {typeof bug.comments_count === 'number' && bug.comments_count > 0 && (
                       <>
-                        <span>&middot;</span>
+                        <span>{translate('projects:auto.middot')}</span>
                         <span className="inline-flex items-center gap-1">
                           <svg
                             className="h-3.5 w-3.5"
@@ -297,7 +312,9 @@ export default function DashboardPage() {
       {(recentJobs.length > 0 || totalWorkers > 0) && (
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
           <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-slate-700">
-            <h2 className="font-semibold text-slate-900 dark:text-slate-100">Recent Worker Jobs</h2>
+            <h2 className="font-semibold text-slate-900 dark:text-slate-100">
+              {translate('projects:auto.recent_worker_jobs')}
+            </h2>
             <div className="flex items-center gap-3">
               {onlineWorkers > 0 && (
                 <button
@@ -317,20 +334,20 @@ export default function DashboardPage() {
                       d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
                     />
                   </svg>
-                  Build on Worker
+                  {translate('projects:auto.build_on_worker')}
                 </button>
               )}
               <Link
                 to={`/tenants/${tenantId}/projects/${projectId}/workers`}
                 className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400"
               >
-                View all
+                {translate('projects:auto.view_all')}
               </Link>
             </div>
           </div>
           {recentJobs.length === 0 ? (
             <div className="px-6 py-8 text-center text-sm text-slate-500 dark:text-slate-400">
-              No worker jobs yet
+              {translate('projects:auto.no_worker_jobs_yet')}
             </div>
           ) : (
             <div className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -347,17 +364,20 @@ export default function DashboardPage() {
                           {job.entity_type === 'change_request'
                             ? 'CR'
                             : job.entity_type === 'bug'
-                              ? 'Bug'
-                              : 'Doc'}
+                              ? translate('projects:auto.bug_2')
+                              : translate('projects:auto.doc')}
                         </span>
                       )}
                       {job.job_type === 'build' && !job.entity_title
-                        ? 'Project Build'
-                        : job.entity_title || (job.entity_id ? job.entity_id.slice(0, 8) : 'Sync')}
+                        ? translate('projects:auto.project_build')
+                        : job.entity_title ||
+                          (job.entity_id
+                            ? job.entity_id.slice(0, 8)
+                            : translate('projects:auto.sync'))}
                     </p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      {job.worker_name || 'Queued'} &middot;{' '}
-                      {new Date(job.created_at).toLocaleDateString()}
+                      {job.worker_name || translate('common:fallback.queued')}{' '}
+                      {translate('projects:auto.middot')} {formatDateOnly(job.created_at)}
                     </p>
                   </div>
                   <JobStatusBadge status={job.status} />

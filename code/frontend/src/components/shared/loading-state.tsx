@@ -1,4 +1,5 @@
 import { LoaderCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface LoadingStateProps {
@@ -7,11 +8,8 @@ interface LoadingStateProps {
   compact?: boolean;
 }
 
-export default function LoadingState({
-  label = 'Loading',
-  className,
-  compact = false,
-}: LoadingStateProps) {
+export default function LoadingState({ label, className, compact = false }: LoadingStateProps) {
+  const { t } = useTranslation('common');
   return (
     <div
       role="status"
@@ -21,7 +19,7 @@ export default function LoadingState({
         className={cn('animate-spin text-primary', compact ? 'h-5 w-5' : 'h-8 w-8')}
         aria-hidden="true"
       />
-      <span className="sr-only">{label}</span>
+      <span className="sr-only">{label ?? t('states.loading')}</span>
     </div>
   );
 }

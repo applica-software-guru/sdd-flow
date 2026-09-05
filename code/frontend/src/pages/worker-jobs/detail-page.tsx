@@ -1,3 +1,4 @@
+import { formatDateTime } from '@/lib/format';
 import { useParams, Link } from 'react-router-dom';
 import { queryKeys } from '../../api/query-keys';
 import { useQueryClient } from '@tanstack/react-query';
@@ -12,6 +13,7 @@ import PageContainer from '../../components/page-container';
 import WorkerTerminal from '../../components/worker-terminal';
 import WorkerQAPanel from '../../components/worker-qa-panel';
 import { requireRouteParam } from '@/lib/route-params';
+import { translate } from '@/i18n';
 
 export default function DetailPage() {
   const { tenantId, projectId, jobId } = useParams();
@@ -58,7 +60,9 @@ export default function DetailPage() {
   if (!job) {
     return (
       <PageContainer className="py-16 text-center">
-        <p className="text-slate-500 dark:text-slate-400">Job not found</p>
+        <p className="text-slate-500 dark:text-slate-400">
+          {translate('workers:auto.job_not_found')}
+        </p>
       </PageContainer>
     );
   }
@@ -71,7 +75,7 @@ export default function DetailPage() {
           to={`/tenants/${tenantId}/projects/${projectId}/workers`}
           className="mb-2 inline-block text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
         >
-          &larr; Back to Workers
+          {translate('workers:auto.larr_back_to_workers')}
         </Link>
         <div className="flex items-center justify-between">
           <div>
@@ -81,22 +85,32 @@ export default function DetailPage() {
                   {job.entity_type === 'change_request'
                     ? 'CR'
                     : job.entity_type === 'bug'
-                      ? 'Bug'
-                      : 'Doc'}
+                      ? translate('workers:auto.bug_2')
+                      : translate('workers:auto.doc')}
                   :
                 </span>
               )}
               {job.job_type === 'build'
-                ? job.entity_title || 'Project Build'
+                ? job.entity_title || translate('common:fallback.projectBuild')
                 : job.job_type === 'custom'
-                  ? 'Custom Job'
-                  : job.entity_title || 'Job'}
+                  ? translate('workers:auto.custom_job')
+                  : job.entity_title || translate('common:fallback.job')}
             </h1>
             <div className="mt-2 flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
               <JobStatusBadge status={job.status} />
-              <span>Agent: {job.agent}</span>
-              {job.worker_name && <span>Worker: {job.worker_name}</span>}
-              {job.exit_code != null && <span>Exit code: {job.exit_code}</span>}
+              <span>
+                {translate('workers:auto.agent')} {job.agent}
+              </span>
+              {job.worker_name && (
+                <span>
+                  {translate('workers:auto.worker_2')} {job.worker_name}
+                </span>
+              )}
+              {job.exit_code != null && (
+                <span>
+                  {translate('workers:auto.exit_code')} {job.exit_code}
+                </span>
+              )}
             </div>
           </div>
           {isLive && (
@@ -105,17 +119,25 @@ export default function DetailPage() {
               disabled={cancelMutation.isPending}
               className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
             >
-              Cancel
+              {translate('workers:auto.cancel')}
             </button>
           )}
         </div>
 
         {/* Timestamps */}
         <div className="mt-3 flex gap-4 text-xs text-slate-400 dark:text-slate-500">
-          <span>Created: {new Date(job.created_at).toLocaleString()}</span>
-          {job.started_at && <span>Started: {new Date(job.started_at).toLocaleString()}</span>}
+          <span>
+            {translate('workers:auto.created')} {formatDateTime(job.created_at)}
+          </span>
+          {job.started_at && (
+            <span>
+              {translate('workers:auto.started')} {formatDateTime(job.started_at)}
+            </span>
+          )}
           {job.completed_at && (
-            <span>Completed: {new Date(job.completed_at).toLocaleString()}</span>
+            <span>
+              {translate('workers:auto.completed')} {formatDateTime(job.completed_at)}
+            </span>
           )}
         </div>
       </div>
@@ -136,7 +158,8 @@ export default function DetailPage() {
       {!isLive && job.changed_files && job.changed_files.length > 0 && (
         <div className="mt-6">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-            Files Changed ({job.changed_files.length})
+            {translate('workers:auto.files_changed')}
+            {job.changed_files.length})
           </h2>
           <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700">
             <table className="w-full text-sm">
@@ -156,7 +179,11 @@ export default function DetailPage() {
                               : 'rounded bg-amber-100 px-1.5 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'
                         }
                       >
-                        {file.status === 'new' ? 'new' : file.status === 'deleted' ? 'del' : 'mod'}
+                        {file.status === 'new'
+                          ? 'new'
+                          : file.status === 'deleted'
+                            ? translate('workers:auto.del')
+                            : translate('workers:auto.mod')}
                       </span>
                     </td>
                     <td className="flex-1 text-slate-700 dark:text-slate-300">{file.path}</td>

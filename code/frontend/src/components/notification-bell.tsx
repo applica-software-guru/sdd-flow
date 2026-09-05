@@ -11,6 +11,7 @@ import {
 import { useMarkAllRead, useMarkRead, useNotifications } from '@/hooks/use-notifications';
 import { formatDateOnly } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { translate } from '@/i18n';
 
 export default function NotificationBell() {
   const { data } = useNotifications({ page_size: 10 });
@@ -25,7 +26,7 @@ export default function NotificationBell() {
           variant="ghost"
           size="icon"
           className="relative"
-          aria-label={`${unreadCount} unread notifications`}
+          aria-label={translate('notifications:unread', { count: unreadCount })}
         >
           <Bell aria-hidden="true" />
           {unreadCount > 0 && (
@@ -37,7 +38,7 @@ export default function NotificationBell() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80 p-0">
         <DropdownMenuLabel className="flex items-center justify-between px-4 py-3">
-          <span>Notifications</span>
+          <span>{translate('notifications:auto.notifications')}</span>
           {unreadCount > 0 && (
             <Button
               variant="link"
@@ -45,7 +46,7 @@ export default function NotificationBell() {
               className="h-auto p-0 text-xs"
               onClick={() => markAllRead.mutate()}
             >
-              Mark all read
+              {translate('notifications:auto.mark_all_read')}
             </Button>
           )}
         </DropdownMenuLabel>
@@ -53,7 +54,7 @@ export default function NotificationBell() {
         <div className="max-h-80 overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              No notifications
+              {translate('notifications:auto.no_notifications')}
             </div>
           ) : (
             notifications.map((notification) => (

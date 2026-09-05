@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import WorkspaceSwitcher from '@/components/workspace-switcher';
 import {
   Dialog,
@@ -18,12 +19,13 @@ interface MobileNavigationProps {
   isSuperUser: boolean;
 }
 export default function MobileNavigation(props: MobileNavigationProps) {
+  const { t } = useTranslation('navigation');
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent className="inset-y-0 left-0 top-0 h-screen w-72 max-w-[85vw] translate-x-0 translate-y-0 rounded-none p-0 lg:hidden">
         <DialogHeader className="border-b pr-12">
           <DialogTitle>SDD Flow</DialogTitle>
-          <DialogDescription className="sr-only">Application navigation</DialogDescription>
+          <DialogDescription className="sr-only">{t('application')}</DialogDescription>
         </DialogHeader>
         <div className="border-b p-3">
           <WorkspaceSwitcher />
@@ -31,7 +33,7 @@ export default function MobileNavigation(props: MobileNavigationProps) {
         <div className="overflow-y-auto p-3">
           {props.projectName && (
             <div className="mb-3 rounded-md bg-muted px-3 py-2">
-              <p className="text-xs font-medium text-muted-foreground">Current project</p>
+              <p className="text-xs font-medium text-muted-foreground">{t('currentProject')}</p>
               <p className="truncate text-sm font-semibold">{props.projectName}</p>
             </div>
           )}

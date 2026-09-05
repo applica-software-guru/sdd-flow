@@ -7,29 +7,48 @@ import {
 } from '../../hooks/use-notifications';
 import { useToast } from '../../context/toast';
 import { initialsOf } from '../../utils/user';
+import { translate } from '@/i18n';
 
 const EVENT_LABELS: Record<string, { title: string; description: string }> = {
   comment_added: {
-    title: 'New comments',
-    description:
-      'Someone comments on a CR or bug you are involved in (author, assignee, or previous commenter). Enabled by default.',
+    get title() {
+      return translate('profile:auto.new_comments');
+    },
+    get description() {
+      return translate('profile:auto.someone_comments_on_a_cr_or_bug');
+    },
   },
   content_changed: {
-    title: 'Content changes',
-    description:
-      'The title or body of a CR or bug you are involved in is modified. Disabled by default — opt in here.',
+    get title() {
+      return translate('profile:auto.content_changes');
+    },
+    get description() {
+      return translate('profile:auto.the_title_or_body_of_a_cr');
+    },
   },
   assigned: {
-    title: 'Assigned to you',
-    description: 'A CR or bug is assigned to you.',
+    get title() {
+      return translate('profile:auto.assigned_to_you');
+    },
+    get description() {
+      return translate('profile:auto.a_cr_or_bug_is_assigned_to');
+    },
   },
   status_changed: {
-    title: 'Status changes',
-    description: 'A CR or bug you created or are assigned to changes status.',
+    get title() {
+      return translate('profile:auto.status_changes');
+    },
+    get description() {
+      return translate('profile:auto.a_cr_or_bug_you_created_or');
+    },
   },
   mentioned: {
-    title: 'Mentions',
-    description: 'Someone mentions you in a comment (@username).',
+    get title() {
+      return translate('profile:auto.mentions');
+    },
+    get description() {
+      return translate('profile:auto.someone_mentions_you_in_a_comment_username');
+    },
   },
 };
 
@@ -79,17 +98,20 @@ function AccountSection() {
     try {
       await updateProfile.mutateAsync({ display_name: displayName.trim() });
       setName(null);
-      addToast('Profile updated', 'success');
+      addToast(translate('profile:auto.profile_updated'), 'success');
     } catch (err) {
       const detail =
         (err as { response?: { data?: { detail?: string } } }).response?.data?.detail ??
-        'Failed to update profile';
+        translate('errors:updateProfile');
       addToast(detail, 'error');
     }
   };
 
   return (
-    <Card title="Account" description="Your public identity across the platform.">
+    <Card
+      title={translate('profile:auto.account')}
+      description={translate('profile:auto.your_public_identity_across_the_platform')}
+    >
       <div className="flex items-center gap-4">
         {user?.avatar_url ? (
           <img
@@ -112,11 +134,13 @@ function AccountSection() {
             </span>
             {user?.email_verified && (
               <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
-                verified
+                {translate('profile:auto.verified')}
               </span>
             )}
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">Email cannot be changed.</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {translate('profile:auto.email_cannot_be_changed')}
+          </p>
         </div>
       </div>
 
@@ -125,7 +149,7 @@ function AccountSection() {
           htmlFor="display-name"
           className="block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400"
         >
-          Display name
+          {translate('profile:auto.display_name')}
         </label>
         <div className="mt-2 flex gap-2">
           <input
@@ -141,7 +165,9 @@ function AccountSection() {
             disabled={!dirty || updateProfile.isPending || !displayName.trim()}
             className="shrink-0 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {updateProfile.isPending ? 'Saving…' : 'Save'}
+            {updateProfile.isPending
+              ? translate('profile:auto.saving')
+              : translate('profile:auto.save')}
           </button>
         </div>
       </div>
@@ -200,15 +226,15 @@ function SecuritySection() {
     e.preventDefault();
     setError('');
     if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError(translate('profile:auto.password_must_be_at_least_8_characters'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(translate('profile:auto.passwords_do_not_match'));
       return;
     }
     if (hasPassword && !currentPassword) {
-      setError('Current password is required');
+      setError(translate('profile:auto.current_password_is_required'));
       return;
     }
     try {
@@ -223,14 +249,14 @@ function SecuritySection() {
       setShowSetPassword(false);
       addToast(
         hasPassword
-          ? 'Password updated — other sessions have been signed out'
-          : 'Password set — you can now sign in with email and password',
+          ? translate('profile:auto.password_updated_other_sessions_have_been_signed_out')
+          : translate('profile:auto.password_set_you_can_now_sign_in_with_email_and_passwor'),
         'success'
       );
     } catch (err) {
       const detail =
         (err as { response?: { data?: { detail?: string } } }).response?.data?.detail ??
-        'Failed to change password';
+        translate('errors:changePassword');
       setError(detail);
     }
   };
@@ -240,17 +266,20 @@ function SecuritySection() {
   // for hybrid login, per CR-035).
   if (googleOnly && !showSetPassword) {
     return (
-      <Card title="Security" description="How you sign in to SDD Flow.">
+      <Card
+        title={translate('profile:auto.security')}
+        description={translate('profile:auto.how_you_sign_in_to_sdd_flow')}
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <GoogleBadge />
             <div className="min-w-0">
               <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                You sign in with Google
+                {translate('profile:auto.you_sign_in_with_google')}
               </p>
               <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                Your account {user?.email} is managed by Google — there is no password to change
-                here.
+                {translate('profile:auto.your_account')} {user?.email}{' '}
+                {translate('profile:auto.is_managed_by_google_there_is_no')}
               </p>
             </div>
           </div>
@@ -258,7 +287,7 @@ function SecuritySection() {
             onClick={() => setShowSetPassword(true)}
             className="shrink-0 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
           >
-            Set a password
+            {translate('profile:auto.set_a_password')}
           </button>
         </div>
       </Card>
@@ -267,26 +296,26 @@ function SecuritySection() {
 
   return (
     <Card
-      title="Security"
+      title={translate('profile:auto.security')}
       description={
         googleOnly
-          ? 'Set a password to also sign in with your email and password, in addition to Google.'
+          ? translate('profile:auto.set_a_password_to_also_sign_in')
           : hasPassword
-            ? 'Change your password. Other sessions are signed out after the change.'
-            : 'Set a password to sign in with your email.'
+            ? translate('profile:auto.change_your_password_other_sessions_are_signed')
+            : translate('profile:auto.set_a_password_to_sign_in_with')
       }
     >
       {googleOnly && (
         <div className="mb-4 flex items-center gap-3 rounded-md bg-blue-50 px-4 py-3 dark:bg-blue-900/30">
           <GoogleBadge small />
           <p className="text-xs text-slate-600 dark:text-slate-300">
-            Optional — you can keep signing in with Google as before.
+            {translate('profile:auto.optional_you_can_keep_signing_in_with')}
           </p>
           <button
             onClick={() => setShowSetPassword(false)}
             className="ml-auto shrink-0 text-xs font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
           >
-            Cancel
+            {translate('profile:auto.cancel')}
           </button>
         </div>
       )}
@@ -297,7 +326,7 @@ function SecuritySection() {
               htmlFor="current-password"
               className="block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400"
             >
-              Current password
+              {translate('profile:auto.current_password')}
             </label>
             <input
               id="current-password"
@@ -314,7 +343,9 @@ function SecuritySection() {
             htmlFor="new-password"
             className="block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400"
           >
-            {hasPassword ? 'New password' : 'New password'}
+            {hasPassword
+              ? translate('profile:auto.new_password')
+              : translate('profile:auto.new_password')}
           </label>
           <input
             id="new-password"
@@ -330,7 +361,7 @@ function SecuritySection() {
             htmlFor="confirm-password"
             className="block text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400"
           >
-            Confirm new password
+            {translate('profile:auto.confirm_new_password')}
           </label>
           <input
             id="confirm-password"
@@ -351,7 +382,11 @@ function SecuritySection() {
           disabled={changePassword.isPending}
           className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {changePassword.isPending ? 'Saving…' : hasPassword ? 'Change password' : 'Set password'}
+          {changePassword.isPending
+            ? translate('profile:auto.saving')
+            : hasPassword
+              ? translate('profile:auto.change_password')
+              : translate('profile:auto.set_password')}
         </button>
       </form>
     </Card>
@@ -368,8 +403,8 @@ function NotificationPreferencesSection() {
 
   return (
     <Card
-      title="Notification preferences"
-      description="Choose which events send you an email. In-app notifications are always on."
+      title={translate('profile:auto.notification_preferences')}
+      description={translate('profile:auto.choose_which_events_send_you_an_email')}
     >
       {isLoading ? (
         <Spinner />
@@ -428,9 +463,11 @@ export default function ProfilePage() {
 
   return (
     <PageContainer className="py-8">
-      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Profile</h1>
+      <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+        {translate('profile:auto.profile')}
+      </h1>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        Manage your account, security, and notification preferences.
+        {translate('profile:auto.manage_your_account_security_and_notification_preferences')}
       </p>
 
       {isLoading ? (

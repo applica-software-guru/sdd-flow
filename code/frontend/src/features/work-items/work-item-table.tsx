@@ -9,6 +9,7 @@ import StatusBadge from '@/components/status-badge';
 import UserCell from '@/components/user-cell';
 import { formatDateOnly } from '@/lib/format';
 import type { Bug, ChangeRequest, PaginatedResponse } from '@/types';
+import { translate } from '@/i18n';
 
 type WorkItem = Bug | ChangeRequest;
 interface WorkItemTableProps<T extends WorkItem> {
@@ -24,7 +25,7 @@ export default function WorkItemTable<T extends WorkItem>(props: WorkItemTablePr
   if (props.loading)
     return (
       <ResponsiveTable>
-        <LoadingState label="Loading work items" />
+        <LoadingState label={translate('common:auto.loading_work_items')} />
       </ResponsiveTable>
     );
   if (!props.data?.items.length)
@@ -40,13 +41,15 @@ export default function WorkItemTable<T extends WorkItem>(props: WorkItemTablePr
       <table className="min-w-full divide-y">
         <thead>
           <tr className="bg-muted/60">
-            <Header>Title</Header>
-            {hasSeverity && <Header>Severity</Header>}
-            <Header>Status</Header>
-            <Header className="hidden sm:table-cell">Author</Header>
-            <Header className="hidden md:table-cell">Assignee</Header>
-            <Header className="hidden lg:table-cell">Created</Header>
-            <Header className="hidden text-center lg:table-cell">Comments</Header>
+            <Header>{translate('common:auto.title')}</Header>
+            {hasSeverity && <Header>{translate('common:auto.severity')}</Header>}
+            <Header>{translate('common:auto.status')}</Header>
+            <Header className="hidden sm:table-cell">{translate('common:auto.author')}</Header>
+            <Header className="hidden md:table-cell">{translate('common:auto.assignee')}</Header>
+            <Header className="hidden lg:table-cell">{translate('common:auto.created')}</Header>
+            <Header className="hidden text-center lg:table-cell">
+              {translate('common:auto.comments')}
+            </Header>
           </tr>
         </thead>
         <tbody className="divide-y">
@@ -75,7 +78,7 @@ export default function WorkItemTable<T extends WorkItem>(props: WorkItemTablePr
                 <UserCell user={item.author} />
               </td>
               <td className="hidden px-6 py-4 md:table-cell">
-                <UserCell user={item.assignee} fallback="Unassigned" />
+                <UserCell user={item.assignee} fallback={translate('common:auto.unassigned')} />
               </td>
               <td className="hidden px-6 py-4 text-sm text-muted-foreground lg:table-cell">
                 {formatDateOnly(item.created_at)}

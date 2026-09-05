@@ -1,3 +1,4 @@
+import { formatDateOnly } from '@/lib/format';
 import { useState, useMemo, useRef, FormEvent } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
@@ -21,6 +22,7 @@ import CommentsSection from '../../features/work-items/comments-section';
 import WorkItemWorkflow from '../../features/work-items/work-item-workflow';
 import type { CRStatus, JobType } from '../../types';
 import { requireRouteParam } from '@/lib/route-params';
+import { translate } from '@/i18n';
 
 const EDITABLE_STATUSES: CRStatus[] = ['draft', 'pending'];
 
@@ -84,7 +86,7 @@ export default function DetailPage() {
   if (!cr) {
     return (
       <div className="py-16 text-center text-sm text-slate-500 dark:text-slate-400">
-        Change request not found
+        {translate('change-requests:auto.change_request_not_found')}
       </div>
     );
   }
@@ -134,7 +136,7 @@ export default function DetailPage() {
               d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
             />
           </svg>
-          Back to CRs
+          {translate('change-requests:auto.back_to_crs')}
         </Link>
       </div>
 
@@ -143,7 +145,7 @@ export default function DetailPage() {
           <form onSubmit={handleSave} className="space-y-4 p-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Title
+                {translate('change-requests:auto.title')}
               </label>
               <input
                 type="text"
@@ -154,7 +156,7 @@ export default function DetailPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Slug
+                {translate('change-requests:auto.slug')}
               </label>
               <input
                 type="text"
@@ -163,15 +165,17 @@ export default function DetailPage() {
                 className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
               />
               <p className="mt-1 text-xs text-slate-400">
-                Filename:{' '}
+                {translate('change-requests:auto.filename')}{' '}
                 <code>
-                  change-requests/{cr.formatted_number}-{editSlug}.md
+                  {translate('change-requests:auto.change_requests')}
+                  {cr.formatted_number}-{editSlug}
+                  {translate('change-requests:auto.md')}
                 </code>
               </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Body
+                {translate('change-requests:auto.body')}
               </label>
               <MarkdownEditor value={editBody} onChange={setEditBody} height={500} />
             </div>
@@ -181,14 +185,16 @@ export default function DetailPage() {
                 onClick={() => setEditing(false)}
                 className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
               >
-                Cancel
+                {translate('change-requests:auto.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={updateCR.isPending}
                 className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {updateCR.isPending ? 'Saving...' : 'Save'}
+                {updateCR.isPending
+                  ? translate('change-requests:auto.saving')
+                  : translate('change-requests:auto.save')}
               </button>
             </div>
           </form>
@@ -208,14 +214,16 @@ export default function DetailPage() {
                       onClick={startEditing}
                       className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                     >
-                      Edit
+                      {translate('change-requests:auto.edit')}
                     </button>
                   )}
                   <StatusBadge status={cr.status} />
                 </div>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                <span>Created {new Date(cr.created_at).toLocaleDateString()}</span>
+                <span>
+                  {translate('change-requests:auto.created')} {formatDateOnly(cr.created_at)}
+                </span>
               </div>
             </div>
 
@@ -263,7 +271,7 @@ export default function DetailPage() {
                   d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z"
                 />
               </svg>
-              Enrich on Worker
+              {translate('change-requests:auto.enrich_on_worker')}
             </button>
           </div>
         )}

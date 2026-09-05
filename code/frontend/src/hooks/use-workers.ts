@@ -3,6 +3,7 @@ import { queryKeys } from '../api/query-keys';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
 import { useToast } from '../context/toast';
+import { translate } from '@/i18n';
 import type {
   Worker,
   WorkerJob,
@@ -101,10 +102,10 @@ export function useCreateWorkerJob(tenantId: string, projectId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.workers.jobs(tenantId, projectId),
       });
-      addToast('Job dispatched to worker', 'success');
+      addToast(translate('common:auto.job_dispatched_to_worker'), 'success');
     },
     onError: () => {
-      addToast('Failed to dispatch job', 'error');
+      addToast(translate('common:auto.failed_to_dispatch_job'), 'error');
     },
   });
 }
@@ -167,10 +168,10 @@ export function useCancelJob(tenantId: string, projectId: string, jobId: string)
       void queryClient.invalidateQueries({
         queryKey: queryKeys.workers.jobs(tenantId, projectId),
       });
-      addToast('Job cancelled', 'success');
+      addToast(translate('common:auto.job_cancelled'), 'success');
     },
     onError: () => {
-      addToast('Failed to cancel job', 'error');
+      addToast(translate('common:auto.failed_to_cancel_job'), 'error');
     },
   });
 }

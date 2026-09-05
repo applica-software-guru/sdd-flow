@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom';
 import { useCurrentUser } from '@/hooks/use-auth';
 import LandingContainer from './landing-container';
 import LandingCta from './landing-cta';
+import { translate } from '@/i18n';
 
-const productLinks = [
-  ['Features', '#features'],
-  ['How it works', '#how-it-works'],
-  ['For teams', '#for-teams'],
-  ['Remote workers', '#remote-workers'],
-] as const;
+const productLinks = () =>
+  [
+    [translate('landing:auto.features'), '#features'],
+    [translate('landing:auto.how_it_works'), '#how-it-works'],
+    [translate('landing:auto.for_teams'), '#for-teams'],
+    [translate('landing:auto.remote_workers'), '#remote-workers'],
+  ] as const;
 
 export default function FooterSection() {
   const { data: user, isLoading } = useCurrentUser();
@@ -17,10 +19,11 @@ export default function FooterSection() {
     <>
       <section className="bg-gradient-to-r from-primary to-indigo-600 py-16 text-primary-foreground">
         <LandingContainer className="text-center">
-          <h2 className="text-3xl font-bold sm:text-4xl">Ready to connect stories and delivery?</h2>
+          <h2 className="text-3xl font-bold sm:text-4xl">
+            {translate('landing:auto.ready_to_connect_stories_and_delivery')}
+          </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-white/80">
-            Bring documentation, review, collaboration, and coding agents into one explicit
-            workflow.
+            {translate('landing:auto.bring_documentation_review_collaboration_and_coding_agents')}
           </p>
           <div className="mt-8 flex justify-center">
             <LandingCta inverted />
@@ -38,33 +41,35 @@ export default function FooterSection() {
                 <span className="text-lg font-bold">SDD Flow</span>
               </Link>
               <p className="mt-4 max-w-xs text-sm leading-6 text-zinc-400">
-                Story Driven Development, coordinated in the cloud.
+                {translate('landing:auto.story_driven_development_coordinated_in_the_cloud')}
               </p>
             </div>
-            <FooterGroup title="Product" links={productLinks} />
+            <FooterGroup title={translate('landing:auto.product')} links={productLinks()} />
             <FooterGroup
-              title="Resources"
+              title={translate('landing:auto.resources')}
               links={[
-                ['Open source', '#open-source'],
-                ['Privacy', '/privacy'],
+                [translate('landing:auto.open_source'), '#open-source'],
+                [translate('landing:auto.privacy'), '/privacy'],
               ]}
             />
             <div>
-              <h3 className="text-sm font-semibold text-white">Account</h3>
+              <h3 className="text-sm font-semibold text-white">
+                {translate('landing:auto.account')}
+              </h3>
               <div className="mt-4 flex flex-col items-start gap-3 text-sm text-zinc-400">
                 {isLoading ? (
-                  <span>Checking session…</span>
+                  <span>{translate('landing:auto.checking_session')}</span>
                 ) : user ? (
                   <Link to="/tenants" className="hover:text-white">
-                    Open app
+                    {translate('landing:auto.open_app')}
                   </Link>
                 ) : (
                   <>
                     <Link to="/login" className="hover:text-white">
-                      Log in
+                      {translate('landing:auto.log_in')}
                     </Link>
                     <Link to="/register" className="hover:text-white">
-                      Create account
+                      {translate('landing:auto.create_account')}
                     </Link>
                   </>
                 )}
@@ -81,7 +86,7 @@ export default function FooterSection() {
             </div>
           </div>
           <div className="mt-10 border-t border-zinc-800 pt-6 text-sm text-zinc-500">
-            © 2026 SDD Flow. Open source software.
+            {translate('landing:auto.2026_sdd_flow_open_source_software')}
           </div>
         </LandingContainer>
       </footer>

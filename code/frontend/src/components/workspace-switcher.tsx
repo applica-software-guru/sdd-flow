@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { useWorkspaceNavigation } from '@/hooks/use-tenants';
 import { cn } from '@/lib/utils';
 import type { WorkspaceNavigationTenant } from '@/types';
+import { translate } from '@/i18n';
 
 type VisibleTenant = WorkspaceNavigationTenant & {
   projects: WorkspaceNavigationTenant['projects'];
@@ -53,10 +54,10 @@ export default function WorkspaceSwitcher() {
   const visibleTenants = useMemo(() => filterTenants(tenants, query), [tenants, query]);
 
   const triggerLabel = isLoading
-    ? 'Loading workspaces…'
+    ? translate('navigation:auto.loading_workspaces')
     : currentProject && currentTenant
       ? `${currentTenant.name} \\ ${currentProject.name}`
-      : currentTenant?.name || 'Select workspace';
+      : currentTenant?.name || translate('common:fallback.selectWorkspace');
 
   const closeAndNavigate = (to: string) => {
     setQuery('');
@@ -69,7 +70,7 @@ export default function WorkspaceSwitcher() {
         <Button
           variant="ghost"
           className="h-9 max-w-72 justify-between gap-2 bg-muted/40 px-2 hover:bg-muted"
-          aria-label="Select tenant or project workspace"
+          aria-label={translate('navigation:auto.select_tenant_or_project_workspace')}
         >
           {currentProject ? <FolderKanban aria-hidden="true" /> : <Building2 aria-hidden="true" />}
           <span className="min-w-0 flex-1 truncate text-left">{triggerLabel}</span>
@@ -87,20 +88,30 @@ export default function WorkspaceSwitcher() {
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={(event) => event.stopPropagation()}
             className="h-9 pl-8"
-            placeholder="Search tenants or projects"
-            aria-label="Search tenants or projects"
+            placeholder={translate('navigation:auto.search_tenants_or_projects')}
+            aria-label={translate('navigation:auto.search_tenants_or_projects')}
           />
         </div>
 
-        {isLoading && <p className="px-2 py-3 text-sm text-muted-foreground">Loading…</p>}
+        {isLoading && (
+          <p className="px-2 py-3 text-sm text-muted-foreground">
+            {translate('navigation:auto.loading')}
+          </p>
+        )}
         {isError && (
-          <p className="px-2 py-3 text-sm text-destructive">Unable to load workspaces.</p>
+          <p className="px-2 py-3 text-sm text-destructive">
+            {translate('navigation:auto.unable_to_load_workspaces')}
+          </p>
         )}
         {!isLoading && !isError && tenants.length === 0 && (
-          <p className="px-2 py-3 text-sm text-muted-foreground">No workspaces available.</p>
+          <p className="px-2 py-3 text-sm text-muted-foreground">
+            {translate('navigation:auto.no_workspaces_available')}
+          </p>
         )}
         {!isLoading && !isError && tenants.length > 0 && visibleTenants.length === 0 && (
-          <p className="px-2 py-3 text-sm text-muted-foreground">No matching workspaces.</p>
+          <p className="px-2 py-3 text-sm text-muted-foreground">
+            {translate('navigation:auto.no_matching_workspaces')}
+          </p>
         )}
 
         {!isLoading && !isError && visibleTenants.length > 0 && (
@@ -124,14 +135,16 @@ export default function WorkspaceSwitcher() {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium">{tenant.name}</span>
                       <span className="block truncate text-xs text-muted-foreground">
-                        Tenant overview · {tenant.slug}
+                        {translate('navigation:auto.tenant_overview')} {tenant.slug}
                       </span>
                     </span>
                     {isCurrentTenantOverview && <Check className="ml-auto" aria-hidden="true" />}
                   </DropdownMenuItem>
 
                   {tenant.projects.length === 0 ? (
-                    <p className="px-8 py-2 text-xs text-muted-foreground">No active projects</p>
+                    <p className="px-8 py-2 text-xs text-muted-foreground">
+                      {translate('navigation:auto.no_active_projects')}
+                    </p>
                   ) : (
                     tenant.projects.map((project) => {
                       const isCurrentProject = tenant.id === tenantId && project.id === projectId;
@@ -153,7 +166,11 @@ export default function WorkspaceSwitcher() {
                               {project.slug}
                             </span>
                           </span>
-                          {project.archived_at && <Badge variant="secondary">Archived</Badge>}
+                          {project.archived_at && (
+                            <Badge variant="secondary">
+                              {translate('navigation:auto.archived')}
+                            </Badge>
+                          )}
                           {isCurrentProject && <Check className="ml-auto" aria-hidden="true" />}
                         </DropdownMenuItem>
                       );
@@ -171,12 +188,12 @@ export default function WorkspaceSwitcher() {
             onSelect={() => closeAndNavigate(`/tenants/${currentTenant.id}/projects/new`)}
           >
             <Plus aria-hidden="true" />
-            New project
+            {translate('navigation:auto.new_project')}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onSelect={() => closeAndNavigate('/tenants/new')}>
           <Plus aria-hidden="true" />
-          New tenant
+          {translate('navigation:auto.new_tenant')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

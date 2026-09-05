@@ -3,6 +3,7 @@ import EmptyState from '@/components/empty-state';
 import PageContainer from '@/components/page-container';
 import Pagination from '@/components/pagination';
 import LoadingState from '@/components/shared/loading-state';
+import { translate } from '@/i18n';
 import {
   type AdminOverview,
   type AdminTab,
@@ -11,43 +12,149 @@ import {
 } from '@/hooks/use-admin';
 
 const tabs: Array<{ value: AdminTab; label: string }> = [
-  { value: 'users', label: 'Users' },
-  { value: 'tenants', label: 'Tenants' },
-  { value: 'projects', label: 'Projects' },
-  { value: 'audit-log', label: 'Access & Audit' },
+  {
+    value: 'users',
+    get label() {
+      return translate('admin:auto.users');
+    },
+  },
+  {
+    value: 'tenants',
+    get label() {
+      return translate('admin:auto.tenants');
+    },
+  },
+  {
+    value: 'projects',
+    get label() {
+      return translate('admin:auto.projects');
+    },
+  },
+  {
+    value: 'audit-log',
+    get label() {
+      return translate('admin:auto.access_audit');
+    },
+  },
 ];
 
 const columns: Record<AdminTab, Array<{ key: string; label: string }>> = {
   users: [
-    { key: 'display_name', label: 'Name' },
-    { key: 'email', label: 'Email' },
-    { key: 'platform_role', label: 'Platform role' },
-    { key: 'tenant_count', label: 'Tenants' },
-    { key: 'email_verified', label: 'Verified' },
+    {
+      key: 'display_name',
+      get label() {
+        return translate('admin:auto.name');
+      },
+    },
+    {
+      key: 'email',
+      get label() {
+        return translate('admin:auto.email');
+      },
+    },
+    {
+      key: 'platform_role',
+      get label() {
+        return translate('admin:auto.platform_role');
+      },
+    },
+    {
+      key: 'tenant_count',
+      get label() {
+        return translate('admin:auto.tenants');
+      },
+    },
+    {
+      key: 'email_verified',
+      get label() {
+        return translate('admin:auto.verified');
+      },
+    },
   ],
   tenants: [
-    { key: 'name', label: 'Tenant' },
-    { key: 'slug', label: 'Slug' },
-    { key: 'member_count', label: 'Members' },
-    { key: 'project_count', label: 'Projects' },
+    {
+      key: 'name',
+      get label() {
+        return translate('admin:auto.tenant');
+      },
+    },
+    {
+      key: 'slug',
+      get label() {
+        return translate('admin:auto.slug');
+      },
+    },
+    {
+      key: 'member_count',
+      get label() {
+        return translate('admin:auto.members');
+      },
+    },
+    {
+      key: 'project_count',
+      get label() {
+        return translate('admin:auto.projects');
+      },
+    },
   ],
   projects: [
-    { key: 'name', label: 'Project' },
-    { key: 'tenant_name', label: 'Tenant' },
-    { key: 'slug', label: 'Slug' },
-    { key: 'archived_at', label: 'Archived' },
+    {
+      key: 'name',
+      get label() {
+        return translate('admin:auto.project');
+      },
+    },
+    {
+      key: 'tenant_name',
+      get label() {
+        return translate('admin:auto.tenant');
+      },
+    },
+    {
+      key: 'slug',
+      get label() {
+        return translate('admin:auto.slug');
+      },
+    },
+    {
+      key: 'archived_at',
+      get label() {
+        return translate('admin:auto.archived');
+      },
+    },
   ],
   'audit-log': [
-    { key: 'event_type', label: 'Event' },
-    { key: 'summary', label: 'Summary' },
-    { key: 'user_id', label: 'User' },
-    { key: 'created_at', label: 'Date' },
+    {
+      key: 'event_type',
+      get label() {
+        return translate('admin:auto.event');
+      },
+    },
+    {
+      key: 'summary',
+      get label() {
+        return translate('admin:auto.summary');
+      },
+    },
+    {
+      key: 'user_id',
+      get label() {
+        return translate('admin:auto.user');
+      },
+    },
+    {
+      key: 'created_at',
+      get label() {
+        return translate('admin:auto.date');
+      },
+    },
   ],
 };
 
 function display(value: unknown): string {
   if (value === null || value === undefined || value === '') return '—';
-  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (typeof value === 'boolean')
+    return value ? translate('admin:auto.yes') : translate('admin:auto.no');
   return String(value);
 }
 
@@ -64,22 +171,27 @@ interface ViewProps {
 
 export function AdminDashboardView(props: ViewProps) {
   const cards = [
-    ['Users', props.overview?.users_count ?? 0],
-    ['Tenants', props.overview?.tenants_count ?? 0],
-    ['Projects', props.overview?.projects_count ?? 0],
-    ['Recent logins', props.overview?.recent_login_count ?? 0],
-    ['Failed logins', props.overview?.recent_failed_login_count ?? 0],
+    [translate('admin:auto.users'), props.overview?.users_count ?? 0],
+    [translate('admin:auto.tenants'), props.overview?.tenants_count ?? 0],
+    [translate('admin:auto.projects'), props.overview?.projects_count ?? 0],
+    [translate('admin:auto.recent_logins'), props.overview?.recent_login_count ?? 0],
+    [translate('admin:auto.failed_logins'), props.overview?.recent_failed_login_count ?? 0],
   ];
   return (
     <PageContainer className="space-y-6">
       <header>
-        <p className="text-sm font-medium text-primary">Global platform context</p>
-        <h1 className="text-2xl font-bold">Platform administration</h1>
+        <p className="text-sm font-medium text-primary">
+          {translate('admin:auto.global_platform_context')}
+        </p>
+        <h1 className="text-2xl font-bold">{translate('admin:auto.platform_administration')}</h1>
         <p className="text-muted-foreground">
-          Read-only inventory, access, and security oversight.
+          {translate('admin:auto.read_only_inventory_access_and_security_oversight')}
         </p>
       </header>
-      <section aria-label="Platform totals" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <section
+        aria-label={translate('admin:auto.platform_totals')}
+        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5"
+      >
         {cards.map(([label, value]) => (
           <div key={label} className="rounded-lg border bg-card p-4">
             <p className="text-sm text-muted-foreground">{label}</p>
@@ -91,7 +203,7 @@ export function AdminDashboardView(props: ViewProps) {
         <div
           className="flex flex-wrap gap-2 border-b p-3"
           role="tablist"
-          aria-label="Admin sections"
+          aria-label={translate('admin:auto.admin_sections')}
         >
           {tabs.map((tab) => (
             <button
@@ -107,26 +219,30 @@ export function AdminDashboardView(props: ViewProps) {
         </div>
         <div className="p-3">
           <label className="sr-only" htmlFor="admin-search">
-            Search current admin section
+            {translate('admin:auto.search_current_admin_section')}
           </label>
           <input
             id="admin-search"
             value={props.search}
             onChange={(event) => props.onSearchChange(event.target.value)}
-            placeholder={props.activeTab === 'audit-log' ? 'Filter by exact event type' : 'Search'}
+            placeholder={
+              props.activeTab === 'audit-log'
+                ? translate('admin:auto.filter_by_exact_event_type')
+                : translate('admin:auto.search')
+            }
             className="w-full rounded-md border bg-background px-3 py-2 sm:max-w-sm"
           />
         </div>
         {props.isLoading ? (
-          <LoadingState label="Loading administration data" />
+          <LoadingState label={translate('admin:auto.loading_administration_data')} />
         ) : props.isError ? (
           <div className="p-6 text-sm text-destructive" role="alert">
-            Administration data could not be loaded. Please try again.
+            {translate('admin:auto.administration_data_could_not_be_loaded_please')}
           </div>
         ) : props.items.length === 0 ? (
           <EmptyState
-            title="No results"
-            description="No platform records match the current filters."
+            title={translate('admin:auto.no_results')}
+            description={translate('admin:auto.no_platform_records_match_the_current_filters')}
           />
         ) : (
           <div className="overflow-x-auto">

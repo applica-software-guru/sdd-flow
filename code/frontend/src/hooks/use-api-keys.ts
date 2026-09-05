@@ -3,6 +3,7 @@ import { queryKeys } from '../api/query-keys';
 import api from '../api/client';
 import { useToast } from '../context/toast';
 import type { ApiKey } from '../types';
+import { translate } from '@/i18n';
 
 export function useApiKeys(tenantId: string | undefined, projectId: string | undefined) {
   return useQuery<ApiKey[]>({
@@ -30,10 +31,10 @@ export function useCreateApiKey(tenantId: string, projectId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.apiKeys.all(tenantId, projectId),
       });
-      addToast('API key created', 'success');
+      addToast(translate('common:auto.api_key_created'), 'success');
     },
     onError: () => {
-      addToast('Failed to create API key', 'error');
+      addToast(translate('common:auto.failed_to_create_api_key'), 'error');
     },
   });
 }
@@ -49,10 +50,10 @@ export function useRevokeApiKey(tenantId: string, projectId: string, keyId: stri
       void queryClient.invalidateQueries({
         queryKey: queryKeys.apiKeys.all(tenantId, projectId),
       });
-      addToast('API key revoked', 'success');
+      addToast(translate('common:auto.api_key_revoked'), 'success');
     },
     onError: () => {
-      addToast('Failed to revoke API key', 'error');
+      addToast(translate('common:auto.failed_to_revoke_api_key'), 'error');
     },
   });
 }

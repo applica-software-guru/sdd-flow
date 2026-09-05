@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useCurrentUser } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
+import { translate } from '@/i18n';
 
 interface LandingCtaProps {
   anonymousLabel?: string;
@@ -12,8 +13,8 @@ interface LandingCtaProps {
   inverted?: boolean;
 }
 export default function LandingCta({
-  anonymousLabel = 'Get Started Free',
-  authenticatedLabel = 'Go to dashboard',
+  anonymousLabel = translate('landing:auto.get_started_free'),
+  authenticatedLabel = translate('landing:auto.go_to_dashboard'),
   className,
   size = 'lg',
   inverted,
@@ -23,7 +24,7 @@ export default function LandingCta({
     return (
       <div
         role="status"
-        aria-label="Checking session"
+        aria-label={translate('landing:auto.checking_session_2')}
         className={cn(
           'h-11 min-w-52 animate-pulse rounded-lg',
           inverted ? 'bg-white/35' : 'bg-primary/30',

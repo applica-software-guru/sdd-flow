@@ -1,5 +1,7 @@
 import { Menu, Search } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from '@/components/language-selector';
 import NotificationBell from '@/components/notification-bell';
 import WorkspaceSwitcher from '@/components/workspace-switcher';
 import ThemeToggle from '@/components/theme-toggle';
@@ -14,6 +16,7 @@ export default function AppTopBar({
   user?: User;
   onOpenNavigation: () => void;
 }) {
+  const { t } = useTranslation(['common', 'navigation']);
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-4">
       <div className="flex min-w-0 items-center gap-4">
@@ -22,7 +25,7 @@ export default function AppTopBar({
           size="icon"
           className="lg:hidden"
           onClick={onOpenNavigation}
-          aria-label="Open navigation"
+          aria-label={t('navigation:open')}
         >
           <Menu aria-hidden="true" />
         </Button>
@@ -45,8 +48,10 @@ export default function AppTopBar({
           }
         >
           <Search aria-hidden="true" />
-          Search… <kbd className="rounded bg-muted px-1.5 py-0.5 text-xs">⌘K</kbd>
+          {t('common:actions.search')}{' '}
+          <kbd className="rounded bg-muted px-1.5 py-0.5 text-xs">⌘K</kbd>
         </Button>
+        <LanguageSelector />
         <ThemeToggle />
         <NotificationBell />
         <UserMenu user={user} />

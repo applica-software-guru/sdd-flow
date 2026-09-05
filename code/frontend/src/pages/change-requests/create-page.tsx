@@ -6,6 +6,7 @@ import CreateWorkItemForm from '@/features/work-items/create-work-item-form';
 import { useCreateCR } from '@/hooks/use-change-requests';
 import { useProjectRoute } from '@/hooks/use-project-route';
 import { useTenantMembers } from '@/hooks/use-tenants';
+import { translate } from '@/i18n';
 
 export default function CreatePage() {
   const route = useProjectRoute();
@@ -15,23 +16,25 @@ export default function CreatePage() {
   if (!route)
     return (
       <PageContainer>
-        <p role="alert">Project route is incomplete.</p>
+        <p role="alert">{translate('change-requests:auto.project_route_is_incomplete')}</p>
       </PageContainer>
     );
   const backTo = `/tenants/${route.tenantId}/projects/${route.projectId}/crs`;
 
   return (
     <PageContainer className="space-y-6">
-      <BackLink to={backTo}>Back to CRs</BackLink>
+      <BackLink to={backTo}>{translate('change-requests:auto.back_to_crs')}</BackLink>
       <div>
-        <PageHeader title="New Change Request" />
+        <PageHeader title={translate('change-requests:auto.new_change_request')} />
         <CreateWorkItemForm
           backTo={backTo}
           filenamePrefix="change-requests"
-          titlePlaceholder="Brief description of the change"
-          submitLabel="Create change request"
-          pendingLabel="Creating…"
-          errorMessage="Failed to create change request. Please try again."
+          titlePlaceholder={translate('change-requests:auto.brief_description_of_the_change')}
+          submitLabel={translate('change-requests:auto.create_change_request')}
+          pendingLabel={translate('change-requests:auto.creating')}
+          errorMessage={translate(
+            'change-requests:auto.failed_to_create_change_request_please_try_again'
+          )}
           members={members}
           pending={createCR.isPending}
           failed={createCR.isError}

@@ -2,22 +2,26 @@ import { Bot, CircleCheck, Terminal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { previewWorkers } from '../preview-data';
+import { translate } from '@/i18n';
 
 export default function WorkerPreview() {
   return (
     <Card
       role="img"
-      aria-label="Remote worker orchestration preview"
+      aria-label={translate('landing:auto.remote_worker_orchestration_preview')}
       className="overflow-hidden shadow-xl"
     >
       <div aria-hidden="true">
         <div className="flex items-center justify-between border-b px-5 py-4">
           <div>
-            <h3 className="font-semibold">Remote workers</h3>
-            <p className="text-xs text-muted-foreground">Agents connected to this project</p>
+            <h3 className="font-semibold">{translate('landing:auto.remote_workers')}</h3>
+            <p className="text-xs text-muted-foreground">
+              {translate('landing:auto.agents_connected_to_this_project')}
+            </p>
           </div>
           <Badge variant="secondary">
-            <CircleCheck className="mr-1 h-3.5 w-3.5" />2 online
+            <CircleCheck className="mr-1 h-3.5 w-3.5" />
+            {translate('landing:auto.2_online')}
           </Badge>
         </div>
         <div className="divide-y">
@@ -33,7 +37,7 @@ export default function WorkerPreview() {
                 </p>
               </div>
               <Badge variant={worker.state === 'Busy' ? 'default' : 'outline'}>
-                {worker.state}
+                {translate(`common:status.${worker.state.toLowerCase()}`)}
               </Badge>
             </div>
           ))}
@@ -41,10 +45,14 @@ export default function WorkerPreview() {
         <div className="border-t bg-zinc-950 p-4 font-mono text-xs text-zinc-300">
           <p className="flex items-center gap-2 text-emerald-400">
             <Terminal className="h-4 w-4" />
-            worker apply CR-038
+            {translate('landing:auto.worker_apply_cr_038')}
           </p>
-          <p className="mt-2 text-zinc-500">→ Reading synchronized documentation</p>
-          <p className="mt-1 text-zinc-500">→ Updating typed preview components</p>
+          <p className="mt-2 text-zinc-500">
+            {translate('landing:auto.reading_synchronized_documentation')}
+          </p>
+          <p className="mt-1 text-zinc-500">
+            {translate('landing:auto.updating_typed_preview_components')}
+          </p>
         </div>
       </div>
     </Card>

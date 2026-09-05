@@ -3,6 +3,7 @@ import { queryKeys } from '../api/query-keys';
 import api from '../api/client';
 import { useToast } from '../context/toast';
 import type { AssignmentHistoryEntry, ChangeRequest, PaginatedResponse } from '../types';
+import { translate } from '@/i18n';
 
 interface CRFilters {
   status?: string;
@@ -72,10 +73,10 @@ export function useCreateCR(tenantId: string, projectId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.changeRequests.all(tenantId, projectId),
       });
-      addToast('Change request created', 'success');
+      addToast(translate('common:auto.change_request_created'), 'success');
     },
     onError: () => {
-      addToast('Failed to create change request', 'error');
+      addToast(translate('common:auto.failed_to_create_change_request'), 'error');
     },
   });
 }
@@ -100,10 +101,10 @@ export function useUpdateCR(tenantId: string, projectId: string, crId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.changeRequests.all(tenantId, projectId),
       });
-      addToast('Change request updated', 'success');
+      addToast(translate('common:auto.change_request_updated'), 'success');
     },
     onError: () => {
-      addToast('Failed to update change request', 'error');
+      addToast(translate('common:auto.failed_to_update_change_request'), 'error');
     },
   });
 }
@@ -123,10 +124,10 @@ export function useTransitionCR(tenantId: string, projectId: string, crId: strin
       void queryClient.invalidateQueries({
         queryKey: queryKeys.changeRequests.all(tenantId, projectId),
       });
-      addToast('Status updated', 'success');
+      addToast(translate('common:auto.status_updated'), 'success');
     },
     onError: () => {
-      addToast('Failed to update status', 'error');
+      addToast(translate('common:auto.failed_to_update_status'), 'error');
     },
   });
 }
@@ -149,10 +150,10 @@ export function useAssignCR(tenantId: string, projectId: string, crId: string) {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.changeRequests.assignments(tenantId, projectId, crId),
       });
-      addToast('Assignee updated', 'success');
+      addToast(translate('common:auto.assignee_updated'), 'success');
     },
     onError: () => {
-      addToast('Failed to update assignee', 'error');
+      addToast(translate('common:auto.failed_to_update_assignee'), 'error');
     },
   });
 }

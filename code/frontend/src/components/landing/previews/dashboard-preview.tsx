@@ -12,38 +12,98 @@ import {
   Settings,
 } from 'lucide-react';
 import PreviewFrame from '../preview-frame';
+import { translate } from '@/i18n';
 
 const tenantKpis = [
-  { label: 'Projects', value: '6', detail: '1 archived', icon: Folder },
-  { label: 'Documentation', value: '89%', detail: '148 files · 16 pending', icon: FileText },
-  { label: 'Open bugs', value: '12', detail: '2 critical · 5 major', icon: Bug, alert: true },
-  { label: 'Active CRs', value: '21', detail: '8 waiting', icon: GitPullRequest },
-  { label: 'Comments', value: '94', detail: '7 collaborators', icon: MessageSquare },
-  { label: 'Activity', value: '240', detail: '3/5 workers online', icon: Activity },
+  {
+    get label() {
+      return translate('landing:auto.projects');
+    },
+    value: '6',
+    get detail() {
+      return translate('landing:auto.1_archived');
+    },
+    icon: Folder,
+  },
+  {
+    get label() {
+      return translate('landing:auto.documentation');
+    },
+    value: '89%',
+    get detail() {
+      return translate('landing:auto.148_files_16_pending');
+    },
+    icon: FileText,
+  },
+  {
+    get label() {
+      return translate('landing:auto.open_bugs');
+    },
+    value: '12',
+    get detail() {
+      return translate('landing:auto.2_critical_5_major');
+    },
+    icon: Bug,
+    alert: true,
+  },
+  {
+    get label() {
+      return translate('landing:auto.active_crs');
+    },
+    value: '21',
+    get detail() {
+      return translate('landing:auto.8_waiting');
+    },
+    icon: GitPullRequest,
+  },
+  {
+    get label() {
+      return translate('landing:auto.comments');
+    },
+    value: '94',
+    get detail() {
+      return translate('landing:auto.7_collaborators');
+    },
+    icon: MessageSquare,
+  },
+  {
+    get label() {
+      return translate('landing:auto.activity');
+    },
+    value: '240',
+    get detail() {
+      return translate('landing:auto.3_5_workers_online');
+    },
+    icon: Activity,
+  },
 ];
 
 export default function DashboardPreview() {
   return (
-    <PreviewFrame label="Tenant project dashboard preview">
+    <PreviewFrame label={translate('landing:auto.tenant_project_dashboard_preview')}>
       <PreviewTopBar />
       <div className="flex min-h-80">
         <aside className="hidden w-40 shrink-0 border-r bg-card p-3 sm:block">
-          <PreviewNav icon={Gauge} label="Dashboard" active />
-          <PreviewNav icon={Settings} label="Settings" />
-          <PreviewNav icon={History} label="Audit Log" />
+          <PreviewNav icon={Gauge} label={translate('landing:auto.dashboard')} active />
+          <PreviewNav icon={Settings} label={translate('landing:auto.settings')} />
+          <PreviewNav icon={History} label={translate('landing:auto.audit_log')} />
           <div className="mt-3 border-t pt-3 text-[10px] leading-4 text-muted-foreground">
-            Choose a project from the dashboard.
+            {translate('landing:auto.choose_a_project_from_the_dashboard')}
           </div>
         </aside>
         <div className="min-w-0 flex-1 bg-muted/20 p-4 sm:p-6">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] font-medium text-primary">Tenant dashboard</p>
-              <h3 className="text-lg font-bold">Default</h3>
-              <p className="text-xs text-muted-foreground">Overview across all projects</p>
+              <p className="text-[10px] font-medium text-primary">
+                {translate('landing:auto.tenant_dashboard')}
+              </p>
+              <h3 className="text-lg font-bold">{translate('landing:auto.default')}</h3>
+              <p className="text-xs text-muted-foreground">
+                {translate('landing:auto.overview_across_all_projects')}
+              </p>
             </div>
             <span className="inline-flex items-center gap-1 rounded bg-primary px-2 py-1 text-[10px] font-medium text-primary-foreground">
-              <Plus className="h-3 w-3" /> New project
+              <Plus className="h-3 w-3" /> {translate('landing:auto.new_project')}
             </span>
           </div>
 
@@ -60,8 +120,8 @@ export default function DashboardPreview() {
                     <span
                       className={
                         kpi.alert
-                          ? 'rounded bg-destructive/10 p-1 text-destructive'
-                          : 'rounded bg-primary/10 p-1 text-primary'
+                          ? translate('landing:auto.rounded_bg_destructive_10_p_1_text')
+                          : translate('landing:auto.rounded_bg_primary_10_p_1_text')
                       }
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -76,33 +136,35 @@ export default function DashboardPreview() {
           <div className="mt-5 border-t-2 pt-4">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold">Projects</p>
+                <p className="text-sm font-semibold">{translate('landing:auto.projects')}</p>
                 <p className="text-[10px] text-muted-foreground">
-                  Search, sort, and open a project.
+                  {translate('landing:auto.search_sort_and_open_a_project')}
                 </p>
               </div>
               <div className="hidden items-center gap-2 md:flex">
                 <span className="inline-flex items-center gap-1 rounded-md border bg-background px-2 py-1 text-[10px] text-muted-foreground">
-                  <Search className="h-3 w-3" /> Search projects
+                  <Search className="h-3 w-3" /> {translate('landing:auto.search_projects')}
                 </span>
                 <span className="rounded-md border bg-background px-2 py-1 text-[10px] text-muted-foreground">
-                  Recent activity
+                  {translate('landing:auto.recent_activity')}
                 </span>
               </div>
             </div>
             <div className="mt-3 max-w-sm rounded-lg border bg-card p-3 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm font-semibold">Hello Project</p>
-                  <p className="text-[10px] text-muted-foreground">Main SDD workspace</p>
+                  <p className="text-sm font-semibold">{translate('landing:auto.hello_project')}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {translate('landing:auto.main_sdd_workspace')}
+                  </p>
                 </div>
                 <Folder className="h-4 w-4 text-muted-foreground" />
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-[10px]">
-                <PreviewMetric label="Docs" value="29/34" />
-                <PreviewMetric label="Open bugs" value="4" />
-                <PreviewMetric label="Active CRs" value="6" />
-                <PreviewMetric label="Comments" value="18" />
+                <PreviewMetric label={translate('landing:auto.docs')} value="29/34" />
+                <PreviewMetric label={translate('landing:auto.open_bugs')} value="4" />
+                <PreviewMetric label={translate('landing:auto.active_crs')} value="6" />
+                <PreviewMetric label={translate('landing:auto.comments')} value="18" />
               </div>
             </div>
           </div>
@@ -129,7 +191,7 @@ export function PreviewTopBar() {
       </span>
       <span className="ml-2 font-semibold">SDD Flow</span>
       <span className="ml-4 rounded border bg-background px-2 py-1 text-muted-foreground">
-        Default
+        {translate('landing:auto.default')}
       </span>
       <Search className="ml-auto h-4 w-4 text-muted-foreground" />
     </div>

@@ -1,0 +1,9 @@
+{
+  "auto": {
+    "notifications": "Notifiche",
+    "mark_all_read": "Segna tutti come letti",
+    "no_notifications": "Nessuna notifica"
+  },
+  "unread_one": "{{count}} notifica non letta",
+  "unread_other": "{{count}} notifiche non lette"
+}

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { WorkerJobMessage } from '../types';
 import MarkdownRenderer from './markdown-renderer';
+import { translate } from '@/i18n';
 
 interface WorkerTerminalProps {
   messages: WorkerJobMessage[];
@@ -18,7 +19,7 @@ export default function WorkerTerminal({ messages, isStreaming }: WorkerTerminal
     <div className="max-h-[600px] min-h-[200px] overflow-auto rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-800">
       {messages.length === 0 && isStreaming && (
         <div className="animate-pulse p-4 font-mono text-sm text-slate-500">
-          Waiting for output...
+          {translate('workers:auto.waiting_for_output')}
         </div>
       )}
       {messages.map((msg) => {

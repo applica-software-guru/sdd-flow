@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { translate } from '@/i18n';
 
 interface SectionHeadingProps {
   eyebrow?: string;
@@ -18,7 +19,7 @@ export default function SectionHeading({
     <div
       className={cn(
         'mb-12',
-        align === 'center' ? 'mx-auto max-w-3xl text-center' : 'max-w-xl',
+        align === 'center' ? translate('landing:auto.mx_auto_max_w_3xl_text_center') : 'max-w-xl',
         className
       )}
     >

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import LandingNavbar from '../../components/landing/landing-navbar';
+import { translate } from '@/i18n';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -7,155 +8,156 @@ export default function PrivacyPolicyPage() {
       <LandingNavbar />
 
       <main className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Privacy Policy</h1>
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+          {translate('common:auto.privacy_policy')}
+        </h1>
         <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          Last updated: April 19, 2026
+          {translate('common:auto.last_updated_april_19_2026')}
         </p>
 
         <div className="mt-10 space-y-10 text-slate-700 dark:text-slate-300">
           <section>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">1. Who we are</h2>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+              {translate('common:auto.1_who_we_are')}
+            </h2>
             <p className="mt-3 text-sm leading-relaxed">
-              SDD Flow is operated by <strong>Applica Software Guru</strong> (
+              {translate('common:auto.sdd_flow_is_operated_by')}
+              <strong>{translate('common:auto.applica_software_guru')}</strong> (
               <a
                 href="mailto:bruno.fortunato@applica.guru"
                 className="text-blue-600 hover:underline dark:text-blue-400"
               >
-                bruno.fortunato@applica.guru
+                {translate('common:auto.bruno_fortunato_applica_guru')}
               </a>
-              ). This policy explains what data we collect, why, and your rights over it.
+              {translate('common:auto.this_policy_explains_what_data_we_collect')}
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-              2. Data we collect
+              {translate('common:auto.2_data_we_collect')}
             </h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed">
               <li>
-                <strong>Account data</strong>: email address, name, and hashed password when you
-                register.
+                <strong>{translate('common:auto.account_data')}</strong>
+                {translate('common:auto.email_address_name_and_hashed_password_when')}
               </li>
               <li>
-                <strong>Project data</strong>: SDD documentation files (docs, change requests, bugs)
-                you upload or sync via the CLI.
+                <strong>{translate('common:auto.project_data')}</strong>
+                {translate('common:auto.sdd_documentation_files_docs_change_requests_bugs')}
               </li>
               <li>
-                <strong>Usage data</strong>: basic server logs (IP address, timestamps, HTTP status
-                codes) for security and reliability purposes.
+                <strong>{translate('common:auto.usage_data')}</strong>
+                {translate('common:auto.basic_server_logs_ip_address_timestamps_http')}
               </li>
               <li>
-                <strong>Authentication tokens</strong>: short-lived JWT access tokens and 7-day
-                refresh tokens stored in HTTP-only cookies.
+                <strong>{translate('common:auto.authentication_tokens')}</strong>
+                {translate('common:auto.short_lived_jwt_access_tokens_and_7')}
               </li>
             </ul>
             <p className="mt-3 text-sm leading-relaxed">
-              We do not collect payment information, run advertising trackers, or sell your data to
-              third parties.
+              {translate('common:auto.we_do_not_collect_payment_information_run')}
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-              3. How we use your data
+              {translate('common:auto.3_how_we_use_your_data')}
             </h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed">
-              <li>To provide and operate the SDD Flow service.</li>
-              <li>To authenticate you and keep your session secure.</li>
-              <li>To store and sync your SDD project documentation across devices.</li>
+              <li>{translate('common:auto.to_provide_and_operate_the_sdd_flow')}</li>
+              <li>{translate('common:auto.to_authenticate_you_and_keep_your_session')}</li>
+              <li>{translate('common:auto.to_store_and_sync_your_sdd_project')}</li>
+              <li>{translate('common:auto.to_dispatch_ai_agent_jobs_to_your')}</li>
               <li>
-                To dispatch AI agent jobs to your registered worker machines when you use the remote
-                worker feature.
-              </li>
-              <li>
-                To send transactional emails (password reset, invitations) when you request them.
+                {translate('common:auto.to_send_transactional_emails_password_reset_invitations')}
               </li>
             </ul>
           </section>
 
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-              4. Data storage and security
+              {translate('common:auto.4_data_storage_and_security')}
             </h2>
             <p className="mt-3 text-sm leading-relaxed">
-              Data is stored in a PostgreSQL database hosted on Google Cloud (Cloud Run + Cloud
-              SQL). All traffic is encrypted in transit via HTTPS/TLS. Passwords are hashed and
-              never stored in plain text. We apply the principle of least privilege: each component
-              only accesses the data it needs.
+              {translate('common:auto.data_is_stored_in_a_postgresql_database')}
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-              5. Data retention
+              {translate('common:auto.5_data_retention')}
             </h2>
             <p className="mt-3 text-sm leading-relaxed">
-              Your data is retained as long as your account is active. If you delete your account or
-              a project, the associated data is permanently removed from our systems within 30 days.
+              {translate('common:auto.your_data_is_retained_as_long_as')}
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-              6. Third-party services
+              {translate('common:auto.6_third_party_services')}
             </h2>
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed">
               <li>
-                <strong>Google OAuth</strong>: if you sign in with Google, we receive your email and
-                name from Google. We do not store your Google password.
+                <strong>{translate('common:auto.google_oauth')}</strong>
+                {translate('common:auto.if_you_sign_in_with_google_we')}
               </li>
               <li>
-                <strong>Google Cloud</strong>: infrastructure provider for hosting and database.
+                <strong>{translate('common:auto.google_cloud')}</strong>
+                {translate('common:auto.infrastructure_provider_for_hosting_and_database')}
               </li>
               <li>
-                <strong>Cloudflare Pages</strong>: CDN and hosting for the frontend.
+                <strong>{translate('common:auto.cloudflare_pages')}</strong>
+                {translate('common:auto.cdn_and_hosting_for_the_frontend')}
               </li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">7. Your rights</h2>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+              {translate('common:auto.7_your_rights')}
+            </h2>
             <p className="mt-3 text-sm leading-relaxed">
-              You have the right to access, correct, export, or delete your personal data at any
-              time. To exercise these rights, contact us at{' '}
+              {translate('common:auto.you_have_the_right_to_access_correct')}{' '}
               <a
                 href="mailto:bruno.fortunato@applica.guru"
                 className="text-blue-600 hover:underline dark:text-blue-400"
               >
-                bruno.fortunato@applica.guru
+                {translate('common:auto.bruno_fortunato_applica_guru')}
               </a>
-              . We will respond within 30 days.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">8. Cookies</h2>
-            <p className="mt-3 text-sm leading-relaxed">
-              We use HTTP-only cookies solely for authentication (access and refresh tokens). We do
-              not use tracking or advertising cookies.
+              {translate('common:auto.we_will_respond_within_30_days')}
             </p>
           </section>
 
           <section>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-              9. Changes to this policy
+              {translate('common:auto.8_cookies')}
             </h2>
             <p className="mt-3 text-sm leading-relaxed">
-              We may update this policy from time to time. Changes will be posted on this page with
-              an updated date. Continued use of the service after changes constitutes acceptance of
-              the updated policy.
+              {translate('common:auto.we_use_http_only_cookies_solely_for')}
             </p>
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">10. Contact</h2>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+              {translate('common:auto.9_changes_to_this_policy')}
+            </h2>
             <p className="mt-3 text-sm leading-relaxed">
-              For any privacy-related questions, contact:{' '}
+              {translate('common:auto.we_may_update_this_policy_from_time')}
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
+              {translate('common:auto.10_contact')}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed">
+              {translate('common:auto.for_any_privacy_related_questions_contact')}{' '}
               <a
                 href="mailto:bruno.fortunato@applica.guru"
                 className="text-blue-600 hover:underline dark:text-blue-400"
               >
-                bruno.fortunato@applica.guru
+                {translate('common:auto.bruno_fortunato_applica_guru')}
               </a>
             </p>
           </section>
@@ -163,7 +165,7 @@ export default function PrivacyPolicyPage() {
 
         <div className="mt-16 border-t border-slate-200 pt-8 dark:border-slate-700">
           <Link to="/" className="text-sm text-blue-600 hover:underline dark:text-blue-400">
-            ← Back to home
+            {translate('common:auto.back_to_home')}
           </Link>
         </div>
       </main>

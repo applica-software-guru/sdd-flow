@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCreateTenant } from '../../hooks/use-tenants';
 import PageContainer from '../../components/page-container';
+import { translate } from '@/i18n';
 
 export default function CreatePage() {
   const [name, setName] = useState('');
@@ -46,13 +47,13 @@ export default function CreatePage() {
               d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"
             />
           </svg>
-          Back
+          {translate('tenants:auto.back')}
         </Link>
         <h1 className="mt-4 text-2xl font-bold text-slate-900 dark:text-slate-100">
-          Create a new tenant
+          {translate('tenants:auto.create_a_new_tenant')}
         </h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          A tenant represents your organization or team
+          {translate('tenants:auto.a_tenant_represents_your_organization_or_team')}
         </p>
       </div>
 
@@ -60,7 +61,7 @@ export default function CreatePage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {createTenant.isError && (
             <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
-              Failed to create tenant. The slug may already be taken.
+              {translate('tenants:auto.failed_to_create_tenant_the_slug_may')}
             </div>
           )}
 
@@ -69,7 +70,7 @@ export default function CreatePage() {
               htmlFor="name"
               className="block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
-              Tenant name
+              {translate('tenants:auto.tenant_name')}
             </label>
             <input
               id="name"
@@ -78,7 +79,7 @@ export default function CreatePage() {
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder-slate-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-              placeholder="My Organization"
+              placeholder={translate('tenants:auto.my_organization')}
             />
           </div>
 
@@ -87,7 +88,7 @@ export default function CreatePage() {
               htmlFor="slug"
               className="block text-sm font-medium text-slate-700 dark:text-slate-300"
             >
-              Slug
+              {translate('tenants:auto.slug')}
             </label>
             <input
               id="slug"
@@ -96,10 +97,10 @@ export default function CreatePage() {
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder-slate-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-              placeholder="my-organization"
+              placeholder={translate('tenants:auto.my_organization_2')}
             />
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              URL-friendly identifier. Only lowercase letters, numbers, and hyphens.
+              {translate('tenants:auto.url_friendly_identifier_only_lowercase_letters_numbers')}
             </p>
           </div>
 
@@ -108,7 +109,7 @@ export default function CreatePage() {
               to="/tenants"
               className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
             >
-              Cancel
+              {translate('tenants:auto.cancel')}
             </Link>
             <button
               type="submit"
@@ -118,7 +119,7 @@ export default function CreatePage() {
               {createTenant.isPending ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
               ) : (
-                'Create tenant'
+                translate('tenants:auto.create_tenant')
               )}
             </button>
           </div>

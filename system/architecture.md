@@ -2,8 +2,8 @@
 title: "Architecture Decisions"
 status: synced
 author: ""
-last-modified: "2026-09-05T09:25:42.000Z"
-version: "2.7"
+last-modified: "2026-09-05T12:37:13.000Z"
+version: "2.8"
 ---
 
 # Architecture Decisions
@@ -125,6 +125,17 @@ controllers (api/) → service classes (services/) → repositories (repositorie
 - **Workspace switcher composition**: the app shell exposes a shared workspace switcher in the desktop top bar and mobile drawer. The switcher reads current route params, shows tenant groups with nested project rows, supports client-side search over the compact navigation payload, and navigates to tenant overview or project dashboard routes without changing the tenant dashboard project list
 - **Accessibility**: dialogs, alerts, selects and dropdowns use Radix/shadcn semantics; icon controls are labelled and keyboard/focus behaviour is covered by interaction tests
 - **Toolchain**: filename-convention validation, ESLint (type-aware plus JSX accessibility), strict TypeScript, Prettier with Tailwind class ordering, Vitest/Testing Library, Playwright and production build are exposed through `npm run check` and the frontend `cli.sh`
+
+### Frontend Internationalization
+
+- `i18next` and `react-i18next` provide typed English and Italian resources organized into domain namespaces; English is the canonical resource shape and fallback language
+- i18n initializes before React renders. `i18next-browser-languagedetector` resolves `localStorage` (`sdd-flow-language`) before browser language, normalizes locale variants, and falls back to English
+- one shared selector serves public, authentication, desktop, and mobile shells; language changes update visible and accessibility copy immediately and synchronize the `<html lang>` attribute
+- components translate at render time with explicit namespaces. Static navigation and label maps retain translation keys rather than translated values captured during module initialization
+- locale-aware date, date-time, number, interpolation, plural, status, role, event, and job labels are produced at the presentation boundary
+- API payloads, query keys, route values, enum wire values, slugs, identifiers, user-generated content, and persisted domain content remain language-neutral
+- catalog validation enforces matching namespace, key, value-shape, interpolation, and plural structures between English and Italian
+- language preference is frontend-local and does not modify the user entity or require a backend interface
 
 ### Database: MongoDB 7.0
 

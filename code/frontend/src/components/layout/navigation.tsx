@@ -9,6 +9,7 @@ import {
   Workflow,
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 
 interface NavigationProps {
@@ -38,26 +39,27 @@ export default function Navigation({
   isSuperUser,
   onNavigate,
 }: NavigationProps) {
+  const { t } = useTranslation('navigation');
   const adminLink = isSuperUser ? (
     <NavLink to="/admin" className={linkClass} onClick={onNavigate}>
       <Shield aria-hidden="true" />
-      Platform Admin
+      {t('platformAdmin')}
     </NavLink>
   ) : null;
   if (!tenantId)
     return (
-      <nav aria-label="Main navigation" className="flex flex-col gap-1">
+      <nav aria-label={t('main')} className="flex flex-col gap-1">
         {adminLink}
-        <p className="px-3 py-2 text-sm text-muted-foreground">Select a tenant to continue.</p>
+        <p className="px-3 py-2 text-sm text-muted-foreground">{t('selectTenant')}</p>
       </nav>
     );
 
   const tenantItems = [
-    { to: `/tenants/${tenantId}`, label: 'Dashboard', Icon: Gauge, end: true, visible: true },
-    { to: `/tenants/${tenantId}/settings`, label: 'Settings', Icon: Settings, visible: isAdmin },
+    { to: `/tenants/${tenantId}`, label: t('dashboard'), Icon: Gauge, end: true, visible: true },
+    { to: `/tenants/${tenantId}/settings`, label: t('settings'), Icon: Settings, visible: isAdmin },
     {
       to: `/tenants/${tenantId}/audit-log`,
-      label: 'Audit Log',
+      label: t('auditLog'),
       Icon: ScrollText,
       visible: isAdmin,
     },
@@ -66,32 +68,36 @@ export default function Navigation({
     ? [
         {
           to: `/tenants/${tenantId}/projects/${projectId}`,
-          label: 'Overview',
+          label: t('overview'),
           Icon: Gauge,
           end: true,
         },
         {
           to: `/tenants/${tenantId}/projects/${projectId}/crs`,
-          label: 'Change Requests',
+          label: t('changeRequests'),
           Icon: FileText,
         },
-        { to: `/tenants/${tenantId}/projects/${projectId}/bugs`, label: 'Bugs', Icon: Bug },
-        { to: `/tenants/${tenantId}/projects/${projectId}/docs`, label: 'Docs', Icon: ScrollText },
+        { to: `/tenants/${tenantId}/projects/${projectId}/bugs`, label: t('bugs'), Icon: Bug },
+        {
+          to: `/tenants/${tenantId}/projects/${projectId}/docs`,
+          label: t('docs'),
+          Icon: ScrollText,
+        },
         {
           to: `/tenants/${tenantId}/projects/${projectId}/workers`,
-          label: 'Workers',
+          label: t('workers'),
           Icon: UsersRound,
         },
         {
           to: `/tenants/${tenantId}/projects/${projectId}/settings`,
-          label: 'Settings',
+          label: t('settings'),
           Icon: Settings,
         },
       ]
     : [];
 
   return (
-    <nav aria-label="Main navigation" className="flex flex-col gap-1">
+    <nav aria-label={t('main')} className="flex flex-col gap-1">
       {adminLink}
       {adminLink && <div className="my-2 border-t" />}
       {tenantItems
@@ -109,7 +115,7 @@ export default function Navigation({
             className="truncate px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground"
             title={projectName}
           >
-            Inside {projectName || 'project'}
+            {t('insideProject', { project: projectName || t('projectFallback') })}
           </p>
           {projectItems.map(({ to, label, Icon, end }) => (
             <NavLink key={to} to={to} end={end} className={projectLinkClass} onClick={onNavigate}>
@@ -122,7 +128,7 @@ export default function Navigation({
       {!projectId && (
         <div className="mt-2 flex items-center gap-2 px-3 text-xs text-muted-foreground">
           <Workflow aria-hidden="true" />
-          Choose a project from the dashboard.
+          {t('chooseProject')}
         </div>
       )}
     </nav>

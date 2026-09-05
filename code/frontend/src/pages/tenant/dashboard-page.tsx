@@ -26,22 +26,29 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useTenantDashboard, useTenants } from '@/hooks/use-tenants';
-import { formatDateOnly } from '@/lib/format';
+import { formatDateOnly, formatNumber } from '@/lib/format';
 import type { TenantDashboardKpis, TenantDashboardProject } from '@/types';
+import { translate } from '@/i18n';
 
 const sortLabels = {
-  activity: 'Recent activity',
-  bugs: 'Open bugs',
-  crs: 'Active CRs',
-  docs: 'Docs sync',
-  name: 'Name',
+  get activity() {
+    return translate('tenants:auto.recent_activity');
+  },
+  get bugs() {
+    return translate('tenants:auto.open_bugs');
+  },
+  get crs() {
+    return translate('tenants:auto.active_crs');
+  },
+  get docs() {
+    return translate('tenants:auto.docs_sync');
+  },
+  get name() {
+    return translate('tenants:auto.name');
+  },
 } as const;
 
 type SortKey = keyof typeof sortLabels;
-
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat().format(value);
-}
 
 function syncPercentage(project: TenantDashboardProject): number {
   const { documents_synced: synced, documents_total: total } = project.stats;
@@ -64,19 +71,19 @@ function sortProjects(projects: TenantDashboardProject[], sort: SortKey): Tenant
 function TenantPicker() {
   const { data: tenants, isLoading } = useTenants();
 
-  if (isLoading) return <LoadingState label="Loading tenants" />;
+  if (isLoading) return <LoadingState label={translate('tenants:auto.loading_tenants')} />;
 
   if (!tenants || tenants.length === 0) {
     return (
       <PageContainer>
         <EmptyState
-          title="No tenants yet"
-          description="Create your first tenant to get started"
+          title={translate('tenants:auto.no_tenants_yet')}
+          description={translate('tenants:auto.create_your_first_tenant_to_get_started')}
           action={
             <Button asChild>
               <Link to="/tenants/new">
                 <Plus />
-                Create tenant
+                {translate('tenants:auto.create_tenant')}
               </Link>
             </Button>
           }
@@ -90,11 +97,13 @@ function TenantPicker() {
   return (
     <PageContainer>
       <div className="mb-6 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-foreground">Select a Tenant</h1>
+        <h1 className="text-2xl font-bold text-foreground">
+          {translate('tenants:auto.select_a_tenant')}
+        </h1>
         <Button asChild>
           <Link to="/tenants/new">
             <Plus />
-            New tenant
+            {translate('tenants:auto.new_tenant')}
           </Link>
         </Button>
       </div>
@@ -123,14 +132,20 @@ function TenantPicker() {
 function KpiGrid({ kpis }: { kpis: TenantDashboardKpis }) {
   const cards = [
     {
-      title: 'Projects',
+      get title() {
+        return translate('tenants:auto.projects');
+      },
       value: formatNumber(kpis.active_projects),
       description:
-        kpis.archived_projects > 0 ? `${kpis.archived_projects} archived` : 'Active portfolio',
+        kpis.archived_projects > 0
+          ? `${kpis.archived_projects} archived`
+          : translate('tenants:auto.active_portfolio'),
       icon: FolderKanban,
     },
     {
-      title: 'Documentation',
+      get title() {
+        return translate('tenants:auto.documentation');
+      },
       value: `${kpis.docs_sync_percentage}%`,
       description: `${formatNumber(kpis.documents_total)} files · ${formatNumber(
         kpis.documents_pending
@@ -138,26 +153,34 @@ function KpiGrid({ kpis }: { kpis: TenantDashboardKpis }) {
       icon: FileText,
     },
     {
-      title: 'Open bugs',
+      get title() {
+        return translate('tenants:auto.open_bugs');
+      },
       value: formatNumber(kpis.open_bugs),
       description: `${kpis.critical_bugs} critical · ${kpis.major_bugs} major`,
       icon: Bug,
       warning: kpis.critical_bugs > 0,
     },
     {
-      title: 'Active CRs',
+      get title() {
+        return translate('tenants:auto.active_crs');
+      },
       value: formatNumber(kpis.active_crs),
       description: `${formatNumber(kpis.review_queue_crs)} waiting for review/apply`,
       icon: GitPullRequest,
     },
     {
-      title: 'Comments',
+      get title() {
+        return translate('tenants:auto.comments');
+      },
       value: formatNumber(kpis.comments_in_window),
       description: `${formatNumber(kpis.distinct_commenters_in_window)} collaborators in 30 days`,
       icon: MessageSquare,
     },
     {
-      title: 'Activity',
+      get title() {
+        return translate('tenants:auto.activity');
+      },
       value: formatNumber(kpis.activity_events_in_window),
       description: `${kpis.workers_online}/${kpis.workers_total} workers online`,
       icon: Activity,
@@ -181,8 +204,8 @@ function KpiGrid({ kpis }: { kpis: TenantDashboardKpis }) {
               <div
                 className={
                   card.warning
-                    ? 'rounded-lg bg-destructive/10 p-2 text-destructive'
-                    : 'rounded-lg bg-primary/10 p-2 text-primary'
+                    ? translate('tenants:auto.rounded_lg_bg_destructive_10_p_2')
+                    : translate('tenants:auto.rounded_lg_bg_primary_10_p_2')
                 }
               >
                 <Icon className="h-5 w-5" aria-hidden="true" />
@@ -220,10 +243,10 @@ function ProjectPortfolio({
       <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h2 id="tenant-projects-heading" className="text-lg font-semibold text-foreground">
-            Projects
+            {translate('tenants:auto.projects')}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Search, sort, and open a project from this tenant.
+            {translate('tenants:auto.search_sort_and_open_a_project_from')}
           </p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:flex-row md:w-auto">
@@ -235,13 +258,13 @@ function ProjectPortfolio({
             <Input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search projects"
+              placeholder={translate('tenants:auto.search_projects')}
               className="pl-9"
-              aria-label="Search projects"
+              aria-label={translate('tenants:auto.search_projects')}
             />
           </div>
           <Select value={sort} onValueChange={(value) => setSort(value as SortKey)}>
-            <SelectTrigger className="sm:w-44" aria-label="Sort projects">
+            <SelectTrigger className="sm:w-44" aria-label={translate('tenants:auto.sort_projects')}>
               <ArrowUpDown className="mr-2 h-4 w-4" aria-hidden="true" />
               <SelectValue />
             </SelectTrigger>
@@ -258,7 +281,7 @@ function ProjectPortfolio({
 
       {visibleProjects.length === 0 ? (
         <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          No projects match your search.
+          {translate('tenants:auto.no_projects_match_your_search')}
         </p>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
@@ -274,10 +297,12 @@ function ProjectPortfolio({
                     <h3 className="font-semibold text-foreground group-hover:text-primary">
                       {project.name}
                     </h3>
-                    {project.archived_at && <Badge variant="secondary">Archived</Badge>}
+                    {project.archived_at && (
+                      <Badge variant="secondary">{translate('tenants:auto.archived')}</Badge>
+                    )}
                   </div>
                   <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                    {project.description || 'No description'}
+                    {project.description || translate('common:fallback.noDescription')}
                   </p>
                 </div>
                 <FolderKanban
@@ -287,15 +312,27 @@ function ProjectPortfolio({
               </div>
               <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
                 <Metric
-                  label="Docs"
+                  label={translate('tenants:auto.docs')}
                   value={`${project.stats.documents_synced}/${project.stats.documents_total}`}
                 />
-                <Metric label="Pending docs" value={project.stats.documents_pending} />
-                <Metric label="Open bugs" value={project.stats.open_bugs} />
-                <Metric label="Active CRs" value={project.stats.active_crs} />
-                <Metric label="Comments" value={project.stats.comments_in_window} />
                 <Metric
-                  label="Workers"
+                  label={translate('tenants:auto.pending_docs')}
+                  value={project.stats.documents_pending}
+                />
+                <Metric
+                  label={translate('tenants:auto.open_bugs')}
+                  value={project.stats.open_bugs}
+                />
+                <Metric
+                  label={translate('tenants:auto.active_crs')}
+                  value={project.stats.active_crs}
+                />
+                <Metric
+                  label={translate('tenants:auto.comments')}
+                  value={project.stats.comments_in_window}
+                />
+                <Metric
+                  label={translate('tenants:auto.workers')}
                   value={`${project.stats.workers_online}/${project.stats.workers_total}`}
                 />
               </div>
@@ -330,15 +367,15 @@ export default function DashboardPage() {
 
   if (!tenantId) return <TenantPicker />;
 
-  if (isLoading) return <LoadingState label="Loading tenant dashboard" />;
+  if (isLoading) return <LoadingState label={translate('tenants:auto.loading_tenant_dashboard')} />;
 
   if (isError || !dashboard) {
     return (
       <PageContainer>
         <EmptyState
-          title="Dashboard unavailable"
-          description="We could not load tenant KPIs right now. Please try again."
-          action={<Button onClick={() => void refetch()}>Retry</Button>}
+          title={translate('tenants:auto.dashboard_unavailable')}
+          description={translate('tenants:auto.we_could_not_load_tenant_kpis_right')}
+          action={<Button onClick={() => void refetch()}>{translate('tenants:auto.retry')}</Button>}
         />
       </PageContainer>
     );
@@ -348,23 +385,26 @@ export default function DashboardPage() {
     <PageContainer>
       <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-start">
         <div>
-          <p className="text-sm font-medium text-primary">Tenant dashboard</p>
+          <p className="text-sm font-medium text-primary">
+            {translate('tenants:auto.tenant_dashboard')}
+          </p>
           <h1 className="mt-1 text-2xl font-bold text-foreground">{dashboard.tenant.name}</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Overview across all projects. Choose a project to work on docs, CRs, bugs, workers, and
-            project settings.
+            {translate('tenants:auto.overview_across_all_projects_choose_a_project')}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {canManageTenant && (
             <Button asChild variant="outline">
-              <Link to={`/tenants/${tenantId}/settings`}>Tenant settings</Link>
+              <Link to={`/tenants/${tenantId}/settings`}>
+                {translate('tenants:auto.tenant_settings')}
+              </Link>
             </Button>
           )}
           <Button asChild>
             <Link to={`/tenants/${tenantId}/projects/new`}>
               <Plus />
-              New project
+              {translate('tenants:auto.new_project')}
             </Link>
           </Button>
         </div>
@@ -372,11 +412,13 @@ export default function DashboardPage() {
 
       {dashboard.projects.length === 0 ? (
         <EmptyState
-          title="No projects yet"
-          description="Create your first project to start producing SDD documentation, CRs, and bug reports."
+          title={translate('tenants:auto.no_projects_yet')}
+          description={translate('tenants:auto.create_your_first_project_to_start_producing')}
           action={
             <Button asChild>
-              <Link to={`/tenants/${tenantId}/projects/new`}>Create project</Link>
+              <Link to={`/tenants/${tenantId}/projects/new`}>
+                {translate('tenants:auto.create_project')}
+              </Link>
             </Button>
           }
         />

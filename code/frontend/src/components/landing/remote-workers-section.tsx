@@ -3,24 +3,35 @@ import FeatureCard from './feature-card';
 import LandingSection from './landing-section';
 import WorkerPreview from './previews/worker-preview';
 import SectionHeading from './section-heading';
+import { translate } from '@/i18n';
 
 const capabilities = [
   {
     icon: PlayCircle,
-    title: 'Preview before dispatch',
-    description:
-      'Review the generated prompt, selected agent, model, and target before creating a job.',
+    get title() {
+      return translate('landing:auto.preview_before_dispatch');
+    },
+    get description() {
+      return translate('landing:auto.review_the_generated_prompt_selected_agent_model');
+    },
   },
   {
     icon: MessageCircleQuestion,
-    title: 'Answer agent questions',
-    description: 'Keep worker questions and human answers attached to the running job.',
+    get title() {
+      return translate('landing:auto.answer_agent_questions');
+    },
+    get description() {
+      return translate('landing:auto.keep_worker_questions_and_human_answers_attached');
+    },
   },
   {
     icon: CheckCircle2,
-    title: 'Follow job status',
-    description:
-      'See online state, progress, terminal output, and completion without leaving the project.',
+    get title() {
+      return translate('landing:auto.follow_job_status');
+    },
+    get description() {
+      return translate('landing:auto.see_online_state_progress_terminal_output_and');
+    },
   },
 ];
 
@@ -31,14 +42,14 @@ export default function RemoteWorkersSection() {
         <div>
           <SectionHeading
             align="left"
-            eyebrow="Remote workers"
-            title="Coding agents with visible context"
-            description="Dispatch SDD work to connected agents while the project remains the source of truth."
+            eyebrow={translate('landing:auto.remote_workers')}
+            title={translate('landing:auto.coding_agents_with_visible_context')}
+            description={translate('landing:auto.dispatch_sdd_work_to_connected_agents_while')}
             className="mb-7"
           />
           <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400">
             <Radio className="h-4 w-4" aria-hidden="true" />
-            Live worker presence
+            {translate('landing:auto.live_worker_presence')}
           </div>
           <WorkerPreview />
         </div>

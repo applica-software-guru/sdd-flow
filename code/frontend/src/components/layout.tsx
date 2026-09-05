@@ -10,17 +10,18 @@ import { useCurrentUser } from '@/hooks/use-auth';
 import { useLastTenantId } from '@/hooks/use-last-tenant-id';
 import { useProject, useProjects } from '@/hooks/use-projects';
 import { useTenantMembers } from '@/hooks/use-tenants';
+import { translate } from '@/i18n';
 
 function sectionFromPath(pathname: string, projectId?: string): string {
   if (!projectId) return '';
   const trailing = pathname.split(`/projects/${projectId}`)[1] ?? '';
-  if (!trailing || trailing === '/') return 'Overview';
-  if (trailing.startsWith('/crs')) return 'Change Requests';
-  if (trailing.startsWith('/bugs')) return 'Bugs';
-  if (trailing.startsWith('/docs')) return 'Docs';
-  if (trailing.startsWith('/workers')) return 'Workers';
-  if (trailing.startsWith('/settings')) return 'Settings';
-  return 'Overview';
+  if (!trailing || trailing === '/') return translate('navigation:auto.overview');
+  if (trailing.startsWith('/crs')) return translate('navigation:auto.change_requests');
+  if (trailing.startsWith('/bugs')) return translate('navigation:auto.bugs');
+  if (trailing.startsWith('/docs')) return translate('navigation:auto.docs');
+  if (trailing.startsWith('/workers')) return translate('navigation:auto.workers');
+  if (trailing.startsWith('/settings')) return translate('navigation:auto.settings');
+  return translate('navigation:auto.overview');
 }
 
 export default function Layout() {
@@ -65,7 +66,11 @@ export default function Layout() {
               showWarning={showWarning}
             />
           )}
-          <Suspense fallback={<LoadingState label="Loading page" className="min-h-64" />}>
+          <Suspense
+            fallback={
+              <LoadingState label={translate('common:auto.loading_page')} className="min-h-64" />
+            }
+          >
             <Outlet />
           </Suspense>
         </main>

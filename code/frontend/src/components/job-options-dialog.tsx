@@ -7,6 +7,7 @@ import {
 } from '../hooks/use-workers';
 import type { JobType } from '../types';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from './ui/dialog';
+import { translate } from '@/i18n';
 
 interface Props {
   tenantId: string;
@@ -18,11 +19,9 @@ interface Props {
   onCancel: () => void;
 }
 
-const JOB_TYPE_LABELS: Record<JobType, string> = {
-  enrich: 'Enrich',
-  build: 'Build',
-  custom: 'Custom Job',
-};
+function jobTypeLabel(jobType: JobType): string {
+  return translate(`workers:jobType.${jobType}`);
+}
 
 export default function JobOptionsDialog({
   tenantId,
@@ -106,12 +105,12 @@ export default function JobOptionsDialog({
       <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto p-0">
         <div className="border-b border-slate-200 px-6 py-5 dark:border-slate-700">
           <DialogTitle className="text-lg font-semibold">
-            {JOB_TYPE_LABELS[jobType]} on Worker
+            {jobTypeLabel(jobType)} {translate('workers:auto.on_worker')}
           </DialogTitle>
           <DialogDescription className={isCustom ? 'mt-1' : 'sr-only'}>
             {isCustom
-              ? 'Write any prompt — the worker will execute it as-is.'
-              : 'Configure the worker and model used for this job.'}
+              ? translate('workers:auto.write_any_prompt_the_worker_will_execute')
+              : translate('workers:auto.configure_the_worker_and_model_used_for')}
           </DialogDescription>
         </div>
 
@@ -119,13 +118,13 @@ export default function JobOptionsDialog({
           {/* Worker selection */}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Worker
+              {translate('workers:auto.worker')}
             </label>
             {onlineWorkers.length === 0 ? (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                No workers online. Start a worker with{' '}
+                {translate('workers:auto.no_workers_online_start_a_worker_with')}{' '}
                 <code className="rounded bg-slate-100 px-1 py-0.5 text-xs dark:bg-slate-700">
-                  sdd remote worker
+                  {translate('workers:auto.sdd_remote_worker')}
                 </code>
               </p>
             ) : (
@@ -138,18 +137,19 @@ export default function JobOptionsDialog({
                 }}
                 className="sdd-select mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
               >
-                <option value="">Any available worker</option>
+                <option value="">{translate('workers:auto.any_available_worker')}</option>
                 {onlineWorkers.map((w) => (
                   <option key={w.id} value={w.id}>
                     {w.name} — {w.agent}
-                    {w.branch ? ` (branch: ${w.branch})` : ''}
+                    {w.branch ? ` (${translate('workers:branchValue', { branch: w.branch })})` : ''}
                   </option>
                 ))}
               </select>
             )}
             {selectedWorker?.branch && (
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Branch: <code className="font-mono">{selectedWorker.branch}</code>
+                {translate('common:auto.branch')}
+                <code className="font-mono">{selectedWorker.branch}</code>
               </p>
             )}
           </div>
@@ -157,7 +157,7 @@ export default function JobOptionsDialog({
           {/* Model selection */}
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-              Model
+              {translate('workers:auto.model')}
             </label>
             <select
               value={selectedModel}
@@ -177,7 +177,7 @@ export default function JobOptionsDialog({
           <div>
             <div className="flex items-center justify-between">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Prompt
+                {translate('workers:auto.prompt')}
               </label>
               {!isCustom && (
                 <button
@@ -185,14 +185,14 @@ export default function JobOptionsDialog({
                   onClick={() => setEditingPrompt((v) => !v)}
                   className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                 >
-                  {editingPrompt ? 'Lock' : 'Edit'}
+                  {editingPrompt ? translate('workers:auto.lock') : translate('workers:auto.edit')}
                 </button>
               )}
             </div>
             {!isCustom && previewPrompt.isPending ? (
               <div className="mt-1 flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-4 text-sm text-slate-400 dark:border-slate-700 dark:bg-slate-700/30">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                Generating prompt...
+                {translate('workers:auto.generating_prompt')}
               </div>
             ) : (
               <textarea
@@ -200,13 +200,17 @@ export default function JobOptionsDialog({
                 onChange={(e) => setPrompt(e.target.value)}
                 readOnly={!editingPrompt}
                 rows={isCustom ? 14 : 10}
-                placeholder={isCustom ? 'Enter your prompt here...' : undefined}
+                placeholder={
+                  isCustom ? translate('workers:auto.enter_your_prompt_here') : undefined
+                }
                 className="mt-1 block w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-xs shadow-sm focus:outline-none dark:border-slate-600 dark:bg-slate-700/30 dark:text-slate-200"
                 style={{ resize: 'vertical' }}
               />
             )}
             {isCustom && prompt.trim().length === 0 && (
-              <p className="mt-1 text-xs text-red-500 dark:text-red-400">Prompt is required.</p>
+              <p className="mt-1 text-xs text-red-500 dark:text-red-400">
+                {translate('workers:auto.prompt_is_required')}
+              </p>
             )}
           </div>
         </div>
@@ -217,7 +221,7 @@ export default function JobOptionsDialog({
             onClick={onCancel}
             className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           >
-            Cancel
+            {translate('workers:auto.cancel')}
           </button>
           <button
             type="button"
@@ -225,7 +229,9 @@ export default function JobOptionsDialog({
             disabled={!canDispatch}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
           >
-            {createJob.isPending ? 'Dispatching...' : 'Dispatch Job'}
+            {createJob.isPending
+              ? translate('workers:auto.dispatching')
+              : translate('workers:auto.dispatch_job')}
           </button>
         </div>
       </DialogContent>

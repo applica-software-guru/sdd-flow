@@ -2,8 +2,8 @@
 title: "Tech Stack"
 status: synced
 author: ""
-last-modified: "2026-09-04T20:30:00.000Z"
-version: "1.3"
+last-modified: "2026-09-05T12:37:13.000Z"
+version: "1.4"
 ---
 
 # Tech Stack
@@ -40,6 +40,9 @@ version: "1.3"
 | Radix UI       | Accessible interactions  | latest  |
 | Lucide React   | Shared icon library      | latest  |
 | CVA / tailwind-merge | Component variants and class merging | latest |
+| i18next | Typed translation resources, fallback, interpolation and plurals | latest |
+| react-i18next | React bindings for locale-aware rendering | latest |
+| i18next-browser-languagedetector | Persisted and browser language detection | latest |
 
 ## Infrastructure
 
