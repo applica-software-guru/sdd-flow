@@ -1,6 +1,11 @@
 import { Link } from 'react-router-dom';
 
-export default function HeroSection() {
+interface HeroSectionProps {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+}
+
+export default function HeroSection({ isAuthenticated, isLoading }: HeroSectionProps) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
       {/* Decorative blobs */}
@@ -50,25 +55,34 @@ export default function HeroSection() {
             className="animate-fade-in-up mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
             style={{ animationDelay: '0.3s', animationFillMode: 'both' }}
           >
-            <Link
-              to="/register"
-              className="inline-flex items-center rounded-lg bg-blue-600 px-8 py-3 text-base font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl"
-            >
-              Get Started Free
-              <svg
-                className="ml-2 h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
+            {isLoading ? (
+              <div
+                role="status"
+                aria-label="Checking session"
+                className="h-12 min-w-52 animate-pulse rounded-lg bg-blue-600/30"
+              />
+            ) : (
+              <Link
+                to={isAuthenticated ? '/tenants' : '/register'}
+                className="inline-flex min-w-52 items-center justify-center rounded-lg bg-blue-600 px-8 py-3 text-base font-semibold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-                />
-              </svg>
-            </Link>
+                {isAuthenticated ? 'Go to dashboard' : 'Get Started Free'}
+                <svg
+                  className="ml-2 h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
+                  />
+                </svg>
+              </Link>
+            )}
             <a
               href="#features"
               className="inline-flex items-center rounded-lg border border-slate-300 bg-white px-8 py-3 text-base font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"

@@ -2,8 +2,8 @@
 title: "Authentication & Authorization"
 status: synced
 author: ""
-last-modified: "2026-03-24T00:00:00.000Z"
-version: "1.2"
+last-modified: "2026-09-05T08:25:00.000Z"
+version: "1.3"
 ---
 
 # Authentication & Authorization
@@ -30,6 +30,10 @@ Users can sign up and log in via Google OAuth or email/password. Authorization i
 
 ### Sessions
 
+- The public landing page at `/` remains accessible to both anonymous and authenticated visitors
+- Landing-page actions are session-aware: anonymous visitors see Log in and Sign Up, while authenticated visitors see Open app in the navbar and Go to dashboard in the hero, both linking to `/tenants`
+- Resolving the current session must not redirect or replace the landing page; loading state reserves the CTA area to avoid layout shift
+- Successful login and registration continue to enter the authenticated platform at `/tenants`
 - JWT-based authentication
 - Access token (short-lived, 15 minutes) + refresh token (long-lived, 7 days)
 - Tokens sent via HTTP-only cookies

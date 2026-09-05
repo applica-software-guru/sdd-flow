@@ -1,4 +1,3 @@
-import { Navigate } from 'react-router-dom';
 import { useCurrentUser } from '../../hooks/use-auth';
 import LandingNavbar from '../../components/landing/landing-navbar';
 import HeroSection from '../../components/landing/hero-section';
@@ -12,16 +11,12 @@ import FooterSection from '../../components/landing/footer-section';
 export default function LandingPage() {
   const { data: user, isLoading } = useCurrentUser();
 
-  // Redirect authenticated users to dashboard
-  if (!isLoading && user) {
-    return <Navigate to="/tenants" replace />;
-  }
+  const isAuthenticated = Boolean(user);
 
-  // Show landing page immediately — don't wait for auth check
   return (
     <div className="min-h-screen">
       <LandingNavbar />
-      <HeroSection />
+      <HeroSection isAuthenticated={isAuthenticated} isLoading={isLoading} />
       <FeaturesSection />
       <HowItWorksSection />
       <ForTeamsSection />
