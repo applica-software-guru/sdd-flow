@@ -11,8 +11,15 @@ from app.models.tenant import Tenant
 from app.models.tenant_invitation import TenantInvitation
 from app.models.tenant_member import MemberRole, TenantMember
 from app.models.user import User
-from app.repositories import TenantRepository, UserRepository
-from app.schemas.tenants import InvitationCreate, TenantCreate, TenantUpdate
+from app.repositories import ProjectRepository, TenantRepository, UserRepository
+from app.schemas.tenants import (
+    InvitationCreate,
+    TenantCreate,
+    TenantUpdate,
+    WorkspaceNavigationProject,
+    WorkspaceNavigationResponse,
+    WorkspaceNavigationTenant,
+)
 from app.services.audit import AuditService
 from app.services.invitations import send_tenant_invitation_email
 
@@ -38,10 +45,12 @@ class TenantService:
         tenant_repo: TenantRepository,
         user_repo: UserRepository,
         audit_service: AuditService,
+        project_repo: ProjectRepository,
     ) -> None:
         self._tenant_repo = tenant_repo
         self._user_repo = user_repo
         self._audit_service = audit_service
+        self._project_repo = project_repo
 
     # ── tenants ───────────────────────────────────────────────────────────────
 
@@ -79,6 +88,49 @@ class TenantService:
         if tenant is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Tenant not found")
         return tenant
+
+    async def get_workspace_navigation(self, user_id: uuid.UUID) -> WorkspaceNavigationResponse:
+        memberships = await self._tenant_repo.find_memberships_for_user(user_id)
+        if not memberships:
+            return WorkspaceNavigationResponse(tenants=[])
+
+        membership_by_tenant_id = {membership.tenant_id: membership for membership in memberships}
+        tenant_ids = list(membership_by_tenant_id)
+        tenants = await self._tenant_repo.find_by_ids(tenant_ids)
+        projects = await self._project_repo.find_by_tenant_ids(tenant_ids)
+
+        projects_by_tenant_id: dict[uuid.UUID, list[WorkspaceNavigationProject]] = {
+            tenant_id: [] for tenant_id in tenant_ids
+        }
+        for project in sorted(
+            projects,
+            key=lambda item: (item.archived_at is not None, item.name.casefold(), item.slug),
+        ):
+            projects_by_tenant_id.setdefault(project.tenant_id, []).append(
+                WorkspaceNavigationProject(
+                    id=project.id,
+                    name=project.name,
+                    slug=project.slug,
+                    archived_at=project.archived_at,
+                )
+            )
+
+        navigation_tenants: list[WorkspaceNavigationTenant] = []
+        for tenant in sorted(tenants, key=lambda item: (item.name.casefold(), item.slug)):
+            membership = membership_by_tenant_id[tenant.id]
+            navigation_tenants.append(
+                WorkspaceNavigationTenant(
+                    id=tenant.id,
+                    name=tenant.name,
+                    slug=tenant.slug,
+                    role=membership.role,
+                    can_create_project=membership.role
+                    in {MemberRole.owner, MemberRole.admin, MemberRole.member},
+                    projects=projects_by_tenant_id.get(tenant.id, []),
+                )
+            )
+
+        return WorkspaceNavigationResponse(tenants=navigation_tenants)
 
     async def update_tenant(
         self, tenant_id: uuid.UUID, body: TenantUpdate, actor_user_id: uuid.UUID

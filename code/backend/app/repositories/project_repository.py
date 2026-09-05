@@ -31,6 +31,17 @@ class ProjectRepository(BaseRepository[Project]):
         id_bins = [uuid_to_bin(i) for i in ids]
         return await Project.find({"_id": {"$in": id_bins}}).to_list()
 
+    async def find_by_tenant_ids(
+        self, tenant_ids: list[UUID], include_archived: bool = False
+    ) -> list[Project]:
+        if not tenant_ids:
+            return []
+        tenant_id_bins = [uuid_to_bin(tenant_id) for tenant_id in tenant_ids]
+        query: dict[str, Any] = {"tenantId": {"$in": tenant_id_bins}}
+        if not include_archived:
+            query["archivedAt"] = None
+        return await Project.find(query).to_list()
+
     async def search_in_tenant(
         self, tenant_id: UUID, pattern: Any, limit: int = 10
     ) -> list[Project]:

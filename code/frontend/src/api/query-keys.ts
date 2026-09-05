@@ -6,6 +6,7 @@ export const queryKeys = {
   auth: { me: ['auth', 'me'] as const },
   tenants: {
     all: ['tenants'] as const,
+    navigation: ['tenants', 'navigation'] as const,
     detail: (tenantId?: string) => tenantRoot(tenantId),
     dashboard: (tenantId?: string) => [...tenantRoot(tenantId), 'dashboard'] as const,
     members: (tenantId?: string) => [...tenantRoot(tenantId), 'members'] as const,

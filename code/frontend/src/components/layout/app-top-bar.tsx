@@ -1,7 +1,7 @@
 import { Menu, Search } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import NotificationBell from '@/components/notification-bell';
-import TenantSwitcher from '@/components/tenant-switcher';
+import WorkspaceSwitcher from '@/components/workspace-switcher';
 import ThemeToggle from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import type { User } from '@/types';
@@ -33,7 +33,7 @@ export default function AppTopBar({
           <span className="hidden text-lg font-bold sm:inline">SDD Flow</span>
         </NavLink>
         <div className="hidden sm:block">
-          <TenantSwitcher />
+          <WorkspaceSwitcher />
         </div>
       </div>
       <div className="flex items-center gap-1">

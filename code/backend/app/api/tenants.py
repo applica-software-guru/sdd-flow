@@ -16,6 +16,7 @@ from app.schemas.tenants import (
     TenantCreate,
     TenantResponse,
     TenantUpdate,
+    WorkspaceNavigationResponse,
 )
 from app.services.tenant_dashboard import TenantDashboardService
 from app.services.tenants import TenantService
@@ -39,6 +40,14 @@ async def list_tenants(
 ) -> list[TenantResponse]:
     tenants = await svc.list_tenants_for_user(current_user.id)
     return [TenantResponse.model_validate(t) for t in tenants]
+
+
+@router.get("/navigation", response_model=WorkspaceNavigationResponse)
+async def get_workspace_navigation(
+    current_user: User = Depends(get_current_user),
+    svc: TenantService = Depends(get_tenant_service),
+) -> WorkspaceNavigationResponse:
+    return await svc.get_workspace_navigation(current_user.id)
 
 
 @router.get("/{tenant_id}", response_model=TenantResponse)

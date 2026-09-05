@@ -265,11 +265,13 @@ def get_tenant_service(
     tenant_repo: TenantRepository = Depends(get_tenant_repository),
     user_repo: UserRepository = Depends(get_user_repository),
     audit_service: AuditService = Depends(get_audit_service),
+    project_repo: ProjectRepository = Depends(get_project_repository),
 ) -> TenantService:
     return TenantService(
         tenant_repo=tenant_repo,
         user_repo=user_repo,
         audit_service=audit_service,
+        project_repo=project_repo,
     )
 
 

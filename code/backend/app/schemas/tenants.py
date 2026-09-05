@@ -30,6 +30,26 @@ class TenantResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class WorkspaceNavigationProject(BaseModel):
+    id: uuid.UUID
+    name: str
+    slug: str
+    archived_at: datetime | None = None
+
+
+class WorkspaceNavigationTenant(BaseModel):
+    id: uuid.UUID
+    name: str
+    slug: str
+    role: MemberRole
+    can_create_project: bool
+    projects: list[WorkspaceNavigationProject]
+
+
+class WorkspaceNavigationResponse(BaseModel):
+    tenants: list[WorkspaceNavigationTenant]
+
+
 class MemberResponse(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID

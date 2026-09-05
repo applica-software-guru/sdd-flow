@@ -21,12 +21,18 @@ class TenantRepository:
         return await Tenant.find_one(Tenant.slug == slug)
 
     async def find_by_user(self, user_id: UUID) -> list[Tenant]:
-        memberships = await TenantMember.find({"userId": user_id}).to_list()
+        memberships = await self.find_memberships_for_user(user_id)
         tenant_ids = [m.tenant_id for m in memberships]
+        return await self.find_by_ids(tenant_ids)
+
+    async def find_by_ids(self, tenant_ids: list[UUID]) -> list[Tenant]:
         if not tenant_ids:
             return []
         tenant_id_bins = [uuid_to_bin(tid) for tid in tenant_ids]
         return await Tenant.find({"_id": {"$in": tenant_id_bins}}).to_list()
+
+    async def find_memberships_for_user(self, user_id: UUID) -> list[TenantMember]:
+        return await TenantMember.find({"userId": user_id}).to_list()
 
     async def find_member(self, tenant_id: UUID, user_id: UUID) -> TenantMember | None:
         return await TenantMember.find_one({"tenantId": tenant_id, "userId": user_id})

@@ -2,8 +2,8 @@
 title: "API Interfaces"
 status: synced
 author: ""
-last-modified: "2026-09-05T09:10:00.000Z"
-version: "2.4"
+last-modified: "2026-09-05T09:25:42.000Z"
+version: "2.5"
 ---
 
 # API Interfaces
@@ -175,6 +175,43 @@ Create a new tenant. Caller becomes Owner.
 List tenants the current user belongs to.
 
 **Response:** `200` `[{ id, name, slug, role }]`
+
+### GET /tenants/navigation
+
+Get the compact workspace navigation payload for the global tenant/project selector.
+
+**Response:** `200`
+
+```json
+{
+  "tenants": [
+    {
+      "id": "...",
+      "name": "Acme",
+      "slug": "acme",
+      "role": "admin",
+      "can_create_project": true,
+      "projects": [
+        {
+          "id": "...",
+          "name": "Web App",
+          "slug": "web-app",
+          "archived_at": null
+        }
+      ]
+    }
+  ]
+}
+```
+
+Rules:
+
+- Returns only tenants where the authenticated user is a member
+- Returns only projects visible to the authenticated user in each tenant
+- Returns compact selector fields only; no dashboard KPIs, document bodies, CR/bug details, comments, audit details, API keys or member lists
+- Tenants are sorted by display name unless last-used/recently-used ordering is introduced
+- Projects are sorted with active projects first, then alphabetically by name
+- Archived projects may be excluded or included with `archived_at`; if included, clients must mark them clearly
 
 ### GET /tenants/:tenant_id
 

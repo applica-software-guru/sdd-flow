@@ -1,4 +1,4 @@
-import TenantSwitcher from '@/components/tenant-switcher';
+import WorkspaceSwitcher from '@/components/workspace-switcher';
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ export default function MobileNavigation(props: MobileNavigationProps) {
           <DialogDescription className="sr-only">Application navigation</DialogDescription>
         </DialogHeader>
         <div className="border-b p-3">
-          <TenantSwitcher />
+          <WorkspaceSwitcher />
         </div>
         <div className="overflow-y-auto p-3">
           {props.projectName && (

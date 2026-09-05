@@ -3,13 +3,29 @@ import { queryKeys } from '../api/query-keys';
 import api from '../api/client';
 import { getApiErrorMessage } from '../api/errors';
 import { useToast } from '../context/toast';
-import type { Tenant, TenantDashboardSummary, TenantInvitation, TenantMember } from '../types';
+import type {
+  Tenant,
+  TenantDashboardSummary,
+  TenantInvitation,
+  TenantMember,
+  WorkspaceNavigationResponse,
+} from '../types';
 
 export function useTenants() {
   return useQuery<Tenant[]>({
     queryKey: queryKeys.tenants.all,
     queryFn: async () => {
       const { data } = await api.get('/tenants');
+      return data;
+    },
+  });
+}
+
+export function useWorkspaceNavigation() {
+  return useQuery<WorkspaceNavigationResponse>({
+    queryKey: queryKeys.tenants.navigation,
+    queryFn: async () => {
+      const { data } = await api.get('/tenants/navigation');
       return data;
     },
   });

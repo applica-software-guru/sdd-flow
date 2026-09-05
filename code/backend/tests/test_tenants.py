@@ -12,6 +12,7 @@ from app.models.bug import Bug, BugSeverity, BugStatus
 from app.models.change_request import ChangeRequest, CRStatus
 from app.models.comment import Comment, EntityType
 from app.models.document_file import DocStatus, DocumentFile
+from app.models.project import Project
 from app.models.tenant import Tenant
 from app.models.tenant_invitation import TenantInvitation
 from app.models.tenant_member import MemberRole, TenantMember
@@ -70,6 +71,83 @@ async def test_list_tenants(client: AsyncClient, test_tenant: Tenant):
     data = resp.json()
     assert isinstance(data, list)
     assert any(t["id"] == str(test_tenant.id) for t in data)
+
+
+@pytest.mark.asyncio
+async def test_workspace_navigation_returns_visible_tenants_and_projects(
+    client: AsyncClient,
+    test_tenant: Tenant,
+    test_project: Project,
+    test_user: User,
+    unique_id: str,
+):
+    second_tenant = Tenant(
+        name=f"Second Tenant {unique_id}",
+        slug=f"second-tenant-{unique_id}",
+    )
+    hidden_tenant = Tenant(
+        name=f"Hidden Tenant {unique_id}",
+        slug=f"hidden-tenant-{unique_id}",
+    )
+    await second_tenant.insert()
+    await hidden_tenant.insert()
+    await TenantMember(
+        tenant_id=second_tenant.id,
+        user_id=test_user.id,
+        role=MemberRole.viewer,
+    ).insert()
+    second_project = Project(
+        tenant_id=second_tenant.id,
+        name=f"Second Project {unique_id}",
+        slug=f"second-project-{unique_id}",
+    )
+    hidden_project = Project(
+        tenant_id=hidden_tenant.id,
+        name=f"Hidden Project {unique_id}",
+        slug=f"hidden-project-{unique_id}",
+    )
+    await second_project.insert()
+    await hidden_project.insert()
+
+    try:
+        resp = await client.get("/api/v1/tenants/navigation")
+    finally:
+        await second_project.delete()
+        await hidden_project.delete()
+        await TenantMember.find({"tenantId": second_tenant.id}).delete()
+        await second_tenant.delete()
+        await hidden_tenant.delete()
+
+    assert resp.status_code == 200
+    data = resp.json()
+    tenants = {tenant["id"]: tenant for tenant in data["tenants"]}
+
+    assert str(test_tenant.id) in tenants
+    assert str(second_tenant.id) in tenants
+    assert str(hidden_tenant.id) not in tenants
+    assert tenants[str(test_tenant.id)]["can_create_project"] is True
+    assert tenants[str(second_tenant.id)]["role"] == "viewer"
+    assert tenants[str(second_tenant.id)]["can_create_project"] is False
+    assert any(
+        project["id"] == str(test_project.id)
+        for project in tenants[str(test_tenant.id)]["projects"]
+    )
+    assert tenants[str(second_tenant.id)]["projects"] == [
+        {
+            "id": str(second_project.id),
+            "name": second_project.name,
+            "slug": second_project.slug,
+            "archived_at": None,
+        }
+    ]
+
+
+@pytest.mark.asyncio
+async def test_workspace_navigation_uses_static_route_before_tenant_id(client: AsyncClient):
+    resp = await client.get("/api/v1/tenants/navigation")
+
+    assert resp.status_code == 200
+    assert "tenants" in resp.json()
 
 
 # ---------------------------------------------------------------------------

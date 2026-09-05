@@ -2,15 +2,15 @@
 title: "Dashboard"
 status: synced
 author: ""
-last-modified: "2026-09-05T09:25:00.000Z"
-version: "1.1"
+last-modified: "2026-09-05T09:25:42.000Z"
+version: "1.2"
 ---
 
 # Dashboard
 
 ## Overview
 
-The dashboard provides an at-a-glance overview of the current tenant and, after a project is selected, of the selected project. The tenant-level dashboard is the authenticated entry state before project selection: it helps users understand tenant-wide SDD volume through KPI cards and then immediately choose a project from a searchable project list.
+The dashboard provides an at-a-glance overview of the current tenant and, after a project is selected, of the selected project. The tenant-level dashboard is the authenticated entry state before project selection: it helps users understand tenant-wide SDD volume through KPI cards and then immediately choose a project from a searchable project list. The global workspace switcher can also navigate directly to a project, so the tenant dashboard remains the canonical tenant overview but is not the only path into project work.
 
 ## Features
 
@@ -106,5 +106,6 @@ After selecting a project, the project dashboard remains project-scoped and show
 
 - The tenant dashboard should consume a dedicated aggregate API response rather than reconstructing tenant-wide KPIs with many paginated list requests.
 - The tenant dashboard visual hierarchy is: header, KPI cards, projects. Do not add additional panels until there is a specific product need.
+- Direct project navigation from the workspace switcher must not remove or weaken the tenant dashboard project list; both entry paths are supported.
 - The dashboard must remain tenant-scoped and role-safe. Backend authorization is the source of truth; frontend permission hiding is presentation only.
 - The tenant dashboard is not a billing or quota-metering feature. KPI numbers describe operational SDD volume and collaboration, not commercial usage limits.

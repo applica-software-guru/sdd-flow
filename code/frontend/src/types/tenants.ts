@@ -8,6 +8,26 @@ export interface Tenant {
   updated_at: string;
 }
 
+export interface WorkspaceNavigationProject {
+  id: string;
+  name: string;
+  slug: string;
+  archived_at: string | null;
+}
+
+export interface WorkspaceNavigationTenant {
+  id: string;
+  name: string;
+  slug: string;
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+  can_create_project: boolean;
+  projects: WorkspaceNavigationProject[];
+}
+
+export interface WorkspaceNavigationResponse {
+  tenants: WorkspaceNavigationTenant[];
+}
+
 export interface TenantDashboardWindow {
   preset: 'last_7_days' | 'last_30_days' | 'last_90_days';
   from: string;

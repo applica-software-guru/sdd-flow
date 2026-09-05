@@ -2,8 +2,8 @@
 title: "Multi-Tenancy & Organizations"
 status: synced
 author: ""
-last-modified: "2026-03-31T00:00:00.000Z"
-version: "1.2"
+last-modified: "2026-09-05T09:25:42.000Z"
+version: "1.3"
 ---
 
 # Multi-Tenancy & Organizations
@@ -47,11 +47,17 @@ A tenant represents an organization. Each tenant has its own projects, members, 
 - Invalid or unknown tokens return not found
 - Attempting to accept a cancelled invitation returns not found
 
-### Tenant Switching
+### Workspace Switching
 
-- Users who belong to multiple tenants see a tenant switcher in the UI
+- Users who belong to multiple tenants see a workspace switcher in the UI
+- The switcher shows tenants as parent groups and projects as nested child entries
+- Selecting a tenant row navigates to that tenant's overview dashboard without selecting a project
+- Selecting a project row navigates directly to that project dashboard inside its tenant
+- The switcher highlights the current tenant overview when no project is selected and highlights the current project when a project route is active
+- Users can search the switcher by tenant name, tenant slug, project name, or project slug
+- The switcher is available in both desktop top-bar navigation and the mobile navigation drawer
 - The last-used tenant is remembered across sessions
-- All data is scoped to the current tenant
+- All data is scoped to the current tenant and to the authenticated user's memberships
 
 ### Tenant Settings
 
