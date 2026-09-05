@@ -4,133 +4,145 @@
       "remoteId": "3559424a-c07e-44dd-aa44-07db54c9a5bd",
       "remoteVersion": 1,
       "localHash": "a8f46a707e90aa099c53b5b7fa2c30c169e5c3ff326af629bb2c09888c5412cf",
-      "lastSynced": "2026-09-04T12:31:37.007Z"
+      "lastSynced": "2026-09-05T13:13:19.390Z"
     },
     "product/features/audit-log.md": {
       "remoteId": "1c089888-e818-45ee-8121-edcd8ecdfc49",
-      "remoteVersion": 2,
-      "localHash": "dbe41a71e9b1d92a87b276c220479b598596b026d8c2578103cf38285eedcac7",
-      "lastSynced": "2026-09-04T12:31:37.008Z"
+      "remoteVersion": 3,
+      "localHash": "127a8ba9081790dd5d3c0d443613d1267a349e6bacce369899d91cdbdbfa7f84",
+      "lastSynced": "2026-09-05T13:13:19.391Z"
     },
     "product/features/auth.md": {
       "remoteId": "e1f8b354-c406-47bb-a783-950de105b75c",
-      "remoteVersion": 2,
-      "localHash": "a773121e491e6d425ec38165e27c13d649dbdfad88b9b48cf2d765c5322566fb",
-      "lastSynced": "2026-09-04T17:58:34.582Z"
+      "remoteVersion": 3,
+      "localHash": "d05b4dff0c10e8b108708cb33842418a22684460cc645ba835ecae1e1f029675",
+      "lastSynced": "2026-09-05T13:13:19.392Z"
     },
     "product/features/bugs.md": {
       "remoteId": "0f24ceeb-e9b6-4d50-aa57-1da73630e388",
-      "remoteVersion": 4,
-      "localHash": "1985fbc77e98a9e99a4948ce1b7d51b0cd9ef04521ad93a1c131e3cce53f1326",
-      "lastSynced": "2026-09-04T17:58:34.582Z"
+      "remoteVersion": 5,
+      "localHash": "d8a13dbc67db2816933e694a0df2ec1a5c06389565ae17fe6a35389f953104e7",
+      "lastSynced": "2026-09-05T13:13:19.392Z"
     },
     "product/features/change-requests.md": {
       "remoteId": "f21ab635-8b73-49ed-9cd0-42b4c12610a9",
       "remoteVersion": 4,
       "localHash": "143638db1dabb380384c92f2a2c77db8e915d660fa65aba7fb92b1af9f7b2bdd",
-      "lastSynced": "2026-09-04T17:58:34.583Z"
+      "lastSynced": "2026-09-05T13:13:19.392Z"
     },
     "product/features/dashboard.md": {
       "remoteId": "a9fd0d3a-49f7-43be-9414-5d5c5ef76e76",
-      "remoteVersion": 1,
-      "localHash": "aabf77924c7a594a61c296c710d5e072e1809ae73cdf63928cf5b86a618d1d49",
-      "lastSynced": "2026-09-04T12:31:37.009Z"
+      "remoteVersion": 2,
+      "localHash": "f163ae4c709db3782f6db1de584a4231f06b108f89191f0f704e69781bd2121b",
+      "lastSynced": "2026-09-05T13:13:19.392Z"
     },
     "product/features/docker-images-deployment.md": {
       "remoteId": "448dc615-c928-42c5-8558-87d7a2ad41b2",
       "remoteVersion": 1,
       "localHash": "23efbd50fe9b0185a98ebf65c155523d579b5b302848a70d0f74b6822a5eaafe",
-      "lastSynced": "2026-09-04T12:31:37.009Z"
+      "lastSynced": "2026-09-05T13:13:19.393Z"
     },
     "product/features/notifications.md": {
       "remoteId": "9a297012-18a2-40ba-b6c9-d3d5c3c2d30e",
       "remoteVersion": 3,
       "localHash": "290e3bf4cbe47ff41b8762a476f4a0caf2d229b6a3c575a9720f26672e36aaa0",
-      "lastSynced": "2026-09-04T17:58:34.583Z"
+      "lastSynced": "2026-09-05T13:13:19.394Z"
     },
     "product/features/projects.md": {
       "remoteId": "99d9a8dd-b3ca-40ec-9ee6-1e1cc502c283",
-      "remoteVersion": 1,
-      "localHash": "df684e160c2b219ca0eb55400bb4e495e0db13e8ea055179992c55e68ee64d5e",
-      "lastSynced": "2026-09-04T12:31:37.010Z"
+      "remoteVersion": 2,
+      "localHash": "08a3b038dbfbf16208d472e6f2c75035ef73895646f29fb9ca78319687ef764a",
+      "lastSynced": "2026-09-05T13:13:19.394Z"
     },
     "product/features/remote-worker.md": {
       "remoteId": "f0514dff-39a9-4b15-91e1-ecbd1aebae3d",
       "remoteVersion": 1,
       "localHash": "2644f39b075032970ad384265fae4654390b7d2e62a9f6d3c06a0b8cf51d5baf",
-      "lastSynced": "2026-09-04T12:31:37.010Z"
+      "lastSynced": "2026-09-05T13:13:19.394Z"
     },
     "product/features/sdd-docs.md": {
       "remoteId": "ff0963ab-308a-4d06-8a03-fb3b3411287f",
-      "remoteVersion": 1,
-      "localHash": "5a96777cbdf5822351d7bfa974850942b92a575fadd8925731dc30c89a10b3d0",
-      "lastSynced": "2026-09-04T12:31:37.010Z"
+      "remoteVersion": 2,
+      "localHash": "f8e4d9dd648b2b6588e2e400d24f3c04e1b1b1dde795677d0ffc79a2e1036a8a",
+      "lastSynced": "2026-09-05T13:13:19.394Z"
     },
     "product/features/search.md": {
       "remoteId": "06ac40cd-5e15-4628-bdd0-954f3c980f74",
       "remoteVersion": 1,
       "localHash": "b26ff9934a946367da5a9de0e84b9e03df0ad1978c0616a4f8984995e3359a04",
-      "lastSynced": "2026-09-04T12:31:37.010Z"
+      "lastSynced": "2026-09-05T13:13:19.395Z"
     },
     "product/features/tenants.md": {
       "remoteId": "d7f6ef30-c60c-4a6b-b88a-a8038ef71e8b",
-      "remoteVersion": 2,
-      "localHash": "719db788a4157a3dc9270dab79aa5e5731ed64972c659fb5cc8612f0ed26dcb7",
-      "lastSynced": "2026-09-04T12:31:37.010Z"
+      "remoteVersion": 3,
+      "localHash": "b42bc3a68d6ba1e2af9cf51440e4ab6e910f879c32e49256c593a2b4bb248570",
+      "lastSynced": "2026-09-05T13:13:19.395Z"
     },
     "product/features/theme.md": {
       "remoteId": "0f5634b7-6649-4982-a446-bf6f88f7b360",
-      "remoteVersion": 1,
-      "localHash": "a7218997d1f523e156c08574a3dc8cfd2fd420a2c494ac9c382eb3a37e442d68",
-      "lastSynced": "2026-09-04T12:31:37.011Z"
+      "remoteVersion": 2,
+      "localHash": "6b4e40f653e853eef61f7d28a19d77b137fa8b1ec5343220408a33630b90bcc6",
+      "lastSynced": "2026-09-05T13:13:19.395Z"
     },
     "product/features/toasts.md": {
       "remoteId": "cd7e9394-2ba5-47ec-80cd-f0925045bd4c",
-      "remoteVersion": 1,
-      "localHash": "fadd50dfa68df5ec8e5a6e74ffb33f388748719514a14f269cc5f079bb312f4e",
-      "lastSynced": "2026-09-04T12:31:37.011Z"
+      "remoteVersion": 2,
+      "localHash": "520feff89e058c1dfe37ec1f634415f825015ede6e42b82e4362980cf9e6ac13",
+      "lastSynced": "2026-09-05T13:13:19.395Z"
     },
     "product/users.md": {
       "remoteId": "eacc1d9d-487f-4fae-9d1b-7731f8507a16",
-      "remoteVersion": 1,
-      "localHash": "a529690fda8155dfc894c7286c48e4b35591aee7fa2602e9ed966ad024e4e676",
-      "lastSynced": "2026-09-04T12:31:37.011Z"
+      "remoteVersion": 2,
+      "localHash": "625975310d6b086151e2e93947fdfd4421e47342e3a2f3e42cd6f1fa4d44da2f",
+      "lastSynced": "2026-09-05T13:13:19.395Z"
     },
     "product/vision.md": {
       "remoteId": "a8064bed-14a0-4dab-9a44-ae3141ef0ce7",
       "remoteVersion": 1,
       "localHash": "1006e025be4265039d3e668dd10be863a3aaccd5c91162181d68416055ac3dbb",
-      "lastSynced": "2026-09-04T12:31:37.011Z"
+      "lastSynced": "2026-09-05T13:13:19.395Z"
     },
     "system/architecture.md": {
       "remoteId": "d21da59b-a42c-40a7-bdd6-da06536b3759",
-      "remoteVersion": 3,
-      "localHash": "31d89a6c36c72b7760e04c81fd6a0db8b64f65623e18186b3a16ca4679747dbc",
-      "lastSynced": "2026-09-04T17:58:34.583Z"
+      "remoteVersion": 4,
+      "localHash": "86915d36dc7230c0bcf21cd0470b2f50bc6adcefe0be3c82ec568196deb733fd",
+      "lastSynced": "2026-09-05T13:13:19.395Z"
     },
     "system/ci-pipeline.md": {
       "remoteId": "50e72fd7-5f17-432a-b683-ad8be7b1730d",
-      "remoteVersion": 1,
-      "localHash": "751ab7aa1fd5a66da74df1ffe441648332cc79bad69fe7fb1633dab30086ee5e",
-      "lastSynced": "2026-09-04T12:31:37.011Z"
+      "remoteVersion": 2,
+      "localHash": "efaf50acc90b21774ff863cedd2b230b8d6f56c35eb702278f7c1c1d38c7d6ba",
+      "lastSynced": "2026-09-05T13:13:19.396Z"
     },
     "system/entities.md": {
       "remoteId": "580cb027-2b26-44ff-9585-52ee1d8162a6",
-      "remoteVersion": 3,
-      "localHash": "46779b680389a827168b5e57fe6546cce33790f8c6230a2aa332b0a2b8e74264",
-      "lastSynced": "2026-09-04T12:31:37.012Z"
+      "remoteVersion": 4,
+      "localHash": "4d42b7670189d19c6a263c5d51683e73a43a3e26959155bcca5fb0da5dea858c",
+      "lastSynced": "2026-09-05T13:13:19.396Z"
     },
     "system/interfaces.md": {
       "remoteId": "6cae2fee-4f99-4618-87f4-30b909772159",
-      "remoteVersion": 4,
-      "localHash": "e299fbda915100a8d7ee2c37235d5e08792287a56353da753f55e2c50c62ce27",
-      "lastSynced": "2026-09-04T17:58:34.583Z"
+      "remoteVersion": 5,
+      "localHash": "51df6c0f65430064993e532b6873df829e282cb3b8320e27d7e2d840675ae888",
+      "lastSynced": "2026-09-05T13:13:19.396Z"
     },
     "system/tech-stack.md": {
       "remoteId": "f1cbc84d-6d73-44d7-b540-94e4c705dc2f",
+      "remoteVersion": 2,
+      "localHash": "c349d15444b2005747c59b7d5afc816180e2dd5738e185ee9981d95e0f3092c5",
+      "lastSynced": "2026-09-05T13:13:19.396Z"
+    },
+    "product/features/landing-page.md": {
+      "remoteId": "c5b1bdfd-4ce1-4dfb-99d9-417c65403891",
       "remoteVersion": 1,
-      "localHash": "aa50c3b7e84ac0f5c8b69f4089efae1e066db840391a0c56e7e8e7bed09f8ec2",
-      "lastSynced": "2026-09-04T12:31:37.012Z"
+      "localHash": "4e17570dc6664ae832cbdb5e5962e78a3ae378b972a41f53817e57a8547248e2",
+      "lastSynced": "2026-09-05T13:13:19.393Z"
+    },
+    "product/features/localization.md": {
+      "remoteId": "c9926f8d-4876-42d1-bce2-3292d4baa5c5",
+      "remoteVersion": 1,
+      "localHash": "c5db8d34c717ea1d687a1fb28ec74ffdaf6c3e8279219f37e34c61be77e1d486",
+      "lastSynced": "2026-09-05T13:13:19.393Z"
     }
   },
   "changeRequests": {
@@ -313,6 +325,36 @@
       "remoteId": "7b3a1d22-83ef-44d4-adaa-8685b98e1163",
       "localHash": "d1037be7376cb0567cdb56d5c27591924afaf4b1dd0b9ac75ba7afc9911b500c",
       "lastSynced": "2026-09-04T17:58:34.747Z"
+    },
+    "change-requests/CR-037-frontend-design-system-and-quality-refactor.md": {
+      "remoteId": "9e62e4f8-24f7-4be9-bcab-dd57e8f48310",
+      "localHash": "88648f3349dc5e03a30487d1447d26f35777bdce1265276beb1cc12f6b1c570a",
+      "lastSynced": "2026-09-05T13:12:18.356Z"
+    },
+    "change-requests/CR-038-landing-page-design-system-and-product-preview-refresh.md": {
+      "remoteId": "2d9ac933-e4e8-49d4-b1a1-b6ca0899a116",
+      "localHash": "78c05bfd210561ad51427dc30cb705fc81ea69f5a41e16ed55296656a34af3f6",
+      "lastSynced": "2026-09-05T13:12:18.357Z"
+    },
+    "change-requests/CR-039-tenant-dashboard-kpis.md": {
+      "remoteId": "9a1abb6a-f0f5-4f1a-8422-114174ddf2b7",
+      "localHash": "2f3ebc10f2c2a0d1c13caaaa5b4f634c8f46c6de4546d11e26ae964534d81a3d",
+      "lastSynced": "2026-09-05T13:12:18.357Z"
+    },
+    "change-requests/CR-040-tenant-project-workspace-switcher.md": {
+      "remoteId": "ea38b27c-18d8-4f65-a720-13f5709fa3bd",
+      "localHash": "36c008cb8cee9bf953fccd1934389577304285a5e00a44b55e8bacf289ab62c7",
+      "lastSynced": "2026-09-05T13:12:18.357Z"
+    },
+    "change-requests/CR-041-super-user-platform-oversight.md": {
+      "remoteId": "1131b925-ea0f-4d8f-b9b5-63649b954d88",
+      "localHash": "65f0863ef5e303e1b06812aef024ad48987f29ee8d17e278db382e15073f5b9b",
+      "lastSynced": "2026-09-05T13:12:18.357Z"
+    },
+    "change-requests/CR-042-frontend-internationalization-italian-english.md": {
+      "remoteId": "f4b81dac-af6f-4f37-896f-1900d1579211",
+      "localHash": "6c4408146e9d273fb07de1b031740ff1123cda5170034b4d189d2be87a793fcc",
+      "lastSynced": "2026-09-05T13:12:18.357Z"
     }
   },
   "bugs": {
@@ -365,8 +407,18 @@
       "remoteId": "ed2bec94-7981-49e3-aefb-57ac8cd29713",
       "localHash": "6f872b28964042d867e9d7ffea7867d1d93f20b997fbca53152b9d460dd11f1e",
       "lastSynced": "2026-09-04T17:58:34.861Z"
+    },
+    "bugs/BUG-011-authenticated-users-cannot-view-landing-page.md": {
+      "remoteId": "337cc4ed-01d4-4d14-8927-3c5a69dbd62c",
+      "localHash": "27cfeab4205e9079e8f7cecf05e5c31aad454d29716b3b2074c832ba07ee68f2",
+      "lastSynced": "2026-09-05T13:12:18.475Z"
+    },
+    "bugs/012-missing-avatar-in-every-user-s-page.md": {
+      "remoteId": "12826aa6-b39e-4b1b-9cf5-a3e3392fdbd3",
+      "localHash": "f21b4b165473465bcaf60b84e2e3d41c22d075a3f7aaf58c7083127d78072a1f",
+      "lastSynced": "2026-09-05T13:13:49.325Z"
     }
   },
-  "lastPush": "2026-09-04T17:58:34.861Z",
-  "lastPull": "2026-09-04T12:31:37.012Z"
+  "lastPush": "2026-09-05T13:12:18.475Z",
+  "lastPull": "2026-09-05T13:13:19.396Z"
 }

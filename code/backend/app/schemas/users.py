@@ -9,3 +9,4 @@ class UserBrief(BaseModel):
     id: uuid.UUID
     display_name: str
     email: str
+    avatar_url: str | None = None

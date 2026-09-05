@@ -64,6 +64,8 @@ async def test_list_audit_log_returns_entry(
 
 @pytest.mark.asyncio
 async def test_audit_log_entry_fields(client: AsyncClient, test_tenant: Tenant, test_user: User):
+    test_user.avatar_url = "https://example.com/test-user.png"
+    await test_user.save()
     entry = await _create_entry(
         test_tenant,
         test_user,
@@ -84,6 +86,7 @@ async def test_audit_log_entry_fields(client: AsyncClient, test_tenant: Tenant, 
         assert found["user"]["id"] == str(test_user.id)
         assert found["user"]["display_name"] == test_user.display_name
         assert found["user"]["email"] == test_user.email
+        assert found["user"]["avatar_url"] == test_user.avatar_url
         # entity label / summary round-trip
         assert found["entity_label"] == "Fix login redirect"
         assert found["summary"] == "status: new → open"

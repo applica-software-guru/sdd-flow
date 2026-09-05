@@ -26,6 +26,15 @@ describe('UserName', () => {
     expect(markup).toContain('shrink-0');
   });
 
+  it('renders the profile image when an avatar URL is available', () => {
+    const markup = renderToStaticMarkup(
+      <UserName name="Jane Doe" email="jane@example.com" avatarUrl="https://example.com/jane.png" />
+    );
+    expect(markup).toContain('<img');
+    expect(markup).toContain('src="https://example.com/jane.png"');
+    expect(markup).toContain('Jane Doe');
+  });
+
   it('falls back to email as visible text only when there is no name', () => {
     const markup = renderToStaticMarkup(<UserName name={null} email="long.name@example.com" />);
     expect(markup).toContain('long.name@example.com');
@@ -65,10 +74,16 @@ describe('UserCell', () => {
   });
 
   it('renders the shared UserName pattern for a user', () => {
-    const user = { id: 'u1', display_name: 'Jane Doe', email: 'jane@example.com' };
+    const user = {
+      id: 'u1',
+      display_name: 'Jane Doe',
+      email: 'jane@example.com',
+      avatar_url: 'https://example.com/jane.png',
+    };
     const markup = renderToStaticMarkup(<UserCell user={user} />);
     expect(markup).toContain('Jane Doe');
     expect(markup).toContain('truncate');
+    expect(markup).toContain('src="https://example.com/jane.png"');
   });
 });
 

@@ -468,7 +468,10 @@ async def test_put_preference_unknown_event_type(client: AsyncClient):
 async def test_comments_include_author(
     client: AsyncClient, test_tenant, test_project, test_user: User, other_user: User, cr
 ):
-    """list_comments returns each comment with a resolved author.display_name."""
+    """list_comments returns each comment with a resolved author.display_name and avatar_url."""
+    test_user.avatar_url = "https://example.com/test-user.png"
+    await test_user.save()
+
     # test_user (author) comments; client is test_user
     resp = await client.post(
         f"{_cr_base(test_tenant, test_project)}/{cr.id}/comments",
@@ -476,18 +479,23 @@ async def test_comments_include_author(
     )
     assert resp.status_code == 201
     assert resp.json()["author"]["display_name"] == test_user.display_name
+    assert resp.json()["author"]["avatar_url"] == test_user.avatar_url
 
     listed = await client.get(f"{_cr_base(test_tenant, test_project)}/{cr.id}/comments")
     assert listed.status_code == 200
     assert len(listed.json()) >= 1
     assert listed.json()[-1]["author"]["id"] == str(test_user.id)
+    assert listed.json()[-1]["author"]["avatar_url"] == test_user.avatar_url
 
 
 @pytest.mark.asyncio
 async def test_bug_comments_include_author(
     client: AsyncClient, test_tenant, test_project, test_user: User, other_user: User
 ):
-    """Bug comments also resolve the author."""
+    """Bug comments also resolve the author, including avatar_url."""
+    test_user.avatar_url = "https://example.com/test-user.png"
+    await test_user.save()
+
     create_resp = await client.post(
         _bug_base(test_tenant, test_project),
         json={"title": "Bug with author", "body": "b", "severity": "minor"},
@@ -500,3 +508,4 @@ async def test_bug_comments_include_author(
     )
     assert resp.status_code == 201
     assert resp.json()["author"]["display_name"] == test_user.display_name
+    assert resp.json()["author"]["avatar_url"] == test_user.avatar_url

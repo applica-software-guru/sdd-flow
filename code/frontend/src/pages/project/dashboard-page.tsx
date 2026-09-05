@@ -9,6 +9,7 @@ import StatusBadge from '../../components/status-badge';
 import SeverityBadge from '../../components/severity-badge';
 import JobStatusBadge from '../../components/job-status-badge';
 import JobOptionsDialog from '../../components/job-options-dialog';
+import UserName from '../../components/user-name';
 import { formatDateOnly } from '../../lib/format';
 import { requireRouteParam } from '@/lib/route-params';
 import { translate } from '@/i18n';
@@ -204,10 +205,14 @@ export default function DashboardPage() {
                     {cr.title}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                    <span className="min-w-0 max-w-[14rem] truncate" title={cr.author?.email}>
-                      {translate('projects:auto.by')}{' '}
-                      {cr.author?.display_name || translate('common:fallback.unknown')}
-                    </span>
+                    <span className="shrink-0">{translate('projects:auto.by')}</span>
+                    <UserName
+                      name={cr.author?.display_name}
+                      email={cr.author?.email}
+                      avatarUrl={cr.author?.avatar_url}
+                      fallback={translate('common:fallback.unknown')}
+                      className="max-w-[14rem]"
+                    />
                     <span className="shrink-0">{translate('projects:auto.middot')}</span>
                     <span className="shrink-0">{formatDateOnly(cr.created_at)}</span>
                     {typeof cr.comments_count === 'number' && cr.comments_count > 0 && (
@@ -270,10 +275,14 @@ export default function DashboardPage() {
                     {bug.title}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                    <span>
-                      {translate('projects:auto.by')}{' '}
-                      {bug.author?.display_name || translate('common:fallback.unknown')}
-                    </span>
+                    <span className="shrink-0">{translate('projects:auto.by')}</span>
+                    <UserName
+                      name={bug.author?.display_name}
+                      email={bug.author?.email}
+                      avatarUrl={bug.author?.avatar_url}
+                      fallback={translate('common:fallback.unknown')}
+                      className="max-w-[14rem]"
+                    />
                     <span>{translate('projects:auto.middot')}</span>
                     <span>{formatDateOnly(bug.created_at)}</span>
                     {typeof bug.comments_count === 'number' && bug.comments_count > 0 && (

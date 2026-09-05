@@ -121,7 +121,13 @@ class AuditService:
         if user_ids:
             users = await self._user_repo.find_by_ids(list(user_ids))
             users_by_id = {
-                u.id: UserBrief(id=u.id, display_name=u.display_name, email=u.email) for u in users
+                u.id: UserBrief(
+                    id=u.id,
+                    display_name=u.display_name,
+                    email=u.email,
+                    avatar_url=u.avatar_url,
+                )
+                for u in users
             }
 
         pairs = [(i, users_by_id.get(i.user_id) if i.user_id is not None else None) for i in items]

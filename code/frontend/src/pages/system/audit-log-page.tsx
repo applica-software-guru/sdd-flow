@@ -258,7 +258,11 @@ function AuditRow({
         </td>
         <td className="px-5 py-4">
           {entry.user ? (
-            <UserName name={entry.user.display_name} email={entry.user.email} />
+            <UserName
+              name={entry.user.display_name}
+              email={entry.user.email}
+              avatarUrl={entry.user.avatar_url}
+            />
           ) : (
             <Badge variant="outline" className="italic">
               {translate('audit:auto.system')}

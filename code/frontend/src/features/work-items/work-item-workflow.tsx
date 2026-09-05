@@ -6,6 +6,7 @@ import { translate } from '@/i18n';
 interface WorkItemWorkflowProps<TStatus extends string> {
   title: string;
   author?: UserBrief | null;
+  assignee?: UserBrief | null;
   assigneeId: string | null;
   members: TenantMember[];
   history?: AssignmentHistoryEntry[];
@@ -53,6 +54,7 @@ export default function WorkItemWorkflow<TStatus extends string>(
           <AssignmentPanel
             author={props.author}
             assigneeId={props.assigneeId}
+            assignee={props.assignee}
             members={props.members}
             history={props.history}
             onAssign={props.onAssign}

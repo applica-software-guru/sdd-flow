@@ -130,7 +130,11 @@ async def test_get_returns_resolved_author_and_assignee(
     other_user: User,
     cr: ChangeRequest,
 ):
+    test_user.avatar_url = "https://example.com/test-user.png"
+    other_user.avatar_url = "https://example.com/other-user.png"
     cr.assignee_id = other_user.id
+    await test_user.save()
+    await other_user.save()
     await cr.save()
 
     resp = await client.get(_cr_url(test_tenant, test_project, cr))
@@ -139,8 +143,10 @@ async def test_get_returns_resolved_author_and_assignee(
     assert data["author"]["id"] == str(test_user.id)
     assert data["author"]["display_name"] == test_user.display_name
     assert data["author"]["email"] == test_user.email
+    assert data["author"]["avatar_url"] == test_user.avatar_url
     assert data["assignee"]["id"] == str(other_user.id)
     assert data["assignee"]["display_name"] == other_user.display_name
+    assert data["assignee"]["avatar_url"] == other_user.avatar_url
 
 
 @pytest.mark.asyncio
@@ -153,7 +159,11 @@ async def test_list_returns_resolved_users(
     cr: ChangeRequest,
     bug: Bug,
 ):
+    test_user.avatar_url = "https://example.com/test-user.png"
+    other_user.avatar_url = "https://example.com/other-user.png"
     cr.assignee_id = other_user.id
+    await test_user.save()
+    await other_user.save()
     await cr.save()
 
     resp = await client.get(
@@ -162,7 +172,9 @@ async def test_list_returns_resolved_users(
     assert resp.status_code == 200
     found = next(i for i in resp.json()["items"] if i["id"] == str(cr.id))
     assert found["author"]["display_name"] == test_user.display_name
+    assert found["author"]["avatar_url"] == test_user.avatar_url
     assert found["assignee"]["display_name"] == other_user.display_name
+    assert found["assignee"]["avatar_url"] == other_user.avatar_url
 
 
 # ---------------------------------------------------------------------------
@@ -314,6 +326,11 @@ async def test_assignments_history_endpoint(
     # timestamps so the newest-first ordering is deterministic
     from datetime import datetime
 
+    test_user.avatar_url = "https://example.com/test-user.png"
+    other_user.avatar_url = "https://example.com/other-user.png"
+    await test_user.save()
+    await other_user.save()
+
     base = datetime.now(UTC)
     await AssignmentHistory(
         tenant_id=test_tenant.id,
@@ -338,8 +355,10 @@ async def test_assignments_history_endpoint(
     assert len(entries) == 2
     # newest first
     assert entries[0]["assignee"]["display_name"] == other_user.display_name
+    assert entries[0]["assignee"]["avatar_url"] == other_user.avatar_url
     assert entries[0]["assigned_by_name"] == test_user.display_name
     assert entries[1]["assignee"]["display_name"] == test_user.display_name
+    assert entries[1]["assignee"]["avatar_url"] == test_user.avatar_url
 
 
 # ---------------------------------------------------------------------------

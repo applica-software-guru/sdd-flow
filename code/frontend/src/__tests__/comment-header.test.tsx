@@ -31,6 +31,20 @@ describe('CommentHeader', () => {
     expect(markup).toMatch(/\d{1,2}:\d{2}/);
   });
 
+  it('renders the author profile image when avatar_url is present', () => {
+    const markup = renderToStaticMarkup(
+      <CommentHeader
+        comment={{
+          ...baseComment,
+          author: { ...baseComment.author, avatar_url: 'https://example.com/jane.png' },
+        }}
+      />
+    );
+    expect(markup).toContain('<img');
+    expect(markup).toContain('src="https://example.com/jane.png"');
+    expect(markup).toContain('Jane Doe');
+  });
+
   it('falls back to "?" and "Unknown" when no author is resolved', () => {
     const comment = { ...baseComment, author: undefined as unknown as Comment['author'] };
     const markup = renderToStaticMarkup(<CommentHeader comment={comment} />);
@@ -95,7 +109,7 @@ describe('AssignmentHistory', () => {
       <AssignmentHistory history={history} entityLabel="Some entity" />
     );
     expect(markup).toContain('Assignment history (1)');
-    expect(markup).toContain('assigned to John Smith');
+    expect(markup).toContain('John Smith');
 
     const empty = renderToStaticMarkup(<AssignmentHistory history={[]} entityLabel="e" />);
     expect(empty).toBe('');

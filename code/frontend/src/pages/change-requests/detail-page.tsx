@@ -241,6 +241,7 @@ export default function DetailPage() {
         <WorkItemWorkflow
           title={cr.title}
           author={cr.author}
+          assignee={cr.assignee}
           assigneeId={cr.assignee_id ?? null}
           members={members ?? []}
           history={assignmentHistory}

@@ -15,4 +15,5 @@ export interface UserBrief {
   id: string;
   display_name: string;
   email: string;
+  avatar_url?: string | null;
 }

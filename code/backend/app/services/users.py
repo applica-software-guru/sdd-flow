@@ -37,7 +37,15 @@ class UserService:
         if not ids:
             return {}
         users = await self._user_repo.find_by_ids(ids)
-        return {u.id: UserBrief(id=u.id, display_name=u.display_name, email=u.email) for u in users}
+        return {
+            u.id: UserBrief(
+                id=u.id,
+                display_name=u.display_name,
+                email=u.email,
+                avatar_url=u.avatar_url,
+            )
+            for u in users
+        }
 
     async def resolve_user_brief(self, user_id: uuid.UUID | None) -> UserBrief | None:
         if user_id is None:

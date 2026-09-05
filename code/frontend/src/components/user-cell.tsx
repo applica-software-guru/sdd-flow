@@ -15,5 +15,5 @@ export default function UserCell({
   if (!user) {
     return <span className="text-slate-400 dark:text-slate-500">{fallback}</span>;
   }
-  return <UserName name={user.display_name} email={user.email} />;
+  return <UserName name={user.display_name} email={user.email} avatarUrl={user.avatar_url} />;
 }

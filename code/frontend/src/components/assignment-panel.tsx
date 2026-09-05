@@ -1,3 +1,4 @@
+import UserName from '@/components/user-name';
 import { formatDateTime } from '@/lib/format';
 import { useState } from 'react';
 import { AssignmentHistoryEntry, UserBrief } from '../types';
@@ -6,6 +7,7 @@ import { translate } from '@/i18n';
 interface AssignmentPanelProps {
   author?: UserBrief | null;
   assigneeId: string | null | undefined;
+  assignee?: UserBrief | null;
   members: { user_id: string; display_name: string }[];
   history?: AssignmentHistoryEntry[];
   onAssign: (assigneeId: string | null) => void;
@@ -19,6 +21,7 @@ interface AssignmentPanelProps {
 export default function AssignmentPanel({
   author,
   assigneeId,
+  assignee,
   members,
   history,
   onAssign,
@@ -36,9 +39,10 @@ export default function AssignmentPanel({
     setSelected(normalizedAssigneeId);
   }
 
+  const currentAssignee =
+    assignee ?? history?.find((h) => h.assignee_id === assigneeId)?.assignee ?? null;
   const currentAssigneeName =
-    members.find((m) => m.user_id === assigneeId)?.display_name ??
-    history?.find((h) => h.assignee_id === assigneeId)?.assignee?.display_name;
+    currentAssignee?.display_name ?? members.find((m) => m.user_id === assigneeId)?.display_name;
 
   const handleChange = (value: string) => {
     setSelected(value);
@@ -51,20 +55,32 @@ export default function AssignmentPanel({
         <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
           {translate('common:auto.author')}
         </h3>
-        <p
-          className="mt-1 min-w-0 truncate text-sm text-slate-900 dark:text-slate-100"
-          title={author?.email}
-        >
-          {author?.display_name ?? '--'}
-        </p>
+        <div className="mt-1">
+          <UserName
+            name={author?.display_name}
+            email={author?.email}
+            avatarUrl={author?.avatar_url}
+            fallback="--"
+          />
+        </div>
       </div>
       <div>
         <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
           {translate('common:auto.assignee')}
         </h3>
-        <p className="mt-1 min-w-0 truncate text-sm text-slate-900 dark:text-slate-100">
-          {currentAssigneeName ?? translate('common:fallback.unassigned')}
-        </p>
+        <div className="mt-1">
+          {currentAssignee ? (
+            <UserName
+              name={currentAssignee.display_name}
+              email={currentAssignee.email}
+              avatarUrl={currentAssignee.avatar_url}
+            />
+          ) : (
+            <span className="min-w-0 truncate text-sm text-slate-900 dark:text-slate-100">
+              {currentAssigneeName ?? translate('common:fallback.unassigned')}
+            </span>
+          )}
+        </div>
       </div>
       <div>
         <h3 className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -112,9 +128,15 @@ export function AssignmentHistory({
               {formatDateTime(h.created_at)}
             </span>
             <span className="min-w-0 truncate">
-              {h.assignee
-                ? `assigned to ${h.assignee.display_name}`
-                : translate('common:auto.unassigned_2')}
+              {h.assignee ? (
+                <UserName
+                  name={h.assignee.display_name}
+                  email={h.assignee.email}
+                  avatarUrl={h.assignee.avatar_url}
+                />
+              ) : (
+                translate('common:auto.unassigned_2')
+              )}
             </span>
             {h.assigned_by_name && (
               <span className="min-w-0 truncate text-slate-400 dark:text-slate-500">
