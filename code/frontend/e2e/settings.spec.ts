@@ -4,9 +4,9 @@ import { login, getTenantId, getProjectId } from './auth.setup';
 async function goToProjectSettings(page: import('@playwright/test').Page) {
   const projectBase = `/tenants/${getTenantId()}/projects/${getProjectId()}`;
   await page.goto(`${projectBase}/settings`);
-  await expect(
-    page.getByRole('heading', { name: 'Project Settings' })
-  ).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole('heading', { name: 'Project Settings' })).toBeVisible({
+    timeout: 10_000,
+  });
   return projectBase;
 }
 
@@ -45,9 +45,7 @@ test.describe('Settings', () => {
     await page.getByRole('button', { name: 'Save changes' }).click();
 
     // Should show success message
-    await expect(
-      page.getByText('Project updated successfully')
-    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('Project updated successfully')).toBeVisible({ timeout: 10_000 });
 
     // Restore original description
     await descInput.fill(currentDesc);
@@ -63,9 +61,9 @@ test.describe('Settings', () => {
     await page.getByRole('button', { name: 'Create key' }).click();
 
     // Should show the created key notification
-    await expect(
-      page.getByText('API key created')
-    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText('API key created', { exact: true })).toBeVisible({
+      timeout: 10_000,
+    });
     // The key itself should be displayed
     await expect(page.locator('code')).toBeVisible();
 
@@ -90,15 +88,13 @@ test.describe('Settings', () => {
       await revokeButton.click();
 
       // Confirm in dialog
-      const confirmRevoke = page
-        .getByRole('button', { name: 'Revoke' })
-        .last();
+      const confirmRevoke = page.getByRole('button', { name: 'Revoke' }).last();
       await expect(confirmRevoke).toBeVisible();
       await confirmRevoke.click();
 
       // Should show "Revoked" status
       await page.waitForLoadState('networkidle');
-      await expect(page.getByText('Revoked')).toBeVisible({ timeout: 10_000 });
+      await expect(keyRow.getByText('Revoked', { exact: true })).toBeVisible({ timeout: 10_000 });
     }
   });
 });

@@ -3,12 +3,78 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 72.2% 50.6%;
+    --destructive-foreground: 210 40% 98%;
+    --warning: 32 95% 44%;
+    --warning-foreground: 0 0% 100%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 217.2 32.6% 17.5%;
+    --card-foreground: 210 40% 98%;
+    --popover: 217.2 32.6% 17.5%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 215.3 25% 26.7%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 45%;
+    --destructive-foreground: 210 40% 98%;
+    --warning: 32 95% 44%;
+    --warning-foreground: 0 0% 100%;
+    --border: 215.3 25% 26.7%;
+    --input: 215.3 25% 26.7%;
+    --ring: 224.3 76.3% 48%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
   html {
+    min-height: 100%;
+    background-color: hsl(var(--background));
+    color-scheme: light;
     scroll-behavior: smooth;
   }
 
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body,
+  #root {
+    min-height: 100vh;
+    background-color: hsl(var(--background));
+  }
+
   body {
-    @apply min-h-screen bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100;
+    @apply text-foreground;
   }
 }
 
@@ -180,7 +246,16 @@
     background-color: #e2e8f0;
     border-radius: 0.375rem;
     color: #0f172a;
-    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      SF Mono,
+      Menlo,
+      Monaco,
+      Consolas,
+      Liberation Mono,
+      Courier New,
+      monospace;
     font-size: 0.85em;
     padding: 0.15rem 0.35rem;
   }
@@ -211,7 +286,16 @@
 
   .markdown-viewer .markdown-code-block code {
     display: block;
-    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      SF Mono,
+      Menlo,
+      Monaco,
+      Consolas,
+      Liberation Mono,
+      Courier New,
+      monospace;
     font-size: 0.875rem;
     line-height: 1.7;
     padding: 1rem 1.1rem;
@@ -271,7 +355,16 @@
   }
 
   .markdown-input {
-    font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+    font-family:
+      ui-monospace,
+      SFMono-Regular,
+      SF Mono,
+      Menlo,
+      Monaco,
+      Consolas,
+      Liberation Mono,
+      Courier New,
+      monospace;
     font-size: 0.925rem;
     line-height: 1.7;
   }
@@ -293,7 +386,7 @@
 }
 
 /* Markdown editor dark mode overrides */
-[data-color-mode="dark"] .w-md-editor {
+[data-color-mode='dark'] .w-md-editor {
   --color-canvas-default: #1e293b !important;
   --color-border-default: #334155 !important;
   --color-border-muted: #334155 !important;
@@ -301,36 +394,36 @@
   border-color: #334155 !important;
 }
 
-[data-color-mode="dark"] .w-md-editor-toolbar {
+[data-color-mode='dark'] .w-md-editor-toolbar {
   background-color: #1e293b !important;
   border-bottom-color: #334155 !important;
 }
 
-[data-color-mode="dark"] .w-md-editor-toolbar li > button {
+[data-color-mode='dark'] .w-md-editor-toolbar li > button {
   color: #94a3b8 !important;
 }
 
-[data-color-mode="dark"] .w-md-editor-toolbar li > button:hover {
+[data-color-mode='dark'] .w-md-editor-toolbar li > button:hover {
   color: #e2e8f0 !important;
   background-color: #334155 !important;
 }
 
-[data-color-mode="dark"] .w-md-editor-toolbar li.active > button {
+[data-color-mode='dark'] .w-md-editor-toolbar li.active > button {
   color: #e2e8f0 !important;
   background-color: #334155 !important;
 }
 
-[data-color-mode="dark"] .w-md-editor-text-pre,
-[data-color-mode="dark"] .w-md-editor-text-input,
-[data-color-mode="dark"] .w-md-editor-text {
+[data-color-mode='dark'] .w-md-editor-text-pre,
+[data-color-mode='dark'] .w-md-editor-text-input,
+[data-color-mode='dark'] .w-md-editor-text {
   color: #e2e8f0 !important;
 }
 
-[data-color-mode="dark"] .w-md-editor-preview {
+[data-color-mode='dark'] .w-md-editor-preview {
   background-color: #1e293b !important;
 }
 
-[data-color-mode="dark"] .wmde-markdown {
+[data-color-mode='dark'] .wmde-markdown {
   background-color: #1e293b !important;
   color: #e2e8f0 !important;
 }
@@ -361,7 +454,9 @@
 
 /* Monospaced font for editor text */
 .md-editor-custom {
-  --md-editor-font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+  --md-editor-font-family:
+    ui-monospace, SFMono-Regular, SF Mono, Menlo, Monaco, Consolas, Liberation Mono, Courier New,
+    monospace;
 }
 
 .md-editor-custom .w-md-editor-text-pre,
@@ -370,6 +465,8 @@
 .md-editor-custom .w-md-editor-text,
 .md-editor-custom .w-md-editor-text-pre > code,
 .md-editor-custom .w-md-editor-text textarea {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace !important;
   font-size: 14px !important;
 }

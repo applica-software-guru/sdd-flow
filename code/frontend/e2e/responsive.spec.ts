@@ -38,9 +38,9 @@ test.describe('Responsive layout', () => {
 
     // Navigate to CR list
     await page.goto(`${projectBase}/crs`);
-    await expect(
-      page.getByRole('heading', { name: 'Change Requests', exact: true })
-    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { name: 'Change Requests', exact: true })).toBeVisible({
+      timeout: 10_000,
+    });
 
     // The heading should be visible and within the viewport
     const heading = page.getByRole('heading', { name: 'Change Requests', exact: true });
@@ -58,8 +58,9 @@ test.describe('Responsive layout', () => {
     const menuButton = page.locator('header button').first();
     await menuButton.click();
 
-    await expect(page.getByText('Current project')).toBeVisible();
-    await expect(page.getByText('E2E Test Project')).toBeVisible();
-    await expect(page.getByText('Inside E2E Test Project')).toBeVisible();
+    const drawer = page.getByRole('dialog', { name: 'SDD Flow' });
+    await expect(drawer.getByText('Current project')).toBeVisible();
+    await expect(drawer.getByText('E2E Test Project', { exact: true })).toBeVisible();
+    await expect(drawer.getByText('Inside E2E Test Project')).toBeVisible();
   });
 });

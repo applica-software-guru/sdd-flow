@@ -64,5 +64,5 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npx vitest run
+      - name: Run frontend quality gate
+        run: npm run check

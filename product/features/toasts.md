@@ -2,8 +2,8 @@
 title: "Toast Notifications"
 status: synced
 author: "roberto"
-last-modified: "2026-03-16T23:15:00.000Z"
-version: "1.0"
+last-modified: "2026-09-04T20:45:00.000Z"
+version: "1.1"
 ---
 
 # Toast Notifications
@@ -44,14 +44,14 @@ Toasts fire on `onSuccess` and `onError` callbacks for all mutations:
 
 ### ToastContext
 
-- File: `src/context/ToastContext.tsx`
+- File: `src/context/toast-context.tsx`
 - Maintains array of `{ id, message, variant, duration }` toasts
 - Exposes `addToast(message, variant?, duration?)` via `useToast()` hook
 - Auto-removes toasts after their duration
 
 ### ToastContainer
 
-- File: `src/components/ToastContainer.tsx`
+- File: `src/components/toast-container.tsx`
 - Fixed position bottom-right
 - Renders each toast with variant-colored icon, message text, and close button
 - Dark mode via `dark:` classes

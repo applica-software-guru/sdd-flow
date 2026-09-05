@@ -1,13 +1,28 @@
-import { Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+
+interface AuthCookie {
+  name: string;
+  value: string;
+  domain: string;
+  path: string;
+}
 
 let _tenantId: string | null = null;
 let _projectId: string | null = null;
+let _authCookies: AuthCookie[] | null = null;
 
 /**
  * Log in by registering a test user via the API, creating a tenant and project,
  * and setting the cookies on the browser.
  */
 export async function login(page: Page) {
+  if (_authCookies && _tenantId && _projectId) {
+    await page.context().addCookies(_authCookies);
+    await page.goto('/tenants');
+    await page.waitForURL('**/tenants**', { timeout: 15_000 });
+    return;
+  }
+
   const email = `e2e-${Date.now()}@test.com`;
   const password = 'TestPassword123!';
 
@@ -26,12 +41,7 @@ export async function login(page: Page) {
 
   // Extract cookies from response headers
   const allHeaders = resp.headersArray();
-  const parsedCookies: Array<{
-    name: string;
-    value: string;
-    domain: string;
-    path: string;
-  }> = [];
+  const parsedCookies: AuthCookie[] = [];
 
   for (const h of allHeaders) {
     if (h.name.toLowerCase() === 'set-cookie') {
@@ -48,6 +58,7 @@ export async function login(page: Page) {
   }
 
   if (parsedCookies.length > 0) {
+    _authCookies = parsedCookies;
     await page.context().addCookies(parsedCookies);
   }
 

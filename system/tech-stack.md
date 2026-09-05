@@ -2,8 +2,8 @@
 title: "Tech Stack"
 status: synced
 author: ""
-last-modified: "2026-03-29T00:00:00.000Z"
-version: "1.2"
+last-modified: "2026-09-04T20:30:00.000Z"
+version: "1.3"
 ---
 
 # Tech Stack
@@ -36,6 +36,10 @@ version: "1.2"
 | TanStack Query | Server state management | 5.x     |
 | React Router   | Client-side routing     | 6.x     |
 | axios          | HTTP client             | latest  |
+| shadcn/ui      | Code-owned UI primitives | latest |
+| Radix UI       | Accessible interactions  | latest  |
+| Lucide React   | Shared icon library      | latest  |
+| CVA / tailwind-merge | Component variants and class merging | latest |
 
 ## Infrastructure
 
@@ -57,4 +61,7 @@ version: "1.2"
 | uv      | Python dependency management and virtual environments |
 | npm     | Frontend dependency management                        |
 | pytest  | Backend testing                                       |
-| Vitest  | Frontend testing                                      |
+| Vitest  | Frontend unit testing                                 |
+| Testing Library | Frontend interaction and accessibility tests     |
+| ESLint  | Type-aware TypeScript and JSX accessibility linting     |
+| Prettier | Frontend formatting and Tailwind class ordering         |

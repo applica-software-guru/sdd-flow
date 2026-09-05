@@ -7,9 +7,9 @@ import { login, getTenantId, getProjectId } from './auth.setup';
 async function goToCRList(page: import('@playwright/test').Page) {
   const projectBase = `/tenants/${getTenantId()}/projects/${getProjectId()}`;
   await page.goto(`${projectBase}/crs`);
-  await expect(
-    page.getByRole('heading', { name: 'Change Requests', exact: true })
-  ).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole('heading', { name: 'Change Requests', exact: true })).toBeVisible({
+    timeout: 10_000,
+  });
   return projectBase;
 }
 
@@ -45,7 +45,10 @@ test.describe('Change Requests', () => {
   test('can view CR list page', async ({ page }) => {
     await goToCRList(page);
     // Either shows a table or an empty state
-    const hasTable = await page.locator('table').isVisible().catch(() => false);
+    const hasTable = await page
+      .locator('table')
+      .isVisible()
+      .catch(() => false);
     const hasEmpty = await page
       .getByText(/no change requests/i)
       .isVisible()
@@ -117,9 +120,7 @@ test.describe('Change Requests', () => {
     await page.waitForURL('**/crs/**');
 
     const commentText = `E2E comment ${Date.now()}`;
-    await page
-      .getByPlaceholder('Write a comment...')
-      .fill(commentText);
+    await page.getByPlaceholder('Write a comment…').fill(commentText);
     await page.getByRole('button', { name: 'Add comment' }).click();
 
     // Wait for the comment to appear
@@ -136,7 +137,10 @@ test.describe('Change Requests', () => {
 
     const title = `E2E Long CR ${Date.now()}`;
     await page.getByPlaceholder('Brief description of the change').fill(title);
-    const longBody = Array.from({ length: 80 }, (_, i) => `Paragraph ${i + 1}: lorem ipsum dolor sit amet.`).join('\n\n');
+    const longBody = Array.from(
+      { length: 80 },
+      (_, i) => `Paragraph ${i + 1}: lorem ipsum dolor sit amet.`
+    ).join('\n\n');
     await page.locator('.w-md-editor-text-input').fill(longBody);
     await page.getByRole('button', { name: 'Create change request' }).click();
     await page.waitForURL('**/crs/**', { timeout: 15_000 });

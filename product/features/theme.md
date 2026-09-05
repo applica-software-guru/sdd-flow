@@ -2,8 +2,8 @@
 title: "Theme — Light / Dark Mode"
 status: synced
 author: "roberto"
-last-modified: "2026-03-16T22:30:00.000Z"
-version: "1.0"
+last-modified: "2026-09-04T20:30:00.000Z"
+version: "1.2"
 ---
 
 # Theme — Light / Dark Mode
@@ -39,6 +39,11 @@ The application supports light and dark color schemes with automatic OS preferen
 
 - Toggle a `dark` class on the `<html>` element
 - Use Tailwind CSS dark mode with `darkMode: 'class'` strategy
+- Define semantic CSS variables for background, foreground, card, popover, primary, secondary, muted, accent, destructive, border, input and focus ring
+- Map semantic variables into Tailwind so code-owned shadcn primitives and product components share one palette
+- Preserve the current slate/blue visual identity in both light and dark themes
+- Apply the persisted or system theme synchronously before the application and stylesheet-driven surfaces paint, preventing a light flash during initial load
+- Keep `html`, `body`, `#root`, and route-loading fallbacks on the semantic theme background; nested route loading must preserve the dark app shell instead of exposing the browser's default canvas
 - All UI surfaces must support both themes:
   - Backgrounds (page, cards, sidebar, modals)
   - Text colors (headings, body, muted)
@@ -54,7 +59,7 @@ The application supports light and dark color schemes with automatic OS preferen
 
 ### ThemeProvider Context
 
-- File: `src/context/ThemeContext.tsx`
+- File: `src/context/theme-context.tsx`
 - Provides `theme` (`'light' | 'dark' | 'system'`), `resolvedTheme` (`'light' | 'dark'`), and `setTheme()`
 - Reads initial theme from `localStorage`, falling back to `'system'`
 - Adds/removes the `dark` class on `document.documentElement`
@@ -63,9 +68,10 @@ The application supports light and dark color schemes with automatic OS preferen
 
 ### ThemeToggle Component
 
-- File: `src/components/ThemeToggle.tsx`
+- File: `src/components/theme-toggle.tsx`
 - Dropdown with three options: Light (sun icon), Dark (moon icon), System (monitor icon)
-- Placed in the `Layout.tsx` header bar
+- Uses the shared shadcn/Radix dropdown primitive for keyboard navigation, focus management and Escape handling
+- Placed in the app-shell top bar
 
 ### Tailwind Configuration
 

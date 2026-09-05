@@ -4,9 +4,9 @@ import { login, getTenantId, getProjectId } from './auth.setup';
 async function goToBugList(page: import('@playwright/test').Page) {
   const projectBase = `/tenants/${getTenantId()}/projects/${getProjectId()}`;
   await page.goto(`${projectBase}/bugs`);
-  await expect(
-    page.getByRole('heading', { name: 'Bugs', exact: true })
-  ).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole('heading', { name: 'Bugs', exact: true })).toBeVisible({
+    timeout: 10_000,
+  });
   return projectBase;
 }
 
@@ -24,8 +24,8 @@ async function createBug(page: import('@playwright/test').Page) {
   await page.getByPlaceholder('Brief description of the bug').fill(title);
   // Description uses MarkdownEditor — target the inner textarea
   await page.locator('.w-md-editor-text-input').fill('Steps to reproduce: automated test.');
-  // Severity is the first <select> in the form
-  await page.locator('select').first().selectOption('major');
+  await page.getByRole('combobox', { name: 'Severity' }).click();
+  await page.getByRole('option', { name: 'major' }).click();
 
   await page.getByRole('button', { name: 'Report bug' }).click();
   await page.waitForURL('**/bugs/**', { timeout: 15_000 });
@@ -45,7 +45,10 @@ test.describe('Bugs', () => {
     await goToBugList(page);
     // Wait for loading to finish — either a table or the empty state appears
     await page.waitForLoadState('networkidle');
-    const hasTable = await page.locator('table').isVisible().catch(() => false);
+    const hasTable = await page
+      .locator('table')
+      .isVisible()
+      .catch(() => false);
     const hasEmpty = await page
       .getByRole('heading', { name: 'No bugs found' })
       .isVisible()
@@ -113,9 +116,7 @@ test.describe('Bugs', () => {
     await page.waitForURL('**/bugs/**');
 
     const commentText = `E2E bug comment ${Date.now()}`;
-    await page
-      .getByPlaceholder('Write a comment...')
-      .fill(commentText);
+    await page.getByPlaceholder('Write a comment…').fill(commentText);
     await page.getByRole('button', { name: 'Add comment' }).click();
 
     await expect(page.getByText(commentText)).toBeVisible({

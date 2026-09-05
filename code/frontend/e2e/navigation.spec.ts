@@ -8,9 +8,7 @@ test.describe('Navigation', () => {
 
   test('can navigate to tenant dashboard', async ({ page }) => {
     await page.goto(`/tenants/${getTenantId()}`);
-    await expect(
-      page.getByRole('heading', { level: 1 })
-    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 10_000 });
     // Should show tenant name or "Dashboard"
     await expect(page.getByText('Manage your projects')).toBeVisible();
   });
@@ -21,16 +19,15 @@ test.describe('Navigation', () => {
     // Project dashboard page should show an overview heading or content
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 10_000 });
 
-    // Project context bar and breadcrumb should make active project obvious
-    await expect(page.getByText('Project context')).toBeVisible();
-    await expect(page.getByText('Project: E2E Test Project')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Projects' })).toBeVisible();
-    await expect(page.getByText('Overview')).toBeVisible();
+    // Sidebar and breadcrumb should make the active project obvious.
+    await expect(page.locator('aside').getByText('Inside E2E Test Project')).toBeVisible();
+    const breadcrumb = page.getByRole('navigation', { name: 'Breadcrumb' });
+    await expect(breadcrumb.getByRole('link', { name: 'Projects' })).toBeVisible();
+    await expect(breadcrumb.getByText('E2E Test Project', { exact: true })).toBeVisible();
+    await expect(breadcrumb.getByText('Overview', { exact: true })).toBeVisible();
   });
 
-  test('sidebar links work for CR list, Bug list, Docs, Settings', async ({
-    page,
-  }) => {
+  test('sidebar links work for CR list, Bug list, Docs, Settings', async ({ page }) => {
     // Navigate directly to the project
     await page.goto(`/tenants/${getTenantId()}/projects/${getProjectId()}`);
     await page.waitForURL(`**/projects/**`);
@@ -43,33 +40,27 @@ test.describe('Navigation', () => {
     await expect(crLink).toBeVisible({ timeout: 5_000 });
     await crLink.click();
     await page.waitForURL('**/crs');
-    await expect(
-      page.getByRole('heading', { name: 'Change Requests', exact: true })
-    ).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('heading', { name: 'Change Requests', exact: true })).toBeVisible({
+      timeout: 10_000,
+    });
 
     // Navigate to Bugs via sidebar
     const bugsLink = page.locator('aside a', { hasText: 'Bugs' });
     await bugsLink.click();
     await page.waitForURL('**/bugs');
-    await expect(
-      page.getByRole('heading', { name: 'Bugs' })
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Bugs', exact: true })).toBeVisible();
 
     // Navigate to Docs via sidebar
     const docsLink = page.locator('aside a', { hasText: 'Docs' });
     await docsLink.click();
     await page.waitForURL('**/docs');
-    await expect(
-      page.getByRole('heading', { name: 'Documentation' })
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Documentation' })).toBeVisible();
 
     // Navigate to Settings via sidebar (project-level settings link is the 2nd "Settings")
     const settingsLinks = page.locator('aside a', { hasText: 'Settings' });
     // The second Settings link in the sidebar is the project settings
     await settingsLinks.last().click();
     await page.waitForURL('**/settings');
-    await expect(
-      page.getByRole('heading', { name: 'Project Settings' })
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Project Settings' })).toBeVisible();
   });
 });

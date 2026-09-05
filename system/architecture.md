@@ -2,8 +2,8 @@
 title: "Architecture Decisions"
 status: synced
 author: ""
-last-modified: "2026-09-04T00:00:00.000Z"
-version: "2.1"
+last-modified: "2026-09-04T20:30:00.000Z"
+version: "2.2"
 ---
 
 # Architecture Decisions
@@ -38,12 +38,17 @@ sdd-flow/
 ├── frontend/              # React (Vite + Tailwind)
 │   ├── src/
 │   │   ├── main.tsx
-│   │   ├── App.tsx
-│   │   ├── hooks/         # All data fetching via react-query hooks
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Page-level components (route targets)
-│   │   ├── lib/           # API client, auth helpers
-│   │   └── types/         # TypeScript interfaces
+│   │   ├── app.tsx
+│   │   ├── api/           # Typed HTTP transport and query-key factories
+│   │   ├── hooks/         # React Query adapters consumed by components
+│   │   ├── components/
+│   │   │   ├── ui/        # Code-owned shadcn primitives
+│   │   │   ├── layout/    # App shell, navigation and breadcrumbs
+│   │   │   └── shared/    # Reusable product-level components
+│   │   ├── features/      # Domain-focused reusable UI and hooks
+│   │   ├── pages/         # Thin route-level composition components
+│   │   ├── lib/           # Pure cross-cutting utilities
+│   │   └── types/         # Domain-specific TypeScript interfaces
 │   ├── package.json
 │   └── Dockerfile
 ├── docker-compose.yml     # Full stack: backend + frontend + mongo
@@ -103,15 +108,18 @@ controllers (api/) → service classes (services/) → repositories (repositorie
 
 ### Frontend: React + Vite + Tailwind + React Query
 
-- **Vite** for fast dev server and builds
-- **Tailwind CSS** for styling
-- **React Query (TanStack Query)** for all server state — no manual fetch/loading/error state
-- **All data fetching lives in `hooks/`** — components never call the API directly
-- **React Router** for client-side routing
-- **`Layout.tsx` is the authenticated app shell** (navbar/sidebar) and renders route content via `<Outlet />`
-- **Consistent content width**: list and detail pages must use the same outer container width (default `max-w-5xl`) to avoid layout jumps during navigation
-- Prefer a single shared wrapper (e.g. `PageContainer`) instead of ad-hoc `mx-auto max-w-*` per page
-- **Standard authenticated width**: all pages rendered inside `Layout.tsx` should use the same outer container width (default `max-w-5xl`) so flows like list -> detail -> create/settings remain visually stable
+- **Vite** for fast dev server and production builds; route targets and heavy Markdown/Mermaid/editor dependencies are lazy-loaded
+- **Tailwind CSS + shadcn/ui** provide styling and code-owned accessible primitives. Radix supplies interaction semantics, CVA defines variants, `cn()` merges classes and Lucide supplies standard icons
+- **Semantic CSS variables** define background, foreground, card, popover, primary, secondary, muted, accent, destructive, border, input and ring colours in both themes
+- **React Query (TanStack Query)** owns all server state. Components consume only hooks; hooks use the shared HTTP client/error normalization from `api/` and hierarchical query-key factories
+- **Typed route helpers** validate required tenant/project/entity identifiers before mutations and required feature operations run; route pages do not rely on non-null assertions
+- **Layering**: `components/ui/` contains shadcn primitives, `components/shared/` reusable product components, `components/layout/` the app shell, and `features/` domain-focused components. Pages remain thin route composition modules
+- **File naming**: every application source filename uses kebab-case (`layout.tsx`, `back-link.tsx`, `use-api-keys.ts`, `audit-log-details.test.tsx`). Only ecosystem-mandated configuration/document names such as `package.json`, `vite.config.ts`, `Dockerfile` and `README.md` are exempt; CI validates the convention
+- **App shell** is split into `AppShell`, `Sidebar`, `MobileNav`, `TopBar`, breadcrumbs and user menu. Desktop and mobile navigation consume one permission-aware navigation model
+- **Consistent content width**: authenticated pages use the shared `PageContainer` with default `max-w-5xl`, avoiding layout jumps
+- **Shared workflows**: Bugs and Change Requests reuse stable form, slug, table, comments, transition and assignment building blocks while domain rules remain explicit
+- **Accessibility**: dialogs, alerts, selects and dropdowns use Radix/shadcn semantics; icon controls are labelled and keyboard/focus behaviour is covered by interaction tests
+- **Toolchain**: filename-convention validation, ESLint (type-aware plus JSX accessibility), strict TypeScript, Prettier with Tailwind class ordering, Vitest/Testing Library, Playwright and production build are exposed through `npm run check` and the frontend `cli.sh`
 
 ### Database: MongoDB 7.0
 
@@ -161,7 +169,8 @@ controllers (api/) → service classes (services/) → repositories (repositorie
 
 - **Dark mode strategy**: `darkMode: 'class'` in Tailwind config — a `dark` class on `<html>` activates all `dark:` variants
 - **ThemeProvider context** manages the current theme state, OS preference detection, and localStorage persistence
-- **ThemeToggle component** in the header provides Light / Dark / System options
+- **Semantic design tokens** are exposed as CSS variables and mapped into Tailwind, so shadcn primitives and product components share the same light/dark palette
+- **ThemeToggle component** in the header provides Light / Dark / System options using the shared dropdown primitive
 - The markdown editor (`@uiw/react-md-editor`) uses the `data-color-mode` prop bound to the resolved theme
 
 ### Responsive Navigation
@@ -174,7 +183,8 @@ controllers (api/) → service classes (services/) → repositories (repositorie
 
 ### CI Pipeline: GitHub Actions
 
-- **GitHub Actions** runs pytest (backend) and Vitest (frontend) on every push to `main` and on all pull requests
+- **GitHub Actions** runs backend pytest and the complete frontend `npm run check` gate on every push to `main` and on all pull requests
+- The frontend gate includes ESLint, strict typecheck, Prettier check, unit tests and a production build
 - Backend tests use a **MongoDB 7 service container** for integration testing against a real database
 - The MongoDB service container is configured with a health check (`mongosh ping`) to ensure it is ready before tests run
 - Frontend and backend jobs run **in parallel** for faster feedback

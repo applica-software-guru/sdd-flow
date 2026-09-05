@@ -4,9 +4,9 @@ import { login, getTenantId, getProjectId } from './auth.setup';
 async function goToDocsPage(page: import('@playwright/test').Page) {
   const projectBase = `/tenants/${getTenantId()}/projects/${getProjectId()}`;
   await page.goto(`${projectBase}/docs`);
-  await expect(
-    page.getByRole('heading', { name: 'Documentation' })
-  ).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByRole('heading', { name: 'Documentation' })).toBeVisible({
+    timeout: 10_000,
+  });
   return projectBase;
 }
 
@@ -17,15 +17,11 @@ async function createDoc(page: import('@playwright/test').Page) {
   const projectBase = await goToDocsPage(page);
 
   await page.getByRole('button', { name: /New Document/i }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Create New Document' })
-  ).toBeVisible();
+  await expect(page.getByText('New document', { exact: true })).toBeVisible();
 
   const docTitle = `E2E Doc ${Date.now()}`;
-  // Title input has placeholder "Getting Started"
-  await page.getByPlaceholder('Getting Started').fill(docTitle);
-  // Path input has placeholder "guides/getting-started"
-  await page.getByPlaceholder('guides/getting-started').fill(`e2e/test-doc-${Date.now()}`);
+  await page.getByPlaceholder('Title').fill(docTitle);
+  await page.getByPlaceholder('Path (e.g. product/vision.md)').fill(`e2e/test-doc-${Date.now()}`);
 
   await page.getByRole('button', { name: 'Create' }).click();
   await page.waitForLoadState('networkidle');
@@ -42,14 +38,12 @@ async function createDocInFolder(
   const projectBase = await goToDocsPage(page);
 
   await page.getByRole('button', { name: /New Document/i }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Create New Document' })
-  ).toBeVisible();
+  await expect(page.getByText('New document', { exact: true })).toBeVisible();
 
   const docTitle = `E2E Doc ${titleSuffix} ${Date.now()}`;
-  await page.getByPlaceholder('Getting Started').fill(docTitle);
+  await page.getByPlaceholder('Title').fill(docTitle);
   await page
-    .getByPlaceholder('guides/getting-started')
+    .getByPlaceholder('Path (e.g. product/vision.md)')
     .fill(`${folder}/test-doc-${Date.now()}`);
 
   await page.getByRole('button', { name: 'Create' }).click();
@@ -83,17 +77,15 @@ test.describe('Docs', () => {
     await createDoc(page);
   });
 
-  test('groups documents by folder and filters with search', async ({ page }) => {
+  test('groups documents by folder and opens the folder', async ({ page }) => {
     const folderName = `e2e-group-${Date.now()}`;
     const { docTitle } = await createDocInFolder(page, folderName, 'Grouped');
 
     await goToDocsPage(page);
 
-    await expect(page.getByRole('button', { name: new RegExp(folderName) })).toBeVisible({
-      timeout: 10_000,
-    });
-
-    await page.getByPlaceholder('Search by title or path').fill(folderName);
+    const folderRow = page.getByRole('row', { name: folderName });
+    await expect(folderRow).toBeVisible({ timeout: 10_000 });
+    await folderRow.click();
     await expect(page.getByText(docTitle)).toBeVisible({ timeout: 10_000 });
   });
 
@@ -101,35 +93,20 @@ test.describe('Docs', () => {
     // First create a document so there is something to view
     await createDoc(page);
 
-    // Navigate back to docs list
-    await goToDocsPage(page);
-
-    // Click on the first document link
-    const firstDoc = page.locator('a[href*="/docs/"]').first();
-    await expect(firstDoc).toBeVisible({ timeout: 5_000 });
-    await firstDoc.click();
+    // Creation redirects directly to the new document.
     await page.waitForURL('**/docs/**');
     // Should show the doc title
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     // Should show Edit and Delete buttons
-    await expect(
-      page.getByRole('button', { name: 'Edit' })
-    ).toBeVisible();
-    await expect(
-      page.getByRole('button', { name: 'Delete' })
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Delete' })).toBeVisible();
   });
 
   test('can edit a document', async ({ page }) => {
     // First create a document so there is something to edit
     await createDoc(page);
 
-    // Navigate back to docs list
-    await goToDocsPage(page);
-
-    const firstDoc = page.locator('a[href*="/docs/"]').first();
-    await expect(firstDoc).toBeVisible({ timeout: 5_000 });
-    await firstDoc.click();
+    // Creation redirects directly to the new document.
     await page.waitForURL('**/docs/**');
 
     // Click Edit
@@ -137,7 +114,7 @@ test.describe('Docs', () => {
 
     // The editing form should now be visible — Title is an input[type="text"], Content uses MarkdownEditor
     // Wait for the title input to appear (first text input in the edit form)
-    const titleInput = page.locator('form input[type="text"]');
+    const titleInput = page.locator('form input[type="text"]').first();
     await expect(titleInput).toBeVisible();
     // Content is a MarkdownEditor — the inner textarea has class .w-md-editor-text-input
     const contentEditor = page.locator('.w-md-editor-text-input');
@@ -151,23 +128,16 @@ test.describe('Docs', () => {
     await page.getByRole('button', { name: 'Save' }).click();
     await page.waitForLoadState('networkidle');
 
-    // Should exit edit mode and show the updated content
-    await expect(page.getByText(updatedContent)).toBeVisible({
-      timeout: 10_000,
-    });
+    // Should exit edit mode and show the updated content.
+    await expect(page.getByRole('button', { name: 'Edit' })).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('.markdown-viewer')).toContainText(updatedContent);
   });
 
   test('can delete a document', async ({ page }) => {
     // First create a doc we can safely delete
     await createDoc(page);
 
-    // Navigate back to docs list
-    await goToDocsPage(page);
-
-    // Navigate to the first doc
-    const firstDoc = page.locator('a[href*="/docs/"]').first();
-    await expect(firstDoc).toBeVisible({ timeout: 5_000 });
-    await firstDoc.click();
+    // Creation redirects directly to the new document.
     await page.waitForURL('**/docs/**');
 
     // Click Delete
@@ -181,8 +151,6 @@ test.describe('Docs', () => {
 
     // Should redirect back to docs list
     await page.waitForURL('**/docs', { timeout: 10_000 });
-    await expect(
-      page.getByRole('heading', { name: 'Documentation' })
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Documentation' })).toBeVisible();
   });
 });

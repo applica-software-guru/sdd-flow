@@ -1,0 +1,94 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../api/query-keys';
+import api from '../api/client';
+import type { User } from '../types';
+
+export function useCurrentUser() {
+  return useQuery<User>({
+    queryKey: queryKeys.auth.me,
+    queryFn: async () => {
+      const { data } = await api.get('/auth/me');
+      return data;
+    },
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useLogin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (credentials: { email: string; password: string }) => {
+      const { data } = await api.post('/auth/login', credentials);
+      return data;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
+    },
+  });
+}
+
+export function useRegister() {
+  return useMutation({
+    mutationFn: async (payload: { email: string; password: string; display_name: string }) => {
+      const { data } = await api.post('/auth/register', payload);
+      return data;
+    },
+  });
+}
+
+export function useLogout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      await api.post('/auth/logout');
+    },
+    onSuccess: () => {
+      queryClient.clear();
+    },
+  });
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { display_name: string }) => {
+      const { data } = await api.patch('/auth/me', payload);
+      return data as User;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
+    },
+  });
+}
+
+export function useChangePassword() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { current_password?: string; new_password: string }) => {
+      const { data } = await api.post('/auth/me/change-password', payload);
+      return data as { password_set: boolean };
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.auth.me });
+    },
+  });
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: async (payload: { email: string }) => {
+      const { data } = await api.post('/auth/forgot-password', payload);
+      return data as { detail: string };
+    },
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: async (payload: { token: string; new_password: string }) => {
+      const { data } = await api.post('/auth/reset-password', payload);
+      return data as { detail: string };
+    },
+  });
+}

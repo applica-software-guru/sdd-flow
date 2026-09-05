@@ -2,8 +2,8 @@
 title: "CI Pipeline"
 status: synced
 author: ""
-last-modified: "2026-03-17T00:00:00.000Z"
-version: "1.1"
+last-modified: "2026-09-04T20:30:00.000Z"
+version: "1.2"
 ---
 
 # CI Pipeline
@@ -57,14 +57,20 @@ Steps:
 | Runner          | `ubuntu-latest` |
 | Node.js         | LTS             |
 | Package manager | `npm`           |
-| Test runner     | Vitest          |
+| Quality command | `npm run check` |
 
 Steps:
 
 1. Checkout code
 2. Set up Node.js (LTS)
 3. Install frontend dependencies via `npm ci`
-4. Run `npx vitest run` (single-run mode)
+4. Run `npm run check`, which must execute with zero warnings/errors:
+   - kebab-case application-source filename validation
+   - ESLint
+   - strict TypeScript typecheck
+   - Prettier formatting check
+   - Vitest unit/interaction tests
+   - Vite production build
 
 ## Container Publish Workflow
 

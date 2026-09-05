@@ -2,8 +2,8 @@
 title: "Project Management"
 status: synced
 author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.0"
+last-modified: "2026-09-04T20:50:00.000Z"
+version: "1.1"
 ---
 
 # Project Management
@@ -29,7 +29,7 @@ A project represents one SDD repository. It holds documentation, change requests
 ### Project Settings
 
 - Name, slug, description
-- API key management (see [[ApiKeys]])
+- API key management (see [[ApiKey]])
 - Danger zone: archive or delete project
 
 ## Agent Notes

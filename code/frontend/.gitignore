@@ -1,4 +1,8 @@
-# TypeScript incremental build info
+# Build, caches and coverage
+dist/
+.vite/
+coverage/
+.pytest_cache/
 *.tsbuildinfo
 
 # Playwright

@@ -2,8 +2,8 @@
 title: "SDD Documentation Storage"
 status: synced
 author: ""
-last-modified: "2026-03-16T00:00:00.000Z"
-version: "1.0"
+last-modified: "2026-09-04T20:50:00.000Z"
+version: "1.1"
 ---
 
 # SDD Documentation Storage
@@ -44,7 +44,7 @@ SDD Flow stores the full SDD documentation tree (`product/` and `system/` files)
 
 ### Cross-Reference Validation
 
-- Validate `[[EntityName]]` cross-references across all documentation
+- Validate wiki-style entity cross-references (for example `[[Project]]`) across all documentation
 - Show broken references as warnings in the UI
 
 ## Agent Notes
