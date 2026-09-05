@@ -1,157 +1,119 @@
+import { Code2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useCurrentUser } from '@/hooks/use-auth';
+import LandingContainer from './landing-container';
+import LandingCta from './landing-cta';
+
+const productLinks = [
+  ['Features', '#features'],
+  ['How it works', '#how-it-works'],
+  ['For teams', '#for-teams'],
+  ['Remote workers', '#remote-workers'],
+] as const;
 
 export default function FooterSection() {
+  const { data: user, isLoading } = useCurrentUser();
   return (
-    <section>
-      {/* CTA Banner */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-16">
-        <div className="mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold text-white sm:text-4xl">
-            Ready to streamline your development workflow?
-          </h2>
-          <p className="mt-4 text-lg text-blue-100">
-            Start managing your SDD projects in the cloud today. Free to get started.
+    <>
+      <section className="bg-gradient-to-r from-primary to-indigo-600 py-16 text-primary-foreground">
+        <LandingContainer className="text-center">
+          <h2 className="text-3xl font-bold sm:text-4xl">Ready to connect stories and delivery?</h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-white/80">
+            Bring documentation, review, collaboration, and coding agents into one explicit
+            workflow.
           </p>
-          <Link
-            to="/register"
-            className="mt-8 inline-flex items-center rounded-lg bg-white px-8 py-3 text-base font-semibold text-blue-600 shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl"
-          >
-            Get Started Free
-            <svg
-              className="ml-2 h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
-              />
-            </svg>
-          </Link>
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-slate-900 dark:bg-slate-950">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            {/* Brand */}
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">
+          <div className="mt-8 flex justify-center">
+            <LandingCta inverted />
+          </div>
+        </LandingContainer>
+      </section>
+      <footer className="bg-zinc-950 py-12 text-zinc-300">
+        <LandingContainer>
+          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <Link to="/" className="inline-flex items-center gap-2 text-white">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold">
                   S
-                </div>
-                <span className="text-lg font-bold text-white">SDD Flow</span>
-              </div>
-              <p className="mt-3 text-sm text-slate-400">
-                Story Driven Development, managed in the cloud.
+                </span>
+                <span className="text-lg font-bold">SDD Flow</span>
+              </Link>
+              <p className="mt-4 max-w-xs text-sm leading-6 text-zinc-400">
+                Story Driven Development, coordinated in the cloud.
               </p>
             </div>
-
-            {/* Product */}
+            <FooterGroup title="Product" links={productLinks} />
+            <FooterGroup
+              title="Resources"
+              links={[
+                ['Open source', '#open-source'],
+                ['Privacy', '/privacy'],
+              ]}
+            />
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
-                Product
-              </h3>
-              <ul className="mt-4 space-y-2">
-                <li>
-                  <a
-                    href="#features"
-                    className="text-sm text-slate-400 transition-colors hover:text-white"
-                  >
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#how-it-works"
-                    className="text-sm text-slate-400 transition-colors hover:text-white"
-                  >
-                    How it Works
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#open-source"
-                    className="text-sm text-slate-400 transition-colors hover:text-white"
-                  >
-                    Open Source
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Developers */}
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
-                Developers
-              </h3>
-              <ul className="mt-4 space-y-2">
-                <li>
-                  <a
-                    href="https://github.com/applica-software-guru/sdd"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-slate-400 transition-colors hover:text-white"
-                  >
-                    SDD CLI
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/applica-software-guru/sdd-flow"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-slate-400 transition-colors hover:text-white"
-                  >
-                    GitHub
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Company */}
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">
-                Account
-              </h3>
-              <ul className="mt-4 space-y-2">
-                <li>
-                  <Link
-                    to="/login"
-                    className="text-sm text-slate-400 transition-colors hover:text-white"
-                  >
-                    Log in
+              <h3 className="text-sm font-semibold text-white">Account</h3>
+              <div className="mt-4 flex flex-col items-start gap-3 text-sm text-zinc-400">
+                {isLoading ? (
+                  <span>Checking session…</span>
+                ) : user ? (
+                  <Link to="/tenants" className="hover:text-white">
+                    Open app
                   </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/register"
-                    className="text-sm text-slate-400 transition-colors hover:text-white"
-                  >
-                    Sign up
-                  </Link>
-                </li>
-              </ul>
+                ) : (
+                  <>
+                    <Link to="/login" className="hover:text-white">
+                      Log in
+                    </Link>
+                    <Link to="/register" className="hover:text-white">
+                      Create account
+                    </Link>
+                  </>
+                )}
+                <a
+                  href="https://github.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 hover:text-white"
+                >
+                  <Code2 className="h-4 w-4" />
+                  GitHub
+                </a>
+              </div>
             </div>
           </div>
-
-          <div className="mt-12 flex flex-col items-center gap-2 border-t border-slate-800 pt-8 sm:flex-row sm:justify-between">
-            <p className="text-sm text-slate-500">
-              &copy; {new Date().getFullYear()} SDD Flow. Open source under MIT License.
-            </p>
-            <Link
-              to="/privacy"
-              className="text-sm text-slate-500 transition-colors hover:text-slate-300"
-            >
-              Privacy Policy
-            </Link>
+          <div className="mt-10 border-t border-zinc-800 pt-6 text-sm text-zinc-500">
+            © 2026 SDD Flow. Open source software.
           </div>
-        </div>
+        </LandingContainer>
       </footer>
-    </section>
+    </>
+  );
+}
+
+function FooterGroup({
+  title,
+  links,
+}: {
+  title: string;
+  links: readonly (readonly [string, string])[];
+}) {
+  return (
+    <div>
+      <h3 className="text-sm font-semibold text-white">{title}</h3>
+      <ul className="mt-4 space-y-3 text-sm text-zinc-400">
+        {links.map(([label, href]) => (
+          <li key={label}>
+            {href.startsWith('/') ? (
+              <Link to={href} className="hover:text-white">
+                {label}
+              </Link>
+            ) : (
+              <a href={href} className="hover:text-white">
+                {label}
+              </a>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

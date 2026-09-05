@@ -2,8 +2,8 @@
 title: "Architecture Decisions"
 status: synced
 author: ""
-last-modified: "2026-09-04T20:30:00.000Z"
-version: "2.2"
+last-modified: "2026-09-05T08:50:00.000Z"
+version: "2.4"
 ---
 
 # Architecture Decisions
@@ -118,6 +118,7 @@ controllers (api/) → service classes (services/) → repositories (repositorie
 - **App shell** is split into `AppShell`, `Sidebar`, `MobileNav`, `TopBar`, breadcrumbs and user menu. Desktop and mobile navigation consume one permission-aware navigation model
 - **Consistent content width**: authenticated pages use the shared `PageContainer` with default `max-w-5xl`, avoiding layout jumps
 - **Shared workflows**: Bugs and Change Requests reuse stable form, slug, table, comments, transition and assignment building blocks while domain rules remain explicit
+- **Public landing composition**: `components/landing/` composes semantic primitives through reusable containers, section headings, CTAs, feature cards and preview frames. Typed static fixtures feed compact previews of the tenant dashboard, selected-project overview, work items, docs, workers and audit behavior; tenant-level and project-level navigation remain distinct, and previews never mount routed pages or execute API hooks
 - **Accessibility**: dialogs, alerts, selects and dropdowns use Radix/shadcn semantics; icon controls are labelled and keyboard/focus behaviour is covered by interaction tests
 - **Toolchain**: filename-convention validation, ESLint (type-aware plus JSX accessibility), strict TypeScript, Prettier with Tailwind class ordering, Vitest/Testing Library, Playwright and production build are exposed through `npm run check` and the frontend `cli.sh`
 
