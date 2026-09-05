@@ -218,5 +218,21 @@
     "projectBuild": "Build del progetto",
     "job": "Job",
     "noDescription": "Nessuna descrizione"
+  },
+  "pwa": {
+    "offlineLabel": "Stato della rete",
+    "offlineTitle": "Sei offline",
+    "offlineDescription": "SDD Flow richiede connettività per dati server e modifiche. Riconnettiti prima di salvare o sincronizzare il lavoro.",
+    "updateLabel": "Aggiornamento applicazione",
+    "updateTitle": "È disponibile una nuova versione",
+    "updateDescription": "Ricarica quando sei pronto per attivare l'ultima versione di SDD Flow.",
+    "reload": "Ricarica ora",
+    "later": "Più tardi",
+    "installLabel": "Installa SDD Flow",
+    "installTitle": "Installa SDD Flow",
+    "installDescription": "Apri SDD Flow dal launcher o dalla barra delle applicazioni in una finestra dedicata.",
+    "install": "Installa app",
+    "notNow": "Non ora",
+    "dismissInstall": "Nascondi prompt di installazione"
   }
 }

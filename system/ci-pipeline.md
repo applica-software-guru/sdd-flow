@@ -2,8 +2,8 @@
 title: "CI Pipeline"
 status: synced
 author: ""
-last-modified: "2026-09-04T20:30:00.000Z"
-version: "1.3"
+last-modified: "2026-09-05T14:20:00.000Z"
+version: "1.4"
 ---
 
 # CI Pipeline
@@ -66,11 +66,12 @@ Steps:
 3. Install frontend dependencies via `npm ci`
 4. Run `npm run check`, which must execute with zero warnings/errors:
    - kebab-case application-source filename validation
+   - PWA manifest/icon validation
    - ESLint
    - strict TypeScript typecheck
    - Prettier formatting check
    - Vitest unit/interaction tests
-   - Vite production build
+   - Vite production build with service-worker generation
 
 ## Container Publish Workflow
 
@@ -114,6 +115,7 @@ Tag policy:
 
 ### Consistency checks
 
+- Fail frontend validation if the PWA manifest is missing required installability fields, references missing icons, declares incorrect icon dimensions or fails to emit service-worker build artifacts.
 - Fail the job if backend/frontend generated tags do not contain the same `${VERSION}`.
 - For release tag events (`v*`), ensure release communication references the same GAR image tags.
 - Keep PR behavior as build-only (`push: false`).

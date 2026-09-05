@@ -2,8 +2,8 @@
 title: "Localization — Italian and English"
 status: synced
 author: "user"
-last-modified: "2026-09-05T12:37:13.000Z"
-version: "1.0"
+last-modified: "2026-09-05T14:20:00.000Z"
+version: "1.1"
 ---
 
 # Localization — Italian and English
@@ -36,8 +36,8 @@ The selector identifies the current language, supports keyboard and focus behavi
 
 All application-owned frontend copy is localized, including:
 
-- public, authentication, tenant, project, documentation, CR, bug, worker, audit, notification, profile, and platform-administration experiences;
-- navigation, breadcrumbs, forms, filters, tables, dialogs, validation, empty/loading/error states, confirmations, and toasts;
+- public, authentication, tenant, project, documentation, CR, bug, worker, audit, notification, profile, platform-administration, and installable-PWA experiences;
+- navigation, breadcrumbs, forms, filters, tables, dialogs, validation, empty/loading/error states, confirmations, toasts, offline notices, install prompts, and update-available notifications;
 - status, severity, role, event, and job-state presentation labels;
 - accessibility labels, titles, alternative text, and screen-reader-only content;
 - locale-sensitive dates, date-times, counts, interpolation, and plural forms.

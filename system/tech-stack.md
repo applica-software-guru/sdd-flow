@@ -2,8 +2,8 @@
 title: "Tech Stack"
 status: synced
 author: ""
-last-modified: "2026-09-05T12:37:13.000Z"
-version: "1.4"
+last-modified: "2026-09-05T14:20:00.000Z"
+version: "1.5"
 ---
 
 # Tech Stack
@@ -43,6 +43,8 @@ version: "1.4"
 | i18next | Typed translation resources, fallback, interpolation and plurals | latest |
 | react-i18next | React bindings for locale-aware rendering | latest |
 | i18next-browser-languagedetector | Persisted and browser language detection | latest |
+| vite-plugin-pwa | Vite/Workbox service-worker generation and PWA manifest integration | latest |
+| Workbox | Precache and service-worker runtime strategy used by the PWA build | bundled with vite-plugin-pwa |
 
 ## Infrastructure
 
@@ -68,3 +70,4 @@ version: "1.4"
 | Testing Library | Frontend interaction and accessibility tests     |
 | ESLint  | Type-aware TypeScript and JSX accessibility linting     |
 | Prettier | Frontend formatting and Tailwind class ordering         |
+| PWA manifest/icon validator | Frontend installability metadata and icon-dimension checks |

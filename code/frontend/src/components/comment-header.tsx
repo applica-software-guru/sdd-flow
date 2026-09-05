@@ -13,7 +13,10 @@ export default function CommentHeader({ comment }: { comment: Comment }) {
   const name = comment.author?.display_name ?? null;
   const email = comment.author?.email ?? null;
   const avatarUrl = comment.author?.avatar_url ?? null;
-  const label = userDisplayLabel({ display_name: name, email }, translate('common:fallback.unknown'));
+  const label = userDisplayLabel(
+    { display_name: name, email },
+    translate('common:fallback.unknown')
+  );
   const title = userLabelTitle({ display_name: name, email });
   const [imageFailed, setImageFailed] = useState(false);
   const shouldShowImage = Boolean(avatarUrl) && !imageFailed;

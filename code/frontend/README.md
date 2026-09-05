@@ -12,7 +12,8 @@ Use npm scripts directly or `./cli.sh <command>`:
 - `npm run format` / `npm run format:check` — Prettier and Tailwind class ordering
 - `npm test` — Vitest
 - `npm run test:e2e` — Playwright
-- `npm run build` — typecheck and production build
+- `npm run build` — typecheck, production build and generated PWA artifact validation
+- `npm run check:pwa` — validate manifest metadata and public icon dimensions
 - `npm run check` — complete CI quality gate
 
 ## Structure
@@ -26,6 +27,14 @@ Use npm scripts directly or `./cli.sh <command>`:
 - `src/pages/`: thin route composition modules
 
 All application source filenames must use kebab-case. Run `npm run check:filenames` to validate.
+
+## PWA development
+
+Production builds generate and register the installable PWA service worker. Development mode keeps service-worker registration disabled so stale caches do not mask frontend changes.
+
+If an old local service worker affects testing, clear it from the browser developer tools under Application → Service Workers, then clear site storage and reload. API, authentication, websocket and worker traffic must remain network-backed; do not add stale-cache fallbacks for protected server data.
+
+Run `npm run check:pwa` after changing `index.html`, `public/site.webmanifest` or app icons. `npm run build` also validates the generated `dist/sw.js` artifact.
 
 ## Bundle strategy
 

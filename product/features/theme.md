@@ -2,8 +2,8 @@
 title: "Theme — Light / Dark Mode"
 status: synced
 author: "roberto"
-last-modified: "2026-09-05T12:37:13.000Z"
-version: "1.3"
+last-modified: "2026-09-05T14:20:00.000Z"
+version: "1.4"
 ---
 
 # Theme — Light / Dark Mode
@@ -43,6 +43,7 @@ The application supports light and dark color schemes with automatic OS preferen
 - Map semantic variables into Tailwind so code-owned shadcn primitives and product components share one palette
 - Preserve the current slate/blue visual identity in both light and dark themes
 - Apply the persisted or system theme synchronously before the application and stylesheet-driven surfaces paint, preventing a light flash during initial load
+- Keep the runtime `theme-color` metadata coherent with the resolved light/dark theme while the PWA manifest provides safe default install-surface colours
 - Keep `html`, `body`, `#root`, and route-loading fallbacks on the semantic theme background; nested route loading must preserve the dark app shell instead of exposing the browser's default canvas
 - All UI surfaces must support both themes:
   - Backgrounds (page, cards, sidebar, modals)

@@ -2,8 +2,8 @@
 title: "Architecture Decisions"
 status: synced
 author: ""
-last-modified: "2026-09-05T12:37:13.000Z"
-version: "2.8"
+last-modified: "2026-09-05T14:20:00.000Z"
+version: "2.9"
 ---
 
 # Architecture Decisions
@@ -124,7 +124,18 @@ controllers (api/) → service classes (services/) → repositories (repositorie
 - **Tenant dashboard composition**: the authenticated tenant entry page consumes one typed tenant dashboard summary query and composes a focused sequence of header, KPI cards and searchable/sortable project rows from shared design-system primitives. No additional attention, recent-activity or worker side panels are shown in the first version. Client-side search/sort may operate on the compact summary payload; tenant-wide KPI reconstruction through multiple paginated list hooks is avoided
 - **Workspace switcher composition**: the app shell exposes a shared workspace switcher in the desktop top bar and mobile drawer. The switcher reads current route params, shows tenant groups with nested project rows, supports client-side search over the compact navigation payload, and navigates to tenant overview or project dashboard routes without changing the tenant dashboard project list
 - **Accessibility**: dialogs, alerts, selects and dropdowns use Radix/shadcn semantics; icon controls are labelled and keyboard/focus behaviour is covered by interaction tests
-- **Toolchain**: filename-convention validation, ESLint (type-aware plus JSX accessibility), strict TypeScript, Prettier with Tailwind class ordering, Vitest/Testing Library, Playwright and production build are exposed through `npm run check` and the frontend `cli.sh`
+- **Toolchain**: filename-convention validation, ESLint (type-aware plus JSX accessibility), strict TypeScript, Prettier with Tailwind class ordering, Vitest/Testing Library, Playwright, PWA manifest/icon validation and production build are exposed through `npm run check` and the frontend `cli.sh`
+
+### Frontend Installable PWA
+
+- Production frontend builds are installable as a standards-based Progressive Web App with a complete web app manifest, standalone display mode and dedicated SDD Flow launcher icons
+- `index.html` links the manifest, favicon, Apple touch icon, description metadata and theme-colour metadata; the manifest defines app identity, `id`, `start_url`, `scope`, colours and normal/maskable PNG icons
+- A generated service worker is registered only for supported browser builds. It precaches hashed Vite build assets and the application shell, and uses navigation fallback to `index.html` so deep-link refreshes work in browser and installed modes
+- Authenticated backend traffic is not served from stale caches. `/api`, `/auth`, websocket endpoints, worker streams/polling and other protected requests remain network-only or network-first without offline fallback
+- Service-worker update detection is surfaced through accessible product UI. A waiting update prompts the user to reload, but the app does not force reloads during active work
+- Online/offline state is presented in the UI. Offline mode explains that server-backed data and mutations require connectivity rather than simulating successful sync
+- PWA state is frontend presentation/runtime state only: it does not alter API contracts, authentication cookies, tenant/project routing, query keys, persisted domain content or backend session semantics
+- Installed-mode launch preserves existing auth refresh, tenant/project workspace selection, theme preference and language preference
 
 ### Frontend Internationalization
 
@@ -206,7 +217,7 @@ Cloud Run receives `SUPER_USER_EMAIL` from the private GitHub secret `CLOUDRUN_S
 ### CI Pipeline: GitHub Actions
 
 - **GitHub Actions** runs backend pytest and the complete frontend `npm run check` gate on every push to `main` and on all pull requests
-- The frontend gate includes ESLint, strict typecheck, Prettier check, unit tests and a production build
+- The frontend gate includes filename validation, PWA manifest/icon validation, ESLint, strict typecheck, Prettier check, unit tests and a production build
 - Backend tests use a **MongoDB 7 service container** for integration testing against a real database
 - The MongoDB service container is configured with a health check (`mongosh ping`) to ensure it is ready before tests run
 - Frontend and backend jobs run **in parallel** for faster feedback
